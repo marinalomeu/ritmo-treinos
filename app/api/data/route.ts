@@ -11,7 +11,7 @@ export async function GET() {
         COUNT(ss.id)::int AS total_sets,
         COUNT(ss.id) FILTER (WHERE ss.completed)::int AS completed_sets
       FROM workout_sessions ws LEFT JOIN session_sets ss ON ss.session_id = ws.id
-      GROUP BY ws.id ORDER BY ws.performed_on DESC, ws.started_at DESC LIMIT 150
+      GROUP BY ws.id ORDER BY ws.performed_on DESC, ws.started_at DESC LIMIT 3000
     `;
     const progress = await sql`
       SELECT ss.exercise_key, MAX(ss.exercise_name) AS exercise_name, MAX(ss.load_unit) AS load_unit,
@@ -21,7 +21,7 @@ export async function GET() {
       WHERE ss.completed = TRUE AND ss.weight_kg IS NOT NULL
         AND ss.load_unit IN ('kg','assist_kg','km/h')
       GROUP BY ss.exercise_key, ws.id, ws.performed_on, ws.started_at
-      ORDER BY ws.performed_on DESC, ws.started_at DESC LIMIT 600
+      ORDER BY ws.performed_on DESC, ws.started_at DESC LIMIT 10000
     `;
     const rows=await sql`SELECT name,starts_on::text AS starts_on,ends_on::text AS ends_on,workouts_per_week FROM training_goal WHERE id=1`;
     const templates=await sql`

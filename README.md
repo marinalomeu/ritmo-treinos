@@ -28,3 +28,10 @@ O ritmo. pode ser instalado diretamente do endereço [ritmo-treinos-coral.vercel
 - **Android (Chrome):** abrir o site → menu ⋮ → Instalar app (ou Adicionar à tela inicial).
 
 O aplicativo usa o mesmo servidor Vercel, autenticação por senha e histórico armazenado no Neon. **É necessário estar conectado à internet para abrir, autenticar e salvar treinos.** Nenhuma rota autenticada é armazenada em cache offline pela PWA. O ícone está disponível nos formatos 64, 180, 192 e 512 px, com versão maskable.
+
+## Fichas e histórico
+
+- As fichas atuais são armazenadas em `workout_templates`, e podem ser criadas/editadas/excluídas no app.
+- Cada sessão guarda uma cópia dos exercícios e suas cargas em `session_sets`: alterações posteriores da ficha **não editam nem apagam os registros históricos**.
+- Um exercício retirado da rotina continua disponível na aba Evolução, desde que tenha séries concluídas com carga.
+- O modo `/demo` usa exclusivamente dados fictícios no armazenamento do navegador, sem acesso ao Neon.
