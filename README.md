@@ -19,3 +19,12 @@ Para utilizar o armazenamento em nuvem, configure `.env.local` com `DATABASE_URL
 As tabelas são definidas em `db/schema.sql`. Em ambientes sem essas variáveis, o aplicativo utiliza armazenamento de demonstração no navegador.
 
 > A publicação de produção é protegida pela autenticação da Vercel e pela senha do aplicativo.
+
+## Instalar no celular (PWA)
+
+O ritmo. pode ser instalado diretamente do endereço [ritmo-treinos-coral.vercel.app](https://ritmo-treinos-coral.vercel.app), sem publicar nas lojas.
+
+- **iPhone (Safari):** abrir o site → Compartilhar → Adicionar à Tela de Início → Abrir como App (quando disponível) → Adicionar.
+- **Android (Chrome):** abrir o site → menu ⋮ → Instalar app (ou Adicionar à tela inicial).
+
+O aplicativo usa o mesmo servidor Vercel, autenticação por senha e histórico armazenado no Neon. **É necessário estar conectado à internet para abrir, autenticar e salvar treinos.** Nenhuma rota autenticada é armazenada em cache offline pela PWA. O ícone está disponível nos formatos 64, 180, 192 e 512 px, com versão maskable.
