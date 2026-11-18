@@ -37,7 +37,7 @@ export default function OwnerActivation(){
         setStage('password');
         setMessage('Confira seu e-mail para obter o código de definição de senha.');
       }else if(stage==='password'){
-        if(password.length<12)throw new Error('A senha deve ter pelo menos 12 caracteres.');
+        if(password.length<8)throw new Error('A senha deve ter pelo menos 8 caracteres.');
         const result=await auth.emailOtp.resetPassword({email:normalized,otp:otp.trim(),password});
         if(result.error)throw new Error(result.error.message||'Não foi possível definir a senha.');
         setOtp('');
@@ -88,7 +88,7 @@ export default function OwnerActivation(){
         {(stage==='password'||stage==='activate')&&<>
           <label htmlFor="activation-password">Sua nova senha</label>
           <input id="activation-password" type="password" autoComplete="new-password"
-            minLength={12} required value={password} onChange={e=>setPassword(e.target.value)} />
+            minLength={8} required value={password} onChange={e=>setPassword(e.target.value)} />
         </>}
         {message&&<p role="status">{message}</p>}
         {error&&<p className="error-text" role="alert">{error}</p>}

@@ -25,7 +25,7 @@ export default function InviteSignup({token}:{token:string}) {
     event.preventDefault();setBusy(true);setError('');
     try{
       if(phase==='signup'){
-        if(password.length<12||name.trim().length<2)throw new Error('Informe seu nome e use uma senha com pelo menos 12 caracteres.');
+        if(password.length<8||name.trim().length<2)throw new Error('Informe seu nome e use uma senha com pelo menos 8 caracteres.');
         const result=await auth.signUp.email({email,name:name.trim(),password});
         if(result.error)throw new Error(result.error.message||'Não foi possível criar a conta.');
         setPhase('verify');
@@ -62,7 +62,7 @@ export default function InviteSignup({token}:{token:string}) {
           <label htmlFor="invite-name">Seu nome</label>
           <input id="invite-name" value={name} maxLength={100} onChange={e=>setName(e.target.value)} required />
           <label htmlFor="invite-pass">Sua senha</label>
-          <input id="invite-pass" type="password" autoComplete="new-password" minLength={12}
+          <input id="invite-pass" type="password" autoComplete="new-password" minLength={8}
             value={password} onChange={e=>setPassword(e.target.value)} required />
         </>:<>
           <p>Digite o código enviado para <strong>{email}</strong>.</p>
