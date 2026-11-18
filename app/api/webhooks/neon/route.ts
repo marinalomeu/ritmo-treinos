@@ -29,7 +29,7 @@ export async function POST(request:Request){
       await sql`
         WITH claimed AS (
           UPDATE public.app_invitations
-          SET status='accepted',accepted_at=NOW(),accepted_by=${id}::uuid
+          SET status='accepted',accepted_at=NOW()
           WHERE email=${email} AND status='pending' AND expires_at>NOW()
             AND activated_at>NOW()-INTERVAL '30 minutes'
           RETURNING email

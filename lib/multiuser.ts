@@ -45,7 +45,7 @@ export async function currentProfile(): Promise<Profile | null> {
           AND lower(email)=${email} AND "emailVerified"=true
       ), invitation AS (
         UPDATE public.app_invitations i
-        SET status='accepted',accepted_at=NOW(),accepted_by=${id}::uuid
+        SET status='accepted',accepted_at=NOW()
         FROM valid_user u
         WHERE i.email=lower(u.email) AND i.status='pending'
           AND i.expires_at>NOW() AND i.activated_at>NOW()-INTERVAL '30 minutes'
