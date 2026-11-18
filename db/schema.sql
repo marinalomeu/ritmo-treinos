@@ -27,3 +27,17 @@ CREATE TABLE IF NOT EXISTS session_sets (
 CREATE INDEX IF NOT EXISTS idx_workout_sessions_date ON workout_sessions(performed_on DESC, started_at DESC);
 CREATE INDEX IF NOT EXISTS idx_session_sets_session ON session_sets(session_id, sort_order, set_number);
 CREATE INDEX IF NOT EXISTS idx_session_sets_progress ON session_sets(exercise_key, completed_at DESC) WHERE completed = TRUE;
+
+-- Meta pessoal editável (singleton; nunca armazena dados de visitante da demonstração).
+CREATE TABLE IF NOT EXISTS training_goal (
+ id SMALLINT PRIMARY KEY DEFAULT 1 CHECK (id=1),
+ name VARCHAR(60) NOT NULL,
+ starts_on DATE NOT NULL,
+ ends_on DATE NOT NULL,
+ workouts_per_week SMALLINT NOT NULL CHECK (workouts_per_week BETWEEN 1 AND 6),
+ updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+ CONSTRAINT training_goal_dates CHECK (starts_on <= ends_on)
+);
+INSERT INTO training_goal (id,name,starts_on,ends_on,workouts_per_week)
+VALUES (1,'Projeto Carnaval','2026-11-18','2027-02-11',6)
+ON CONFLICT (id) DO NOTHING;

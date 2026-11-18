@@ -9,3 +9,15 @@
 .carnival-counter{background:var(--surface);border:1px solid var(--border);border-radius:15px;min-height:96px;padding:18px 18px;display:flex;align-items:center;justify-content:center}
 .carnival-counter strong{font:800 clamp(24px,3vw,35px)/1.2 'Manrope',sans-serif;color:var(--plum);letter-spacing:-1.15px;white-space:nowrap}
 @media(max-width:760px){.carnival-counters{gap:9px;margin-top:16px}.carnival-counter{min-height:76px;padding:12px 6px}.carnival-counter strong{font-size:clamp(17px,5.2vw,27px);letter-spacing:-.7px}}
+
+/* Editor de meta: mantém os indicadores limpos, com configuração discreta */
+.goal-area{position:relative}
+.goal-area .carnival-counters{margin-top:22px}
+.goal-edit-btn{display:flex;align-items:center;justify-content:flex-end;gap:6px;margin:8px 2px 0 auto;background:transparent;border:0;color:var(--plum2);font-size:11px;font-weight:700;padding:6px;cursor:pointer}
+.goal-edit-btn:hover{text-decoration:underline}
+.goal-form{display:grid;gap:15px;margin-top:21px}
+.goal-form label{display:grid;gap:6px;color:var(--plum);font-size:10px;letter-spacing:1px;font-weight:800}
+.goal-form input,.goal-form select{min-width:0;width:100%;border:1px solid var(--border);border-radius:9px;background:#fffdfa;color:var(--ink);padding:11px 10px;font-size:14px;font-weight:500;letter-spacing:0}
+.goal-date-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.goal-form p{font-size:12px;color:var(--muted);line-height:1.55}
+@media(max-width:370px){.goal-date-grid{grid-template-columns:1fr}}

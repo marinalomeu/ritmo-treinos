@@ -23,6 +23,7 @@ export async function GET() {
       GROUP BY ss.exercise_key, ws.id, ws.performed_on, ws.started_at
       ORDER BY ws.performed_on DESC, ws.started_at DESC LIMIT 600
     `;
-    return NextResponse.json({sessions, progress}, {headers:{'Cache-Control':'no-store'}});
+    const rows = await sql`SELECT name,starts_on::text AS starts_on,ends_on::text AS ends_on,workouts_per_week FROM training_goal WHERE id=1`;
+    return NextResponse.json({sessions, progress, goal:rows[0] || null}, {headers:{'Cache-Control':'no-store'}});
   } catch (error) { return serverError(error); }
 }
