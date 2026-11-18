@@ -23,7 +23,19 @@ export async function GET() {
       GROUP BY ss.exercise_key, ws.id, ws.performed_on, ws.started_at
       ORDER BY ws.performed_on DESC, ws.started_at DESC LIMIT 600
     `;
-    const rows = await sql`SELECT name,starts_on::text AS starts_on,ends_on::text AS ends_on,workouts_per_week FROM training_goal WHERE id=1`;
-    return NextResponse.json({sessions, progress, goal:rows[0] || null}, {headers:{'Cache-Control':'no-store'}});
+    const rows=await sql`SELECT name,starts_on::text AS starts_on,ends_on::text AS ends_on,workouts_per_week FROM training_goal WHERE id=1`;
+    const templates=await sql`
+      SELECT id,name,description,days,category,exercises FROM workout_templates
+      ORDER BY position ASC,created_at ASC,id ASC
+    `;
+    const historicalExercises=await sql`
+      SELECT DISTINCT ON (ss.exercise_key)
+        ss.exercise_key AS key,ss.exercise_name AS name,ss.load_unit AS unit
+      FROM session_sets ss
+      WHERE ss.completed=TRUE AND ss.weight_kg IS NOT NULL
+        AND ss.load_unit IN ('kg','assist_kg','km/h')
+      ORDER BY ss.exercise_key,ss.completed_at DESC NULLS LAST,ss.id DESC
+    `;
+    return NextResponse.json({sessions, progress, goal:rows[0] || null,templates,historicalExercises}, {headers:{'Cache-Control':'no-store'}});
   } catch (error) { return serverError(error); }
 }

@@ -1,10 +1,22 @@
 'use client';
-import { getTemplate, makeSets, type SessionDetail, type StoredSet, type HistoryData, type WorkoutSession } from './templates';
+import { TEMPLATES, getTemplate, makeSets, type SessionDetail, type StoredSet, type HistoryData, type WorkoutSession, type Template } from './templates';
 import { SHOWCASE_GOAL, type TrainingGoal } from './goal';
 import { DEMO_TEMPLATES } from './demoTemplates';
 export type Mode = 'demo' | 'cloud' | 'showcase';
 const STORAGE_KEY = 'ritmo_treinos_demo_v1';
 const SHOWCASE_KEY = 'ritmo_showcase_v2';
+const SHOWCASE_TEMPLATES_KEY='ritmo_showcase_templates_v1';
+const DEMO_TEMPLATES_KEY='ritmo_local_templates_v1';
+const templatesKey=(mode:Mode)=>mode==='showcase'?SHOWCASE_TEMPLATES_KEY:DEMO_TEMPLATES_KEY;
+const localTemplates=(mode:Mode):Template[]=>{
+  try {
+    const raw=localStorage.getItem(templatesKey(mode));
+    const fromStorage=raw?JSON.parse(raw):null;
+    if(Array.isArray(fromStorage)) return fromStorage as Template[];
+  }catch{}
+  return JSON.parse(JSON.stringify(mode==='showcase'?DEMO_TEMPLATES:TEMPLATES)) as Template[];
+};
+const storeTemplates=(mode:Mode,templates:Template[])=>localStorage.setItem(templatesKey(mode),JSON.stringify(templates));
 const localKey = (mode:Mode) => mode==='showcase'?SHOWCASE_KEY:STORAGE_KEY;
 const sampleSessions=():SessionDetail[] => {
   const definitions:{date:string;template:string;factor:number}[] = [
@@ -58,11 +70,12 @@ export async function listData(mode:Mode):Promise<HistoryData> {
     });
     map.forEach(s=>progress.push({exercise_key:s.exercise_key,exercise_name:s.exercise_name,load_unit:s.load_unit,performed_on:d.session.performed_on,weight_kg:s.weight_kg!,session_id:d.session.id}));
   });
-  return {sessions:details.map(d=>d.session),progress,goal:mode==='showcase'?SHOWCASE_GOAL:undefined};
+  const historicalExercises=[...new Map(progress.map(p=>[p.exercise_key,{key:p.exercise_key,name:p.exercise_name,unit:p.load_unit}])).values()];
+  return {sessions:details.map(d=>d.session),progress,goal:mode==='showcase'?SHOWCASE_GOAL:undefined,templates:localTemplates(mode),historicalExercises};
 }
 export async function createSession(mode:Mode,templateId:string,date:string):Promise<string> {
   if (mode==='cloud') { const r=await parseResponse<{id:string}>(await fetch('/api/sessions',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({template_id:templateId,performed_on:date})})); return r.id; }
-  const template = mode==='showcase'?DEMO_TEMPLATES.find(t=>t.id===templateId):getTemplate(templateId); if (!template) throw new Error('Ficha desconhecida.');
+  const template=localTemplates(mode).find(t=>t.id===templateId); if (!template) throw new Error('Ficha desconhecida.');
   const now = new Date().toISOString(); const id=crypto.randomUUID();
   const past:Record<string,number> = {};
   const old=read(mode).sort((a,b)=>b.session.started_at.localeCompare(a.session.started_at));
@@ -91,4 +104,25 @@ export async function deleteSession(mode:Mode,id:string):Promise<void> {
 export async function saveGoal(mode:Mode, goal:TrainingGoal):Promise<TrainingGoal>{
   if(mode!=='cloud') throw new Error('A meta só pode ser atualizada no perfil real.');
   return parseResponse<TrainingGoal>(await fetch('/api/goal',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(goal)}));
+}
+
+/** As fichas atuais são independentes das sessões históricas: nunca regravamos session_sets. */
+export async function persistTemplate(mode:Mode,template:Template,isNew:boolean):Promise<Template>{
+  if(mode==='cloud'){
+    const url=isNew?'/api/templates':`/api/templates/${encodeURIComponent(template.id)}`;
+    return parseResponse<Template>(await fetch(url,{method:isNew?'POST':'PUT',
+      headers:{'Content-Type':'application/json'},body:JSON.stringify(template)}));
+  }
+  const items=localTemplates(mode);
+  const saved={...template,id:isNew?`custom-${crypto.randomUUID()}`:template.id};
+  const next=isNew?[...items,saved]:items.map(item=>item.id===saved.id?saved:item);
+  storeTemplates(mode,next);
+  return saved;
+}
+export async function removeTemplate(mode:Mode,id:string):Promise<void>{
+  if(mode==='cloud'){
+    await parseResponse(await fetch(`/api/templates/${encodeURIComponent(id)}`,{method:'DELETE'}));
+    return;
+  }
+  storeTemplates(mode,localTemplates(mode).filter(item=>item.id!==id));
 }

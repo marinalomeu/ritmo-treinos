@@ -21,3 +21,36 @@
 .goal-date-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .goal-form p{font-size:12px;color:var(--muted);line-height:1.55}
 @media(max-width:370px){.goal-date-grid{grid-template-columns:1fr}}
+
+/* Gestão de fichas: visualizar primeiro, editar sem reescrever sessões antigas. */
+.template-toolbar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;justify-content:flex-end}
+.template-add-btn{padding:9px 13px;font-size:12px;white-space:nowrap}
+.template-dialog{max-width:690px}
+.template-dialog-description{color:var(--muted);font-size:13px}
+.template-dialog-days{font-size:12px;color:var(--plum2);margin:7px 0 14px;font-weight:700}
+.template-exercises-list{display:grid;gap:8px;margin:20px 0}
+.template-exercise-item{border:1px solid var(--border);border-radius:11px;padding:12px;display:flex;align-items:start;gap:11px;background:#fff}
+.template-exercise-count{background:#f2eaf0;border-radius:8px;min-width:30px;padding:6px;text-align:center;font-size:11px;font-weight:800;color:var(--plum)}
+.template-exercise-info{display:grid;gap:3px}
+.template-exercise-info strong{font-size:13px;color:var(--ink)}
+.template-exercise-info span,.template-exercise-info small{font-size:11px;color:var(--muted)}
+.template-history-notice{font-size:11px;color:var(--muted);line-height:1.6;margin:15px 0}
+.template-dialog-actions{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-top:17px}
+.template-dialog-actions .btn{padding:10px 14px;font-size:12px}
+.btn-outline-template{border:1px solid #c7b2bf;background:transparent;color:var(--plum)}
+.btn-outline-template:hover{background:#f8f2f7}
+.template-alert{padding:10px 12px;border-radius:8px;background:#fdf0ef;color:#ab4545;font-size:12px;margin-bottom:12px}
+.template-editor-fields{display:grid;gap:12px;margin-top:12px}
+.template-editor-fields label,.template-edit-exercise label{display:grid;gap:5px;font-size:10px;font-weight:800;letter-spacing:.6px;color:var(--plum2)}
+.template-editor-fields input,.template-edit-exercise input,.template-edit-exercise select{background:#fff;border:1px solid var(--border);border-radius:8px;padding:10px 11px;color:var(--ink);font-size:13px;font-weight:500;letter-spacing:0;min-width:0;width:100%}
+.template-input-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.template-editor-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:23px 0 11px}
+.template-editor-heading strong{font-size:14px}
+.template-edit-exercises{display:grid;gap:12px}
+.template-edit-exercise{border:1px solid var(--border);border-radius:12px;padding:14px;background:#fdfbfc;display:grid;gap:11px}
+.template-edit-head{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.template-edit-head strong{font-size:12px;color:var(--plum)}
+.template-remove-exercise{display:flex;align-items:center;gap:4px;background:transparent;border:0;color:#a24e58;font-size:11px;font-weight:700;padding:5px}
+.template-exercise-input-grid{display:grid;grid-template-columns:80px minmax(0,1.3fr) minmax(0,1fr) minmax(0,1fr);gap:9px}
+@media(max-width:600px){.template-toolbar{gap:7px}.template-toolbar .small-muted{display:none}.template-add-btn{padding:9px 10px;font-size:11px}.template-dialog{max-width:100%}.template-exercise-input-grid{grid-template-columns:1fr 1fr}.template-input-grid{grid-template-columns:1fr 1fr}.template-dialog-actions .btn{flex:1;justify-content:center}}
+@media(max-width:370px){.template-input-grid{grid-template-columns:1fr}}
