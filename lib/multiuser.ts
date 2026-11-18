@@ -34,7 +34,30 @@ export async function currentProfile(): Promise<Profile | null> {
       JOIN neon_auth."user" u ON u.id=p.id AND u."emailVerified"=true
       WHERE p.id=${id}::uuid AND p.enabled=true LIMIT 1
     `;
-    return profiles.length ? profiles[0] as Profile : null;
+    if (profiles.length) return profiles[0] as Profile;
+    // Recupera convites cuja notificação não bloqueante user.created não chegou.
+    // Exige sessão real, e-mail confirmado no Neon e convite ativado.
+    const email = String(data?.user?.email ?? '').trim().toLowerCase();
+    if (!email || email.length > 254) return null;
+    const claimed = await sql`
+      WITH valid_user AS (
+        SELECT id,email FROM neon_auth."user" WHERE id=${id}::uuid
+          AND lower(email)=${email} AND "emailVerified"=true
+      ), invitation AS (
+        UPDATE public.app_invitations i
+        SET status='accepted',accepted_at=NOW(),accepted_by=${id}::uuid
+        FROM valid_user u
+        WHERE i.email=lower(u.email) AND i.status='pending'
+          AND i.expires_at>NOW() AND i.activated_at>NOW()-INTERVAL '30 minutes'
+        RETURNING i.email
+      ), linked AS (
+        INSERT INTO public.app_profiles(id,email,role,enabled)
+        SELECT ${id}::uuid,email,'member',true FROM invitation
+        ON CONFLICT(id) DO NOTHING RETURNING id,email,role
+      )
+      SELECT id::text,email,role FROM linked LIMIT 1
+    `;
+    return claimed.length ? claimed[0] as Profile : null;
   } catch (error) {
     console.error('[ritmo] Sessão não validada', error);
     return null;

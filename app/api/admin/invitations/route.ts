@@ -39,6 +39,11 @@ export async function POST(request:Request){
       SELECT 1 FROM public.app_profiles WHERE email=${email} LIMIT 1
     `;
     if(exists.length)return NextResponse.json({error:'Este e-mail já possui uma conta.'},{status:409});
+    // Permite um novo convite para um e-mail cujo convite anterior já venceu.
+    await sql`
+      UPDATE public.app_invitations SET status='expired'
+      WHERE email=${email} AND status='pending' AND expires_at<=NOW()
+    `;
     const token=randomBytes(32).toString('hex');
     const hash=createHash('sha256').update(token).digest('hex');
     const rows=await sql`
