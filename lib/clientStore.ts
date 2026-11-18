@@ -1,9 +1,10 @@
 'use client';
 import { getTemplate, makeSets, type SessionDetail, type StoredSet, type HistoryData, type WorkoutSession } from './templates';
 import { SHOWCASE_GOAL, type TrainingGoal } from './goal';
+import { DEMO_TEMPLATES } from './demoTemplates';
 export type Mode = 'demo' | 'cloud' | 'showcase';
 const STORAGE_KEY = 'ritmo_treinos_demo_v1';
-const SHOWCASE_KEY = 'ritmo_showcase_v1';
+const SHOWCASE_KEY = 'ritmo_showcase_v2';
 const localKey = (mode:Mode) => mode==='showcase'?SHOWCASE_KEY:STORAGE_KEY;
 const sampleSessions=():SessionDetail[] => {
   const definitions:{date:string;template:string;factor:number}[] = [
@@ -11,10 +12,10 @@ const sampleSessions=():SessionDetail[] => {
     {date:'2026-11-10',template:'B',factor:0},
     {date:'2026-11-11',template:'C',factor:1},
     {date:'2026-11-12',template:'D',factor:0},
-    {date:'2026-11-13',template:'A',factor:2}
+    {date:'2026-11-13',template:'E',factor:2}
   ];
   return definitions.map((entry,index)=>{
-    const template=getTemplate(entry.template)!;
+    const template=DEMO_TEMPLATES.find(t=>t.id===entry.template)!;
     const id=`showcase-${index+1}`;
     const completedAt=`${entry.date}T18:30:00.000Z`;
     const sets=makeSets(template).map((set,i)=>({
@@ -33,6 +34,7 @@ const parseResponse = async <T>(res: Response): Promise<T> => {
 };
 const read = (mode:Mode): SessionDetail[] => {
   try {
+    if(mode==='showcase') localStorage.removeItem('ritmo_showcase_v1');
     const raw=localStorage.getItem(localKey(mode));
     if(!raw && mode==='showcase'){
       const samples=sampleSessions();
@@ -60,7 +62,7 @@ export async function listData(mode:Mode):Promise<HistoryData> {
 }
 export async function createSession(mode:Mode,templateId:string,date:string):Promise<string> {
   if (mode==='cloud') { const r=await parseResponse<{id:string}>(await fetch('/api/sessions',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({template_id:templateId,performed_on:date})})); return r.id; }
-  const template = getTemplate(templateId); if (!template) throw new Error('Ficha desconhecida.');
+  const template = mode==='showcase'?DEMO_TEMPLATES.find(t=>t.id===templateId):getTemplate(templateId); if (!template) throw new Error('Ficha desconhecida.');
   const now = new Date().toISOString(); const id=crypto.randomUUID();
   const past:Record<string,number> = {};
   const old=read(mode).sort((a,b)=>b.session.started_at.localeCompare(a.session.started_at));

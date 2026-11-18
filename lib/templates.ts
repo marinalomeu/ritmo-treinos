@@ -10,7 +10,7 @@ export type Exercise = {
   block?: number;
 };
 export type Template = {
-  id: 'A' | 'B' | 'C' | 'D';
+  id: 'A' | 'B' | 'C' | 'D' | 'E';
   name: string;
   description: string;
   days: string;
