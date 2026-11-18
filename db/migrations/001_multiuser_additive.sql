@@ -25,6 +25,8 @@ CREATE TABLE IF NOT EXISTS public.app_invitations (
   CHECK (expires_at > created_at)
 );
 
+ALTER TABLE public.app_invitations ADD COLUMN IF NOT EXISTS activated_at timestamptz;
+
 CREATE UNIQUE INDEX IF NOT EXISTS app_invitations_one_pending_per_email ON public.app_invitations (lower(email)) WHERE status='pending';
 
 CREATE TABLE IF NOT EXISTS public.user_workout_templates (
