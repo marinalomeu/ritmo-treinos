@@ -31,7 +31,15 @@ export default function WorkoutApp({mode,isOwner=false}:{mode:Mode;isOwner?:bool
     setShowNew(true);
   };
   const findVisibleTemplate = (id:string) => visibleTemplates.find(t=>t.id===id);
-  const goal = mode==='showcase'?SHOWCASE_GOAL:(data.goal || DEFAULT_GOAL);
+  // Cada convidado começa com uma meta genérica editável, sem herdar o Projeto Carnaval.
+  const freshGoal = useMemo<TrainingGoal>(() => {
+    const start = new Date();
+    const end = new Date(start);
+    end.setDate(end.getDate()+55);
+    const day=(d:Date)=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    return {name:'Minha primeira meta',starts_on:day(start),ends_on:day(end),workouts_per_week:3};
+  },[]);
+  const goal = mode==='showcase'?SHOWCASE_GOAL:(data.goal || (mode==='cloud'?freshGoal:DEFAULT_GOAL));
   const [showGoalEditor,setShowGoalEditor]=useState(false);
   const [goalDraft,setGoalDraft]=useState<TrainingGoal>(DEFAULT_GOAL);
   const openGoalEditor=()=>{setGoalDraft({...goal});setError('');setShowGoalEditor(true);};
