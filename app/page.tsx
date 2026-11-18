@@ -10,5 +10,5 @@ export default async function Home() {
   }
   const profile = await currentProfile();
   if (!profile) return <Login/>;
-  return <WorkoutApp mode="cloud"/>;
+  return <WorkoutApp mode="cloud" isOwner={profile.role==='owner'}/>;
 }

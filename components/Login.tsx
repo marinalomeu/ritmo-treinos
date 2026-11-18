@@ -37,6 +37,6 @@ export default function Login() {
         {busy?<LoaderCircle className="spin" size={16}/>:<ArrowRight size={16}/>} Entrar
       </button>
     </form>
-    <p className="login-note">Não tem uma conta? Solicite um convite à administradora do ritmo.</p>
+    <p className="login-note"><a href="/recuperar-senha">Esqueci minha senha</a></p><p className="login-note">Não tem uma conta? Solicite um convite à administradora do ritmo.</p>
   </div></main>;
 }

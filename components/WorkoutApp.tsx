@@ -13,7 +13,7 @@ const humanDate = (value:string) => {const [y,m,d]=value.slice(0,10).split('-');
 const formatLong = (s:string) => new Intl.DateTimeFormat('pt-BR',{weekday:'long',day:'numeric',month:'long'}).format(new Date(s+'T12:00:00'));
 const fmt = (n:number) => Number.isInteger(n) ? String(n) : n.toLocaleString('pt-BR',{maximumFractionDigits:2});
 const unitName = (u:Unit) => u==='assist_kg'?'kg de assistência':u==='km/h'?'km/h':u==='kg'?'kg':'peso corporal';
-export default function WorkoutApp({mode}:{mode:Mode}) {
+export default function WorkoutApp({mode,isOwner=false}:{mode:Mode;isOwner?:boolean}) {
   const [view,setView]=useState<View>('home');const [data,setData]=useState<HistoryData>({sessions:[],progress:[]});
   const [detail,setDetail]=useState<SessionDetail|null>(null);const [loading,setLoading]=useState(true);const [busy,setBusy]=useState(false);const [error,setError]=useState('');
   const [date,setDate]=useState(todayLocal());const [currentDate,setCurrentDate]=useState(todayLocal());const [activeTemplate,setActiveTemplate]=useState('A');const [showNew,setShowNew]=useState(false);
@@ -90,7 +90,7 @@ export default function WorkoutApp({mode}:{mode:Mode}) {
       <p className="sidebar-caption">SEU DIÁRIO DE TREINOS</p>
       <div className="nav-label">SEU ESPAÇO</div>
       <nav className="side-links" aria-label="Navegação principal">{nav.map(n=><button key={n.id} className={`nav-item ${view===n.id?'active':''}`} onClick={()=>selectView(n.id)}><n.Icon size={18}/>{n.label}{view===n.id&&<ChevronRight size={15} className="chev"/>}</button>)}</nav>
-      <div className="sidebar-bottom"><div className="side-daily"><Sparkles size={18}/><div><strong>{goal.name}</strong><span>Constância, um treino por vez.</span></div></div><div className="mode-tag">{mode==='cloud'?<Cloud size={14}/>:<WifiOff size={14}/>} {mode==='cloud'?'Salvando no Neon':mode==='showcase'?'Dados fictícios e isolados':'Modo demonstração'}</div>{mode==='cloud'&&<button className="logout-link" onClick={async()=>{await fetch('/api/logout',{method:'POST'});window.location.reload();}}><LogOut size={15}/> Sair</button>}</div>
+      <div className="sidebar-bottom"><div className="side-daily"><Sparkles size={18}/><div><strong>{goal.name}</strong><span>Constância, um treino por vez.</span></div></div><div className="mode-tag">{mode==='cloud'?<Cloud size={14}/>:<WifiOff size={14}/>} {mode==='cloud'?'Salvando no Neon':mode==='showcase'?'Dados fictícios e isolados':'Modo demonstração'}</div>{mode==='cloud'&&isOwner&&<a className="logout-link" href="/admin/convites">Gerenciar convites</a>}{mode==='cloud'&&<button className="logout-link" onClick={async()=>{await fetch('/api/logout',{method:'POST'});window.location.reload();}}><LogOut size={15}/> Sair</button>}</div>
     </aside>
     <main className="main-area"><header className="topbar"><div className="breadcrumbs"><span>Meu espaço</span><ChevronRight size={13}/><strong>{view==='home'?'Visão geral':view==='history'?'Histórico':view==='progress'?'Evolução':'Treino em andamento'}</strong></div><div className="header-date"><CalendarDays size={15}/>{humanDate(todayLocal())}</div></header>
       <div className="page-content">
