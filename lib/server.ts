@@ -5,7 +5,8 @@ import { createHmac, createHash, timingSafeEqual } from 'node:crypto';
 import { NextResponse } from 'next/server';
 
 const COOKIE_NAME = 'ritmo_session';
-const COOKIE_AGE = 60 * 60 * 24 * 30;
+// Sessões de até 7 dias; autenticação é exigida novamente após o vencimento.
+const COOKIE_AGE = 60 * 60 * 24 * 7;
 export const isCloudConfigured = () => Boolean(process.env.DATABASE_URL && process.env.APP_PASSWORD && process.env.SESSION_SECRET && process.env.SESSION_SECRET.length >= 32);
 export const db = () => {
   if (!isCloudConfigured()) throw new Error('Conexão com Neon não configurada.');

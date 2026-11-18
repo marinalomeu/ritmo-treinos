@@ -5,7 +5,7 @@ export default function Login(){
   const [password,setPassword]=useState('');const [busy,setBusy]=useState(false);const [error,setError]=useState('');
   const submit=async(e:FormEvent)=>{
     e.preventDefault();setBusy(true);setError('');
-    try {const r=await fetch('/api/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password})});const d=await r.json();if(!r.ok)throw new Error(d.error||'Acesso negado');window.location.reload();}
+    try {const r=await fetch('/api/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password})});if(r.status===429)throw new Error('Muitas tentativas de acesso. Aguarde alguns minutos antes de tentar novamente.');const d=await r.json().catch(()=>({error:'Não foi possível processar o login. Tente novamente.'}));if(!r.ok)throw new Error(d.error||'Acesso negado');window.location.reload();}
     catch(err){setError(err instanceof Error?err.message:'Erro ao entrar');setBusy(false);}
   };
   return <main className="login-page"><div className="login-card">
