@@ -42,3 +42,16 @@
 8. Somente então obter aprovação expressa de go/no-go e implementar o cutover com reconciliação de dados.
 
 **Não fazer merge da PR #2 antes desses gates.**
+
+
+## Checkpoint adicional — webhook e testes negativos
+
+- Foi configurada uma **credencial de automação temporária**, mantida fora do código, para a chamada do Neon ao endpoint protegido da Vercel em staging. O Neon Auth foi configurado para eventos `user.before_create` e `user.created`.
+- O acesso `GET` ao webhook com o bypass retornou **HTTP 405**, comprovando o alcance da rota por essa URL. **Isso ainda não é prova de entrega/assinatura de POST pelo Neon.**
+- O cadastro em staging foi habilitado com `user.before_create` ativo. **Não existem convites pendentes** e a produção continua no login antigo.
+- Consultas negativas por identidade confirmaram que usuários sintéticos A/B não obtiveram dados de sessões/séries do proprietário ou um do outro. Todas as tentativas de correspondência indevida: **0**.
+- Foi tentada uma regra adicional no WAF da Vercel para o novo login: a API respondeu `402 payment_required` (limite de taxa não disponível para o plano atual). **Não houve alteração da regra existente.** Better Auth possui rate limiting integrado; validar sua atuação real na integração gerenciada antes de lançar.
+- Um bypass antigo gerado antes desta etapa permanece pendente de inventário e revogação manual; o bypass temporário atual deve ser revogado assim que o webhook não precisar mais dele, sem deixar uma integração apontando para um token revogado.
+
+### Próximo teste com e-mail acessível
+Para testar ponta a ponta sem usar dados dos amigos: usar **um segundo endereço de e-mail sob controle da proprietária**, criar convite no painel `/admin/convites`, usar o link e verificar OTP, login e isolamento com duas sessões reais. Também validar cadastro diretamente sem convite (deve ser bloqueado pelo webhook), expiração e revogação. Não compartilhar senhas/códigos na conversa. Não criar convite real até obter o e-mail do teste.
