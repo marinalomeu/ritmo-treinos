@@ -30,9 +30,20 @@ export async function GET() {
       GROUP BY ss.exercise_key,ws.id,ws.performed_on,ws.started_at
       ORDER BY ws.performed_on DESC,ws.started_at DESC LIMIT 10000
     `;
+    // Usuário recém-convidado sem meta salva recebe um padrão ESTÁVEL desde o dia
+    // do cadastro (horário de Brasília). Personalizações prevalecem, sem escrita no GET.
     const goals = await sql`
       SELECT name,starts_on::text AS starts_on,ends_on::text AS ends_on,workouts_per_week
-      FROM public.user_training_goals WHERE user_id=${user.id}::uuid LIMIT 1
+      FROM public.user_training_goals WHERE user_id=${user.id}::uuid
+      UNION ALL
+      SELECT 'Minha primeira meta' AS name,
+        (u."createdAt" AT TIME ZONE 'America/Sao_Paulo')::date::text AS starts_on,
+        make_date(EXTRACT(YEAR FROM (u."createdAt" AT TIME ZONE 'America/Sao_Paulo'))::integer,12,31)::text AS ends_on,
+        7::integer AS workouts_per_week
+      FROM neon_auth."user" u
+      WHERE u.id=${user.id}::uuid AND ${user.role}='member'
+        AND NOT EXISTS (SELECT 1 FROM public.user_training_goals WHERE user_id=${user.id}::uuid)
+      LIMIT 1
     `;
     const templates = await sql`
       SELECT id,name,description,days,category,exercises FROM public.user_workout_templates
