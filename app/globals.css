@@ -152,3 +152,13 @@
 .prs-add-result small{display:block;font-size:11px;margin-top:4px;color:var(--muted)}
 .prs-add-tag{display:flex;align-items:center;gap:5px;color:var(--plum2);white-space:nowrap;font-size:11px;font-weight:800}
 @media(max-width:600px){.prs-add-button{width:100%}.prs-add-result{padding:12px}.prs-add-dialog{max-width:100%}}
+
+
+/* Cronômetro persistente: tempo decorrido desde a criação da sessão. */
+.workout-head-right{display:flex;align-items:center;gap:13px;flex-wrap:wrap;justify-content:flex-end}
+.workout-timer{display:flex;align-items:center;gap:10px;min-height:51px;border:1px solid #e7dce3;border-radius:12px;background:#fffdfa;padding:8px 13px;color:var(--plum)}
+.workout-timer>svg{flex-shrink:0;color:#8e7186}
+.workout-timer>span{display:grid;gap:2px}
+.workout-timer small{font-size:9px;font-weight:800;letter-spacing:1px;color:#947f8c}
+.workout-timer strong{font:800 17px/1.2 'Manrope',sans-serif;letter-spacing:.7px;font-variant-numeric:tabular-nums}
+@media(max-width:760px){.workout-head-right{justify-content:flex-start}.workout-timer{flex:1;justify-content:flex-start}}
