@@ -62,6 +62,25 @@ export async function GET() {
       SELECT exercise_key,weight_kg::float8 AS weight_kg,repetitions,updated_at::text AS updated_at
       FROM public.user_personal_records WHERE user_id=${user.id}::uuid ORDER BY exercise_key
     `;
+    // A página de PRs só recebe exercícios de fichas fixas ou desta lista
+    // de adições explícitas; sessões avulsas não criam pins automaticamente.
+    const prPinned=await sql`
+      SELECT exercise_key FROM public.user_pr_exercises
+      WHERE user_id=${user.id}::uuid ORDER BY added_at
+    `;
+    // Última carga CONCLUÍDA; target_reps é a meta planejada, não reps medidas.
+    // A interface a identifica como referência, nunca como PR confirmado.
+    const prReferences=await sql`
+      SELECT DISTINCT ON (ss.exercise_key) ss.exercise_key,
+        ss.weight_kg::float8 AS weight_kg,ss.target_reps,
+        ws.performed_on::text AS performed_on
+      FROM public.session_sets ss JOIN public.workout_sessions ws ON ws.id=ss.session_id
+      WHERE ws.user_id=${user.id}::uuid AND ws.status='finished'
+        AND ss.completed=true AND ss.weight_kg>0
+        AND ss.load_unit IN ('kg','none')
+      ORDER BY ss.exercise_key,ws.performed_on DESC,ws.started_at DESC,
+        ss.completed_at DESC NULLS LAST,ss.id DESC
+    `;
     const exerciseModalities=await sql`
       SELECT exercise_key,modality FROM public.user_exercise_modalities
       WHERE user_id=${user.id}::uuid ORDER BY exercise_key
@@ -70,7 +89,7 @@ export async function GET() {
       SELECT exercise_key AS key,name,unit,modality FROM public.user_custom_exercises
       WHERE user_id=${user.id}::uuid ORDER BY name
     `;
-    return NextResponse.json({sessions,progress,goal:goals[0]||null,templates,historicalExercises,personalRecords,exerciseModalities,customExercises:customExercises.map(e=>({...e,origin:'personal'}))},
+    return NextResponse.json({sessions,progress,goal:goals[0]||null,templates,historicalExercises,personalRecords,prPinned:prPinned.map(e=>e.exercise_key),prReferences,exerciseModalities,customExercises:customExercises.map(e=>({...e,origin:'personal'}))},
       {headers:{'Cache-Control':'no-store'}});
   } catch(error) { return serverError(error); }
 }
