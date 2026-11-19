@@ -2,8 +2,13 @@
 import { TEMPLATES, getTemplate, makeSets, type SessionDetail, type StoredSet, type HistoryData, type WorkoutSession, type Template } from './templates';
 import { SHOWCASE_GOAL, type TrainingGoal } from './goal';
 import { DEMO_TEMPLATES } from './demoTemplates';
+import { BASE_EXERCISES, normalizeExerciseName, type CatalogExercise } from './exerciseCatalog';
+import type { Modality } from './personalRecords';
+import type { Unit } from './templates';
 export type Mode = 'demo' | 'cloud' | 'showcase';
 const STORAGE_KEY = 'ritmo_treinos_demo_v1';
+const customKey=(mode:Mode)=>mode==='showcase'?'ritmo_showcase_custom_exercises_v1':'ritmo_demo_custom_exercises_v1';
+const readCustom=(mode:Mode):CatalogExercise[]=>{try{return JSON.parse(localStorage.getItem(customKey(mode))||'[]') as CatalogExercise[];}catch{return [];}};
 const SHOWCASE_KEY = 'ritmo_showcase_v2';
 const SHOWCASE_TEMPLATES_KEY='ritmo_showcase_templates_v1';
 const DEMO_TEMPLATES_KEY='ritmo_local_templates_v1';
@@ -71,7 +76,15 @@ export async function listData(mode:Mode):Promise<HistoryData> {
     map.forEach(s=>progress.push({exercise_key:s.exercise_key,exercise_name:s.exercise_name,load_unit:s.load_unit,performed_on:d.session.performed_on,weight_kg:s.weight_kg!,session_id:d.session.id}));
   });
   const historicalExercises=[...new Map(progress.map(p=>[p.exercise_key,{key:p.exercise_key,name:p.exercise_name,unit:p.load_unit}])).values()];
-  return {sessions:details.map(d=>d.session),progress,goal:mode==='showcase'?SHOWCASE_GOAL:undefined,templates:localTemplates(mode),historicalExercises};
+  return {sessions:details.map(d=>d.session),progress,goal:mode==='showcase'?SHOWCASE_GOAL:undefined,templates:localTemplates(mode),historicalExercises,customExercises:readCustom(mode)};
+}
+export async function createCustomExercise(mode:Mode,name:string,unit:Unit,modality:Modality):Promise<CatalogExercise>{
+  if(mode==='cloud')return parseResponse<CatalogExercise>(await fetch('/api/exercises',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,unit,modality})}));
+  const existing=[...BASE_EXERCISES,...readCustom(mode),...localTemplates(mode).flatMap(t=>t.exercises.map(e=>({...e,modality:'Outros' as const,origin:'existing' as const})))];
+  if(existing.some(e=>normalizeExerciseName(e.name)===normalizeExerciseName(name)))throw new Error('Exercício já cadastrado. Selecione-o na busca.');
+  const created:CatalogExercise={key:`ex-${crypto.randomUUID()}`,name,unit,modality,origin:'personal'};
+  localStorage.setItem(customKey(mode),JSON.stringify([...readCustom(mode),created]));
+  return created;
 }
 export async function createSession(mode:Mode,templateId:string,date:string):Promise<string> {
   if (mode==='cloud') { const r=await parseResponse<{id:string}>(await fetch('/api/sessions',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({template_id:templateId,performed_on:date})})); return r.id; }
