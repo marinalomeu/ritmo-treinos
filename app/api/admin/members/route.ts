@@ -20,7 +20,7 @@ export async function GET() {
         u."emailVerified" AS email_verified
       FROM public.app_profiles p
       JOIN neon_auth."user" u ON u.id = p.id
-      WHERE p.role = 'member'
+      WHERE p.role = 'member' AND u."emailVerified" = true AND lower(u.email) = p.email
       ORDER BY p.created_at DESC LIMIT 200
     `;
     return NextResponse.json({members: rows}, {headers: {'Cache-Control': 'no-store'}});
