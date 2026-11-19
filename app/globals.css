@@ -162,3 +162,11 @@
 .workout-timer small{font-size:9px;font-weight:800;letter-spacing:1px;color:#947f8c}
 .workout-timer strong{font:800 17px/1.2 'Manrope',sans-serif;letter-spacing:.7px;font-variant-numeric:tabular-nums}
 @media(max-width:760px){.workout-head-right{justify-content:flex-start}.workout-timer{flex:1;justify-content:flex-start}}
+
+
+/* Séries: separar repetições executadas da meta planejada. */
+.reps-field{display:flex;align-items:center;gap:5px;border:1px solid #e7dce3;border-radius:8px;background:#fbf9fa;padding:3px 7px;flex-shrink:0;color:var(--muted)}
+.reps-field input{width:42px;text-align:right;background:transparent;border:0;color:var(--ink);padding:4px 0;font-weight:800;font-size:12px;outline:none;appearance:textfield}
+.reps-field input::-webkit-inner-spin-button,.reps-field input::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+.reps-field span{font-size:10px;color:#9f939d;white-space:nowrap}
+@media(max-width:760px){.set-line{flex-wrap:wrap;padding:8px 0}.set-target{flex-basis:100%;padding-left:32px}.reps-field{margin-left:32px}.reps-field span{font-size:9px}}
