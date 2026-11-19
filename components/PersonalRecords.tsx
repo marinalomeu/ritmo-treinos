@@ -124,6 +124,30 @@ export default function PersonalRecords({mode,exercises,catalog,pinnedKeys,fixed
       </table>
       {!visible.length&&<p className="prs-tip">Nenhum exercício corresponde aos filtros selecionados.</p>}
     </div>
+    {addOpen&&<div className="modal-backdrop prs-add-overlay" onMouseDown={event=>{if(event.target===event.currentTarget)setAddOpen(false);}}>
+      <div className="modal prs-add-dialog" role="dialog" aria-modal="true" aria-labelledby="prs-add-title">
+        <div className="modal-head">
+          <div><p className="overline">SEUS RECORDES PESSOAIS</p><h2 id="prs-add-title">Adicionar exercício</h2></div>
+          <button className="close-btn" type="button" aria-label="Fechar" onClick={()=>setAddOpen(false)}>×</button>
+        </div>
+        <p className="prs-add-intro">Escolha um exercício para acompanhar seu PR, mesmo que não esteja em nenhuma ficha fixa. Ele será adicionado somente à sua lista.</p>
+        <label className="prs-add-search"><Search size={17}/><input autoFocus
+          value={addSearch} maxLength={100} placeholder="Buscar nome ou músculo (ex.: peito)"
+          onChange={event=>setAddSearch(event.target.value)}/></label>
+        {normalizeExerciseName(addSearch).length<2?<p className="prs-add-hint">Digite pelo menos duas letras para buscar no catálogo.</p>:
+          addMatches.length===0?<p className="prs-add-hint">Nenhum exercício encontrado. Cadastre exercícios pessoais pelo editor de fichas.</p>:
+          <div className="prs-add-results" role="list" aria-label="Exercícios disponíveis">
+            {addMatches.map(item=>{
+              const already=fixedSet.has(item.key)||pinnedSet.has(item.key);
+              return <button type="button" key={item.key} className="prs-add-result" disabled={!!busy||already}
+                onClick={()=>void setPinned(item.key,'POST')}>
+                <span><strong>{item.name}</strong><small>{item.muscleGroup||item.modality} · {item.origin==='global'?'Catálogo geral':item.origin==='personal'?'Meu exercício':'Minhas fichas'}</small></span>
+                {already?<span className="prs-add-tag"><Check size={13}/> Já listado</span>:<span className="prs-add-tag"><Plus size={13}/> Adicionar</span>}
+              </button>;
+            })}
+          </div>}
+      </div>
+    </div>}
     {chosen&&<div className="prs-planner">
       <div><p className="overline">PLANEJADOR DE SÉRIE</p><h3>{chosen.name}</h3></div>
       {chosen.unit==='km/h'?<p>Corrida não usa estimativa de 1RM. Seus recordes serão comparados por distância, duração e pace.</p>:!record?<p>Salve primeiro um PR com carga externa e repetições para simular uma série. Se hoje você usa apenas peso corporal, pode deixar o PR em branco até acrescentar carga.</p>:<>
