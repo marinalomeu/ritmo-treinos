@@ -1,4 +1,4 @@
-export const MODALITIES=['Academia','CrossFit','Funcional','Calistenia','Corrida','Pilates','Outros'] as const;
+export const MODALITIES=['Academia','CrossFit','Funcional','Calistenia','Corrida','Pilates','Alongamentos','Outros'] as const;
 export type Modality=(typeof MODALITIES)[number];
 export type PersonalRecord={exercise_key:string;weight_kg:number;repetitions:number;updated_at:string};
 export type ExerciseModality={exercise_key:string;modality:Modality};
