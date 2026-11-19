@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {test} from 'node:test';
-import {DEFAULT_SHARE_OPTIONS,workoutShareSummary,shareMetricValues,shareSelectionCount,numericShareTarget,visibleShareExercises,formatVolume} from '../lib/workoutShare.ts';
+import {DEFAULT_SHARE_OPTIONS,SHARE_THEMES,workoutShareSummary,shareMetricValues,shareSelectionCount,numericShareTarget,visibleShareExercises,formatVolume} from '../lib/workoutShare.ts';
 
 const detail={
   session:{
@@ -52,13 +52,17 @@ test('cada informação do card pode ser ligada ou desligada sem misturar fontes
   assert.equal(formatVolume(1540.5),'1.540,5 kg');
 });
 
-test('exercícios preservam sequência do WOD e cabem nas dimensões do card',()=>{
+test('exercícios preservam sequência do WOD e cabem no único card vertical 9:16',()=>{
   const summary=workoutShareSummary(detail);
   assert.deepEqual(summary.exercises.map(e=>e.key),['supino','agachamento','assistencia','corrida','flexao']);
-  const story=visibleShareExercises(summary,'story',4);
-  const feed=visibleShareExercises(summary,'feed',4);
-  assert.equal(story.entries.length,5);assert.equal(story.extra,0);
-  assert.equal(feed.entries.length,2);assert.equal(feed.extra,3);
+  const poster=visibleShareExercises(summary,4);
+  assert.equal(poster.entries.length,5);assert.equal(poster.extra,0);
+  const long={...summary,exercises:Array.from({length:10},(_,i)=>({
+    key:String(i),name:'Exercício '+i,target:'10',totalSets:1,completedSets:1
+  }))};
+  assert.equal(visibleShareExercises(long,4).entries.length,6);
+  assert.equal(visibleShareExercises(long,4).extra,4);
+  assert.equal(visibleShareExercises(long,2).entries.length,8);
 });
 
 test('padrão tem exatamente tempo e volume, e exige no mínimo duas informações',()=>{
@@ -79,4 +83,14 @@ test('meta do WOD aparece apenas em formato numérico, sem a palavra meta',()=>{
   assert.equal(numericShareTarget('3 x 10 repetições'),'3×10');
   assert.equal(numericShareTarget('500 m'),'500');
   assert.equal(numericShareTarget('AMRAP'),null);
+});
+
+test('os dois visuais preservam composição, mas têm contraste invertido',()=>{
+  assert.notEqual(SHARE_THEMES.dark.headline,SHARE_THEMES.light.headline);
+  assert.notEqual(SHARE_THEMES.dark.gradient[0],SHARE_THEMES.light.gradient[0]);
+  assert.equal(SHARE_THEMES.dark.headline,'#fffafc');
+  assert.equal(SHARE_THEMES.light.headline,'#28242d');
+  assert.equal(SHARE_THEMES.light.gradient[0],'#fffdfa');
+  assert.equal(SHARE_THEMES.light.metricValue,'#302733');
+  assert.equal(SHARE_THEMES.light.exerciseText,'#362b38');
 });
