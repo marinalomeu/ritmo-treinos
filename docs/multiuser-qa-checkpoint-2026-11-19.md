@@ -31,3 +31,23 @@
 - Testar sem sessão e com perfis de teste pelos fluxos legítimos; registrar códigos HTTP sem divulgar tokens/cookies.
 - Só habilitar cadastro em uma branch descartável após isolamento dos webhooks/URL e testes negativos documentados.
 - Não modificar produção nem aprovar go/no-go sem autorização expressa.
+
+## Execução independente adicional — 19/11/2026 (homologação solicitada)
+
+### Execução em ambiente isolado (Vercel Sandbox descartável)
+- Checkout da branch no commit `a941563` (sem conexão com dados ou credenciais de produção).
+- `node --test tests/security-contract.test.mjs`: **8/8 passaram**, saída efetiva registrada.
+- `npm run typecheck`: **exit code 0**, sem erros.
+- `npm run build`: **exit code 0**, Next.js compilou e gerou rotas; build executado com dependências instaladas com `--ignore-scripts` e sem lockfile salvo.
+- GET não autenticado ao Preview pela infraestrutura de sandbox retornou **HTTP 302** (redirecionamento por proteção Vercel); isso demonstra que essa chamada não atravessou a proteção até a aplicação e **não** permite concluir que a API responderia 401.
+- Tentativa de automatizar teste de cadastro direto ao Neon foi **bloqueada pelo ambiente de execução**, sem resultados HTTP; não classificar como sucesso nem como teste executado.
+- Nenhum token, cookie pessoal, senha, segredo, convite ou configuração da produção foi consultado ou divulgado.
+
+### Verificações SQL de propriedade com identidades já existentes
+- Consultas read-only simulando filtros de ator/vítima para owner e member em sessões, séries, fichas e metas: **8/8 sem correspondência cruzada**.
+- Estas consultas **não equivalem a ataques HTTP IDOR autenticados**, porque não executaram os handlers da aplicação sob duas sessões reais.
+
+### Resultado da rodada
+- **APROVADO apenas:** contrato estático, TypeScript, build, integridade de filtragem SQL.
+- **NÃO COMPROVADO:** bloqueio direto de signup com cadastro habilitado, OAuth primeiro acesso, IDOR com duas sessões independentes, expiração/replay/revogação E2E, recovery/logout/OTP E2E.
+- **SEM GO-LIVE:** `allow_sign_up=false` no staging, PR #2 draft, produção preservada. Teste direto do provedor exige ambiente temporário isolado com autorização operacional e ferramenta capaz de executar HTTP; não reabrir cadastro na branch em uso para contornar o bloqueio.
