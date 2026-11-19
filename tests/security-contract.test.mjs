@@ -317,7 +317,7 @@ test('histórico não exibe UUID de ficha e conclusão apresenta card compartilh
   assert.ok(!app.includes('Ficha {s.template_id}'),'ocultar ID do cadastro no histórico');
   assert.ok(app.includes('setShowShare(true)'),'tela de conquista após finalizar');
   assert.ok(app.includes('setDetail(completed)'),'continuar com sessão concluída aberta');
-  assert.ok(share.includes("c.width=1080;c.height=story?1920:1080"),'exportar Story e Feed');
+  assert.ok(share.includes('c.width=1080;c.height=1920'),'exportar ambos os visuais em 9:16');
   assert.ok(share.includes('navigator.share'),'usuário inicia compartilhamento');
   assert.ok(share.includes('Baixar imagem PNG'),'download de arte disponível');
   assert.ok(share.includes('options.showExercises'),'exercícios são opt-in no card');
@@ -339,7 +339,7 @@ test('card possui seleção elegante de informações, volume imutável e mínim
   assert.ok(ui.includes("options.showDate?'  ·  '"),'PNG respeita data');
   assert.ok(ui.includes('numericShareTarget(entry.target)'),'metas sem texto extra');
   assert.ok(ui.includes('shareMetricValues(summary,options)'),'prévia e PNG usam mesmos dados');
-  assert.ok(ui.includes('pngPoster(detail,format,options,summary)'),'exportação respeita seleção');
+  assert.ok(ui.includes('pngPoster(detail,visual,options,summary)'),'exportação respeita estilo e seleção');
   assert.ok(calc.includes("set.load_unit!=='kg'"),'assistência e velocidade não contam como volume');
   assert.ok(calc.includes('set.actual_reps'),'volume não usa reps planejadas');
   assert.ok(calc.includes("summary.volumeKg===null?'—'"),'sem inventar volume antigo');
@@ -347,4 +347,24 @@ test('card possui seleção elegante de informações, volume imutável e mínim
   assert.ok(!ui.includes('manualVolume'),'volume não pode ser digitado');
   assert.ok(!ui.includes('Informar outro volume'),'retira edição de carga/volume');
   assert.ok(!ui.includes('user.email'),'card não compartilha email');
+});
+
+test('seletor visual alterna claro/escuro sem voltar ao quadrado de feed',()=>{
+  const ui=source('components/WorkoutShareCard.tsx');
+  const css=source('app/globals.css');
+  const share=source('lib/workoutShare.ts');
+  assert.ok(ui.includes('>VISUAL</span>'),'seletor se chama VISUAL');
+  assert.ok(ui.includes("setVisual('dark')"),'alternativa escura');
+  assert.ok(ui.includes("setVisual('light')"),'alternativa clara');
+  assert.ok(ui.includes('aria-pressed={visual'), 'botões anunciam seleção acessível');
+  assert.ok(ui.includes('share-poster-${visual}'),'prévia acompanha a aparência');
+  assert.ok(ui.includes('c.width=1080;c.height=1920'),'PNG sempre vertical');
+  assert.ok(ui.includes('SHARE_THEMES[visual]'),'Canvas usa cores por visual');
+  assert.ok(ui.includes('pngPoster(detail,visual,options,summary)'),'exporta visual selecionado');
+  assert.ok(share.includes("light:{"),'paleta clara explícita');
+  assert.ok(css.includes('.share-poster-light .share-poster-main>strong'),'título escuro no fundo claro');
+  assert.ok(css.includes('.share-poster-light .share-poster-metrics'),'métricas legíveis no fundo claro');
+  assert.ok(!ui.includes('Feed · 1:1'),'feed foi removido');
+  assert.ok(!ui.includes('setFormat('),'seletor não muda proporção');
+  assert.ok(!css.includes('.share-poster-feed'),'estilos quadrados removidos');
 });
