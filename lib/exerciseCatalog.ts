@@ -69,7 +69,7 @@ const entries: [string,string,Unit,Modality][] = [
   ['pilates-solo','Pilates solo','none','Pilates']
 ];
 const groupOf=(slug:string):string=>{
-  if(/supino|crucifixo|crossover|peck-deck|pullover/.test(slug))return 'Peitoral';
+  if(/supino|crucifixo|crossover|peck-deck|pullover|flexao|paralelas-peitoral/.test(slug))return 'Peitoral';
   if(/remada|puxada|barra-fixa|graviton|encolhimento|banco-romano/.test(slug))return 'Costas';
   if(/agachamento|leg-press|extensora|afundo|passada/.test(slug))return 'Quadríceps';
   if(/mesa-flexora|cadeira-flexora|stiff|romeno|terra/.test(slug))return 'Posteriores';
@@ -217,13 +217,18 @@ export const normalizeExerciseName=(name:string)=>name.normalize('NFD')
 export function mergedExerciseCatalog(
   existing: CatalogExercise[], personal:CatalogExercise[], global:CatalogExercise[]=BASE_EXERCISES
 ):CatalogExercise[]{
-  // Preferir IDs já utilizados na conta para não quebrar histórico ou PRs anteriores.
+  // Reaproveitar chaves existentes sem perder a classificação do catálogo público
+  // quando um exercício da ficha aparece antes da versão canônica na lista.
+  const byName=new Map(global.map(item=>[normalizeExerciseName(item.name),item]));
   const result:CatalogExercise[]=[];
   const seen=new Set<string>();
   for(const item of [...existing,...personal,...global]){
     const key=normalizeExerciseName(item.name);
     if(!key||seen.has(key))continue;
-    seen.add(key);result.push(item);
+    seen.add(key);
+    const canonical=byName.get(key);
+    result.push({...item,muscleGroup:item.muscleGroup||canonical?.muscleGroup,
+      equipment:item.equipment||canonical?.equipment});
   }
   return result.sort((a,b)=>a.name.localeCompare(b.name,'pt-BR'));
 }
