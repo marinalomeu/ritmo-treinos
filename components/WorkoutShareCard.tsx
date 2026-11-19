@@ -114,17 +114,20 @@ export default function WorkoutShareCard({detail,onClose}:{detail:SessionDetail;
   const exercises=visibleShareExercises(summary,format,metrics.length);
   const metricColumns=metrics.length===4?2:Math.max(1,metrics.length);
   const updateShareOption=(key:'showWorkoutName'|'showDate'|'showExercises'|ShareMetric)=>{
-    setOptions(previous=>{
-      const current=key in previous.metrics?
-        previous.metrics[key as ShareMetric]:previous[key as 'showWorkoutName'|'showDate'|'showExercises'];
-      if(current&&shareSelectionCount(previous)<=2){
-        setSelectionHint(true);
-        return previous;
-      }
-      setSelectionHint(false);
-      if(key in previous.metrics)return {...previous,metrics:{...previous.metrics,[key]:!current}};
-      return {...previous,[key]:!current};
-    });
+    const isMetric=key in options.metrics;
+    const current=isMetric?options.metrics[key as ShareMetric]:
+      options[key as 'showWorkoutName'|'showDate'|'showExercises'];
+    if(current&&shareSelectionCount(options)<=2){
+      setSelectionHint(true);
+      return;
+    }
+    setSelectionHint(false);
+    if(isMetric){
+      setOptions(previous=>({...previous,metrics:{...previous.metrics,[key]:!previous.metrics[key as ShareMetric]}}));
+    }else{
+      const field=key as 'showWorkoutName'|'showDate'|'showExercises';
+      setOptions(previous=>({...previous,[field]:!previous[field]}));
+    }
   };
   const toggleTargets=()=>setOptions(previous=>({...previous,showExerciseTargets:!previous.showExerciseTargets}));
   const choices=[
