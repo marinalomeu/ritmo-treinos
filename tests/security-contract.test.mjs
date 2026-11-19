@@ -135,3 +135,20 @@ test('faixas e formula de Epley documentadas como estimativas',()=>{
   assert.ok(view.includes("e.unit!=='km/h'"),'nao bloquear PR de exercicios com peso corporal');
   assert.ok(formula.includes("'Alongamentos'"),'alongamentos deve ser modalidade disponivel');
 });
+
+test('apenas a proprietaria administra contas e lista de autorizados',()=>{
+  const admin=source('app/api/admin/members/route.ts');
+  const invites=source('app/api/admin/invitations/route.ts');
+  const profile=source('lib/multiuser.ts');
+  const panel=source('components/InviteAdmin.tsx');
+  assert.ok(admin.includes("user?.role === 'owner'"),'administracao de membros exclusiva da owner');
+  assert.ok(invites.includes("user?.role==='owner'"),'convites exclusivos da owner');
+  assert.ok(admin.includes('currentProfile()'));
+  assert.ok(admin.includes('sameOrigin(request)'));
+  assert.ok(admin.includes("p.role = 'member'"),'nao editar administradora');
+  assert.ok(admin.includes('SET enabled = ${enabled}'),'bloqueio e reativacao de membro');
+  assert.ok(admin.includes('u."emailVerified" = true'));
+  assert.ok(profile.includes('p.enabled=true'),'membro bloqueado nao pode usar APIs');
+  assert.ok(profile.includes('lower(u.email)=p.email'),'e-mail autenticado deve coincidir com cadastro');
+  assert.ok(panel.includes("'/api/admin/members'"),'admin deve gerir usuarios autorizados');
+});
