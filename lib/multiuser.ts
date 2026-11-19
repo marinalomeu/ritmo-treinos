@@ -31,7 +31,7 @@ export async function currentProfile(): Promise<Profile | null> {
     const sql = db();
     const profiles = await sql`
       SELECT p.id::text AS id,p.email,p.role FROM public.app_profiles p
-      JOIN neon_auth."user" u ON u.id=p.id AND u."emailVerified"=true
+      JOIN neon_auth."user" u ON u.id=p.id AND u."emailVerified"=true AND lower(u.email)=p.email
       WHERE p.id=${id}::uuid AND p.enabled=true LIMIT 1
     `;
     if (profiles.length) return profiles[0] as Profile;
