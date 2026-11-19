@@ -270,3 +270,30 @@
 .share-continue:hover{text-decoration:underline}
 @media(max-width:760px){.post-workout-share-invite{display:grid}.post-workout-share-invite button{width:100%}.workout-share-modal{padding:17px}.share-layout{grid-template-columns:1fr;gap:19px}.share-poster{max-width:320px;width:100%;margin:0 auto}.share-poster-main>strong{font-size:40px}.share-editor{gap:12px}.share-poster-feed{max-width:320px}}
 @media(max-width:440px){.share-poster{max-width:270px;padding:20px}.share-poster-main>strong{font-size:33px}.share-poster-metrics strong{font-size:18px}.share-poster-feed .share-poster-main>strong{font-size:27px}}
+
+
+/* Configurações granulares do card: controle real de cada informação publicada. */
+.workout-share-modal{overflow-y:auto}
+.share-options-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+.share-option{display:flex;align-items:center;gap:9px;min-width:0;border:1px solid #e8dce3;border-radius:9px;background:#fffdfa;padding:10px 11px;color:var(--ink);font-size:11px;font-weight:700;line-height:1.4;cursor:pointer}
+.share-option:has(input:checked){border-color:#ae93a5;background:#f6edf3;color:var(--plum)}
+.share-option input{width:15px;height:15px;flex-shrink:0;accent-color:var(--plum);margin:0}
+.share-suboption{margin-top:6px;font-weight:600}
+.share-suboption small{display:block;font-size:10px;color:#988593;font-weight:500;margin-top:3px}
+.share-volume-editor{display:grid;gap:9px;background:#fbf7f9;border:1px solid #eadde5;border-radius:11px;padding:12px}
+.share-volume-editor>p{font-size:10px;color:var(--muted);line-height:1.6}
+.share-volume-editor>label{display:grid;gap:6px;color:var(--plum2);font-size:10px;font-weight:800}
+.share-volume-editor input{height:39px;border:1px solid #dbccd6;border-radius:8px;background:white;padding:9px 11px;color:var(--ink);font-size:12px}
+.share-volume-editor small{font-size:10px;color:#80677a;line-height:1.5}
+.share-poster-metrics{row-gap:12px}
+.share-poster-metrics strong{overflow-wrap:anywhere}
+.share-poster-metrics small{line-height:1.3}
+.share-poster-exercises em{font-style:normal;color:#d7bad0}
+.share-poster-more{color:#f1d5e6;font-weight:800}
+.share-poster-feed .share-poster-metrics{gap:5px 9px}
+.share-poster-feed .share-poster-metrics strong{font-size:clamp(13px,1.3vw,17px)}
+.share-poster-feed .share-poster-metrics small{font-size:7px}
+.share-poster-feed .share-poster-exercises span{font-size:9px}
+.share-poster-feed .share-poster-footer{font-size:8px}
+@media(max-width:760px){.share-options-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.share-poster-feed .share-poster-metrics strong{font-size:15px}}
+@media(max-width:400px){.share-option{font-size:10px;padding:8px}.share-options-grid{gap:5px}}
