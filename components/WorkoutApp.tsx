@@ -260,7 +260,19 @@ export default function WorkoutApp({mode,isOwner=false}:{mode:Mode;isOwner?:bool
   </div>;
 }
 function TemplateCard({t,onClick}:{t:Template;onClick:()=>void}){return <button className="template-card" onClick={onClick}><div className="template-top"><span className={`template-letter ${t.id==='D'?'lilac':''}`}>{/^[A-Z]$/.test(t.id)?t.id:t.name.slice(0,1).toUpperCase()}</span><span className="template-type">{t.category}</span></div><h3>{t.name}</h3><p>{t.days}</p><div className="template-footer"><span>{t.exercises.length} exercícios · Ver ficha</span><ArrowRight size={17}/></div></button>;}
-function SessionRow({s,onClick,showcase}:{s:HistoryData['sessions'][number];onClick:()=>void;showcase:boolean}){return <button className="session-row" onClick={onClick}><div className="session-icon">{s.template_id==='D'&&!showcase?<Footprints size={19}/>:<Dumbbell size={19}/>}</div><div className="session-text"><strong>{s.template_name}</strong><span>{humanDate(s.performed_on)} · Ficha {s.template_id}</span></div><div className="session-summary"><span className={`status ${s.status}`}>{s.status==='finished'?'Finalizado':'Em andamento'}</span><small>{s.completed_sets}/{s.total_sets} séries</small></div><ChevronRight size={18} className="row-arrow"/></button>;}
+function SessionRow({s,onClick,showcase}:{s:HistoryData['sessions'][number];onClick:()=>void;showcase:boolean}){
+  // Nunca expor identificadores internos como custom-UUID no histórico visível.
+  const label=s.template_id==='wod'?'Treino avulso · WOD':
+    /^[A-Z]$/.test(s.template_id)?`Ficha ${s.template_id}`:'Ficha personalizada';
+  return <button className="session-row" onClick={onClick}>
+    <div className="session-icon">{s.template_id==='D'&&!showcase?<Footprints size={19}/>:<Dumbbell size={19}/>}</div>
+    <div className="session-text"><strong>{s.template_name}</strong>
+      <span>{humanDate(s.performed_on)} <span className="session-meta-dot" aria-hidden="true">·</span> {label}</span></div>
+    <div className="session-summary"><span className={`status ${s.status}`}>{s.status==='finished'?'Finalizado':'Em andamento'}</span>
+      <small>{s.completed_sets}/{s.total_sets} séries</small></div>
+    <ChevronRight size={18} className="row-arrow"/>
+  </button>;
+}
 function EmptyState({title,text}:{title:string;text:string}){return <div className="empty-state"><div><Clock3 size={22}/></div><strong>{title}</strong><p>{text}</p></div>;}
 function PageHeading({label,title,description}:{label:string;title:string;description:string}){return <div className="page-heading"><p className="overline">{label}</p><h1>{title}</h1><p>{description}</p></div>;}
 function WorkoutSets({detail,template,saving,patchSet,updateLocalWeight,saveEditedWeight,updateLocalReps,saveEditedReps}:{detail:SessionDetail;template:Template|undefined;saving:string[];patchSet:(id:string,c:Partial<StoredSet>)=>Promise<void>;updateLocalWeight:(id:string,v:string)=>void;saveEditedWeight:(id:string)=>void;updateLocalReps:(id:string,v:string)=>void;saveEditedReps:(id:string)=>void}){
