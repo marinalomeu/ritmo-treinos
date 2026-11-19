@@ -47,7 +47,15 @@ export async function GET() {
         AND ss.weight_kg IS NOT NULL AND ss.load_unit IN ('kg','assist_kg','km/h')
       ORDER BY ss.exercise_key,ss.completed_at DESC NULLS LAST,ss.id DESC
     `;
-    return NextResponse.json({sessions,progress,goal:goals[0]||null,templates,historicalExercises},
+    const personalRecords=await sql`
+      SELECT exercise_key,weight_kg::float8 AS weight_kg,repetitions,updated_at::text AS updated_at
+      FROM public.user_personal_records WHERE user_id=${user.id}::uuid ORDER BY exercise_key
+    `;
+    const exerciseModalities=await sql`
+      SELECT exercise_key,modality FROM public.user_exercise_modalities
+      WHERE user_id=${user.id}::uuid ORDER BY exercise_key
+    `;
+    return NextResponse.json({sessions,progress,goal:goals[0]||null,templates,historicalExercises,personalRecords,exerciseModalities},
       {headers:{'Cache-Control':'no-store'}});
   } catch(error) { return serverError(error); }
 }
