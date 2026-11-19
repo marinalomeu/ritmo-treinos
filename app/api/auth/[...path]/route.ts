@@ -16,7 +16,7 @@ async function allowInvitedSignup(request: NextRequest): Promise<NextResponse | 
   }catch {
     return NextResponse.json({code:'INVALID_BODY',message:'Dados de cadastro inválidos.'},{status:400});
   }
-  if(email.length<5||email.length>254||!/^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$/.test(email)){
+  if(email.length<5||email.length>254||!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){
     return NextResponse.json({code:'INVALID_EMAIL',message:'E-mail inválido.'},{status:400});
   }
   try{
