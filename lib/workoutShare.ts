@@ -72,9 +72,28 @@ export const shareMetricValues=(summary:ShareSummary,options:ShareOptions)=>{
   }
   return entries;
 };
-export function visibleShareExercises(summary:ShareSummary,format:'story'|'feed',metricsCount:number){
-  // A lista mantém a ordem do treino; se longa, mostra quantos exercícios faltaram.
-  const limit=format==='story'?(metricsCount>=4?6:8):(metricsCount>=4?2:3);
+export type ShareVisual='dark'|'light';
+export const SHARE_THEMES={
+  dark:{
+    gradient:['#463047','#684b62','#93738a'],
+    ring:'rgba(255,255,255,.09)',logo:'#f9eff5',subtitle:'#d9bfd0',
+    kicker:'#efdae7',headline:'#fffafc',secondary:'#e5d1dd',
+    metricsBackground:'rgba(255,250,252,.10)',metricLabel:'#f1dce7',
+    metricValue:'#fffafc',exerciseHeading:'#e8d6e1',
+    exerciseText:'#fffafc',extra:'#ebd5e2',footer:'#ead3e1'
+  },
+  light:{
+    gradient:['#fffdfa','#f6f0f3','#eaddE6'],
+    ring:'rgba(98,70,93,.12)',logo:'#4b3547',subtitle:'#76586f',
+    kicker:'#74556d',headline:'#28242d',secondary:'#664a60',
+    metricsBackground:'rgba(103,76,98,.09)',metricLabel:'#74566f',
+    metricValue:'#302733',exerciseHeading:'#664a60',
+    exerciseText:'#362b38',extra:'#75586d',footer:'#71586c'
+  }
+} as const;
+export function visibleShareExercises(summary:ShareSummary,metricsCount:number){
+  // Layout exclusivamente vertical (9:16), preserva a sequência do WOD.
+  const limit=metricsCount>=4?6:8;
   return {entries:summary.exercises.slice(0,limit),extra:Math.max(0,summary.exercises.length-limit)};
 }
 
