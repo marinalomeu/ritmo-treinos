@@ -213,3 +213,62 @@ test('busca por peito inclui grupo Peitoral sem limitar a oito resultados',()=>{
   assert.ok(picker.includes('Consulta por grupo muscular mostra TODAS as opções'));
   assert.ok(catalog.includes('muscleGroup:item.muscleGroup||canonical?.muscleGroup'));
 });
+
+
+test('WOD salva sessão avulsa sem ficha fixa e com catálogo autorizado',()=>{
+  const wod=source('app/api/wod/route.ts');
+  const builder=source('components/WodDialog.tsx');
+  const app=source('components/WorkoutApp.tsx');
+  assert.ok(wod.includes('currentProfile()'),'WOD exige autenticação');
+  assert.ok(wod.includes('sameOrigin(request)'),'WOD exige mesma origem');
+  assert.ok(wod.includes('BASE_EXERCISES'),'WOD valida catálogo');
+  assert.ok(wod.includes('user_id=${user.id}::uuid'),'só lê exercícios do usuário');
+  assert.ok(wod.includes("VALUES (${user.id}::uuid,'wod'"),'sessão avulsa identificada');
+  assert.ok(!wod.includes('INSERT INTO public.user_workout_templates'),'não deve criar ficha');
+  assert.ok(!wod.includes('INSERT INTO public.user_pr_exercises'),'não deve adicionar PRs');
+  assert.ok(builder.includes('onStarted(body.id)'),'inicia treino salvo');
+  assert.ok(builder.includes('onClick={()=>move(index,index-1)}'),'reordenação permitida');
+  assert.ok(app.includes('<WodDialog'),'opção visível no aplicativo');
+});
+
+test('repetições realmente feitas são separadas de metas históricas',()=>{
+  const sets=source('app/api/sets/[id]/route.ts');
+  const types=source('lib/templates.ts');
+  const detail=source('app/api/sessions/[id]/route.ts');
+  const migration=source('db/migrations/2026-11-19-session-actual-reps.sql');
+  const app=source('components/WorkoutApp.tsx');
+  assert.ok(sets.includes('actual_reps=CASE WHEN'),'reps realizadas precisam ser salvas');
+  assert.ok(sets.includes('ws.user_id=${user.id}::uuid'),'séries isoladas por usuário');
+  assert.ok(types.includes('actual_reps: number | null;'),'reps medidas separadas');
+  assert.ok(detail.includes('ss.actual_reps'),'leitura persistente');
+  assert.ok(migration.includes('ADD COLUMN IF NOT EXISTS actual_reps'),'histórico anterior permanece nulo');
+  assert.ok(app.includes('Repetições realizadas da série'),'entrada de reps por série');
+});
+
+test('aplicação pós-treino exige confirmação, ownership e PR que só melhora',()=>{
+  const route=source('app/api/sessions/[id]/apply/route.ts');
+  const app=source('components/WorkoutApp.tsx');
+  const migration=source('db/migrations/2026-11-19-pr-source.sql');
+  assert.ok(route.includes('currentProfile()'),'exige sessão');
+  assert.ok(route.includes('sameOrigin(request)'),'exige same-origin');
+  assert.ok(route.includes('AND user_id=${user.id}::uuid'),'verifica posse da sessão/ficha');
+  assert.ok(route.includes("sessions[0].status!=='finished'"),'não aplicar sessão ativa');
+  assert.ok(route.includes('actual_reps'),'não inventar reps');
+  assert.ok(route.includes('estimatedOneRM'),'seleciona melhor série');
+  assert.ok(route.includes('ON CONFLICT(user_id,exercise_key) DO UPDATE'),'promove PR existente');
+  assert.ok(route.includes('EXCLUDED.repetitions::numeric/30'),'compara Epley antes de atualizar');
+  assert.ok(route.includes('INSERT INTO public.user_pr_exercises'),'inclusão explícita por ação');
+  assert.ok(route.includes('UPDATE public.user_workout_templates'),'alterar cargas da ficha futura');
+  assert.ok(!route.includes('UPDATE public.session_sets'),'histórico nunca é reescrito');
+  assert.ok(app.includes('window.confirm(confirmation)'),'opt-in explícito');
+  assert.ok(app.includes('Atualizar ficha e PRs'),'terceira opção de conclusão');
+  assert.ok(migration.includes("source IN ('manual','workout')"),'origem dos PRs separada');
+});
+
+test('cronômetro usa início e fim persistidos e reinicia atualização ao reabrir treino',()=>{
+  const app=source('components/WorkoutApp.tsx');
+  assert.ok(app.includes('Date.parse(startedAt)'),'horário persistido da sessão');
+  assert.ok(app.includes('Date.parse(finishedAt)'),'sessão concluída usa horário final');
+  assert.ok(app.includes("setClockNow(Date.now())"),'cronômetro vivo');
+  assert.ok(app.includes('TEMPO DE TREINO'),'mostra contador');
+});
