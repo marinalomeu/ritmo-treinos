@@ -72,7 +72,7 @@ export async function GET() {
     // A interface a identifica como referência, nunca como PR confirmado.
     const prReferences=await sql`
       SELECT DISTINCT ON (ss.exercise_key) ss.exercise_key,
-        ss.weight_kg::float8 AS weight_kg,ss.target_reps,
+        ss.weight_kg::float8 AS weight_kg,ss.actual_reps,ss.target_reps,
         ws.performed_on::text AS performed_on
       FROM public.session_sets ss JOIN public.workout_sessions ws ON ws.id=ss.session_id
       WHERE ws.user_id=${user.id}::uuid AND ws.status='finished'
