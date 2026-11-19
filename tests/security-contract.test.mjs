@@ -152,3 +152,18 @@ test('apenas a proprietaria administra contas e lista de autorizados',()=>{
   assert.ok(profile.includes('lower(u.email)=p.email'),'e-mail autenticado deve coincidir com cadastro');
   assert.ok(panel.includes("'/api/admin/members'"),'admin deve gerir usuarios autorizados');
 });
+
+test('novo convidado recebe meta anual estável e convite sem texto redundante',()=>{
+  const data=source('app/api/data/route.ts');
+  const app=source('components/WorkoutApp.tsx');
+  const invite=source('components/InviteSignup.tsx');
+  const sql=source('db/migrations/2026-11-19-allow-seven-training-days.sql');
+  assert.ok(data.includes('America/Sao_Paulo'),'ponto inicial estável no dia da inscrição');
+  assert.ok(data.includes("AND ${user.role}='member'"),'somente convidados sem meta recebem padrão');
+  assert.ok(data.includes('NOT EXISTS (SELECT 1 FROM public.user_training_goals'),'metas personalizadas são preservadas');
+  assert.ok(app.includes('defaultMemberGoal(todayLocal())'),'fallback respeita data local');
+  assert.ok(app.includes('[1,2,3,4,5,6,7]'),'frequência sete editável');
+  assert.ok(app.includes('segunda a domingo'),'domingo é dia válido');
+  assert.ok(!invite.includes('Seus treinos serão privados e independentes dos demais usuários.'));
+  assert.ok(sql.includes('BETWEEN 1 AND 7'),'banco permite sete dias por semana');
+});
