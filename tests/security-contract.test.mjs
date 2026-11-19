@@ -301,7 +301,7 @@ test('PRs são escolhidos por exercício, mesmo em séries parciais',()=>{
   const app=source('components/WorkoutApp.tsx');
   const api=source('app/api/sessions/[id]/apply/route.ts');
   assert.ok(modal.includes('type="checkbox" checked={e.active}'),'escolha individual');
-  assert.ok(modal.includes('weight:e.weight'),'mantém valor selecionado');
+  assert.ok(modal.includes('value={e.weight}'),'mantém valor de carga selecionado para edição');
   assert.ok(modal.includes('Repetições feitas'),'repetições do resultado, não target');
   assert.ok(modal.includes('partial:Boolean(best&&!best.completed)'),'séries parciais são consideradas');
   assert.ok(api.includes('payload.pr_selections'),'back-end usa seleção explícita');
