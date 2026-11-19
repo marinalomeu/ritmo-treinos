@@ -1,8 +1,8 @@
 'use client';
 import { useMemo, useState } from 'react';
-import { Download, Image as ImageIcon, Share2, X } from 'lucide-react';
+import { CalendarDays, Check, Clock3, Download, Dumbbell, Image as ImageIcon, Layers3, ListChecks, Share2, TrendingUp, Type, X } from 'lucide-react';
 import type { SessionDetail } from '../lib/templates';
-import { DEFAULT_SHARE_OPTIONS, formatVolume, shareMetricValues, visibleShareExercises,
+import { DEFAULT_SHARE_OPTIONS, numericShareTarget, shareMetricValues, shareSelectionCount, visibleShareExercises,
   workoutShareSummary, type ShareMetric, type ShareOptions, type ShareSummary } from '../lib/workoutShare';
 
 type Format='story'|'feed';
@@ -28,14 +28,14 @@ function drawWrapped(ctx:CanvasRenderingContext2D,text:string,x:number,y:number,
 }
 
 async function pngPoster(detail:SessionDetail,format:Format,options:ShareOptions,
-  summary:ShareSummary,manualVolumeKg:number|null){
+  summary:ShareSummary){
   const c=document.createElement('canvas');
   const story=format==='story';
   c.width=1080;c.height=story?1920:1080;
   const ctx=c.getContext('2d');
   if(!ctx)throw new Error('Não foi possível criar imagem neste navegador.');
   const w=c.width,h=c.height;
-  const metrics=shareMetricValues(summary,options,manualVolumeKg);
+  const metrics=shareMetricValues(summary,options);
   const exercises=visibleShareExercises(summary,format,metrics.length);
   const grad=ctx.createLinearGradient(0,0,w,h);
   grad.addColorStop(0,'#463047');grad.addColorStop(.55,'#684b62');grad.addColorStop(1,'#93738a');
@@ -83,8 +83,8 @@ async function pngPoster(detail:SessionDetail,format:Format,options:ShareOptions
     ctx.fillText('NESTE TREINO',76,y-32);
     ctx.fillStyle='#fffafc';ctx.font=`600 ${story?27:24}px DM Sans, sans-serif`;
     for(const [i,entry] of exercises.entries.entries()){
-      const label=options.showExerciseTargets?
-        `${entry.name} · meta: ${entry.target}`:entry.name;
+      const target=options.showExerciseTargets?numericShareTarget(entry.target):null;
+      const label=target?`${entry.name} · ${target}`:entry.name;
       ctx.fillText('·  '+trimName(label,story?47:42),78,y+i*lineHeight);
     }
     if(exercises.extra){
@@ -105,25 +105,41 @@ export default function WorkoutShareCard({detail,onClose}:{detail:SessionDetail;
   const [options,setOptions]=useState<ShareOptions>(()=>({
     ...DEFAULT_SHARE_OPTIONS,metrics:{...DEFAULT_SHARE_OPTIONS.metrics}
   }));
-  const [manualVolume,setManualVolume]=useState('');
   const [busy,setBusy]=useState(false);
   const [error,setError]=useState('');
   const summary=useMemo(()=>workoutShareSummary(detail),[detail]);
-  const manualNumber=Number(manualVolume.trim().replace(',','.'));
-  const manualVolumeKg=manualVolume.trim()&&Number.isFinite(manualNumber)&&manualNumber>0&&manualNumber<=1e9?
-    manualNumber:null;
-  const metrics=shareMetricValues(summary,options,manualVolumeKg);
+  const metrics=shareMetricValues(summary,options);
+  const selectedCount=shareSelectionCount(options);
+  const [selectionHint,setSelectionHint]=useState(false);
   const exercises=visibleShareExercises(summary,format,metrics.length);
   const metricColumns=metrics.length===4?2:Math.max(1,metrics.length);
-  const toggleMetric=(key:ShareMetric)=>setOptions(previous=>({
-    ...previous,metrics:{...previous.metrics,[key]:!previous.metrics[key]}
-  }));
-  const toggle=(key:'showWorkoutName'|'showDate'|'showExercises'|'showExerciseTargets')=>
-    setOptions(previous=>({...previous,[key]:!previous[key]}));
+  const updateShareOption=(key:'showWorkoutName'|'showDate'|'showExercises'|ShareMetric)=>{
+    setOptions(previous=>{
+      const current=key in previous.metrics?
+        previous.metrics[key as ShareMetric]:previous[key as 'showWorkoutName'|'showDate'|'showExercises'];
+      if(current&&shareSelectionCount(previous)<=2){
+        setSelectionHint(true);
+        return previous;
+      }
+      setSelectionHint(false);
+      if(key in previous.metrics)return {...previous,metrics:{...previous.metrics,[key]:!current}};
+      return {...previous,[key]:!current};
+    });
+  };
+  const toggleTargets=()=>setOptions(previous=>({...previous,showExerciseTargets:!previous.showExerciseTargets}));
+  const choices=[
+    {key:'time',label:'Tempo de treino',Icon:Clock3,active:options.metrics.time},
+    {key:'volume',label:'Volume de carga',Icon:TrendingUp,active:options.metrics.volume},
+    {key:'exerciseCount',label:'Quantidade de exercícios',Icon:Dumbbell,active:options.metrics.exerciseCount},
+    {key:'sets',label:'Séries concluídas',Icon:Layers3,active:options.metrics.sets},
+    {key:'showExercises',label:'Lista de exercícios',Icon:ListChecks,active:options.showExercises},
+    {key:'showWorkoutName',label:'Nome do treino',Icon:Type,active:options.showWorkoutName},
+    {key:'showDate',label:'Data do treino',Icon:CalendarDays,active:options.showDate},
+  ] as const;
   const exportCard=async(share:boolean)=>{
     setBusy(true);setError('');
     try{
-      const file=await pngPoster(detail,format,options,summary,manualVolumeKg);
+      const file=await pngPoster(detail,format,options,summary);
       if(share&&typeof navigator.share==='function'&&navigator.canShare?.({files:[file]})){
         try{await navigator.share({files:[file],title:'Meu treino no Ritmo'});return;}
         catch(e){if((e as Error).name==='AbortError')return;}
@@ -160,7 +176,7 @@ export default function WorkoutShareCard({detail,onClose}:{detail:SessionDetail;
           {options.showExercises&&<div className="share-poster-exercises">
             <small>NESTE TREINO</small>
             {exercises.entries.map(entry=><span key={entry.key}>
-              · {entry.name}{options.showExerciseTargets&&<em> · meta: {entry.target}</em>}
+              · {entry.name}{options.showExerciseTargets&&numericShareTarget(entry.target)&&<em> · {numericShareTarget(entry.target)}</em>}
             </span>)}
             {exercises.extra>0&&<span className="share-poster-more">+ {exercises.extra} outros exercícios</span>}
           </div>}
@@ -176,42 +192,33 @@ export default function WorkoutShareCard({detail,onClose}:{detail:SessionDetail;
             </div>
           </div>
           <div className="share-editor-section">
-            <span className="overline">O QUE MOSTRAR NO CARD?</span>
-            <div className="share-options-grid">
-              <label className="share-option"><input type="checkbox" checked={options.showWorkoutName}
-                onChange={()=>toggle('showWorkoutName')}/><span>Nome do treino</span></label>
-              <label className="share-option"><input type="checkbox" checked={options.showDate}
-                onChange={()=>toggle('showDate')}/><span>Data do treino</span></label>
-              <label className="share-option"><input type="checkbox" checked={options.metrics.time}
-                onChange={()=>toggleMetric('time')}/><span>Tempo de treino</span></label>
-              <label className="share-option"><input type="checkbox" checked={options.metrics.exerciseCount}
-                onChange={()=>toggleMetric('exerciseCount')}/><span>Quantidade de exercícios</span></label>
-              <label className="share-option"><input type="checkbox" checked={options.metrics.sets}
-                onChange={()=>toggleMetric('sets')}/><span>Séries concluídas</span></label>
-              <label className="share-option"><input type="checkbox" checked={options.metrics.volume}
-                onChange={()=>toggleMetric('volume')}/><span>Volume de carga (kg)</span></label>
-              <label className="share-option"><input type="checkbox" checked={options.showExercises}
-                onChange={()=>toggle('showExercises')}/><span>Lista de exercícios</span></label>
+            <div className="share-select-header">
+              <span className="overline">O QUE MOSTRAR NO CARD?</span>
+              <span className="share-selected-counter">{selectedCount} selecionadas</span>
             </div>
-            {options.metrics.volume&&<div className="share-volume-editor">
-              <p>{summary.volumeKg!==null?
-                `Calculado: ${formatVolume(summary.volumeKg)}${summary.volumePartial?' (parcial — há séries sem repetições anotadas)':''}.`:
-                'Este treino não tem carga e repetições realizadas suficientes para cálculo automático.'}
-                {' '}Volume = soma da carga externa (kg) × repetições anotadas, inclusive séries parciais.</p>
-              <label>Informar outro volume, se preferir (kg)
-                <input type="text" inputMode="decimal" value={manualVolume} maxLength={16}
-                  placeholder={summary.volumeKg!==null?'Usar volume calculado':'Ex.: 1250'}
-                  onChange={e=>setManualVolume(e.target.value)}/>
-              </label>
-              {manualVolume.trim()&&manualVolumeKg===null&&<small role="alert">Informe um valor positivo válido.</small>}
-              {manualVolumeKg!==null&&<small>Este valor aparecerá como “Volume informado”.</small>}
-              {summary.volumeKg===null&&manualVolumeKg===null&&<small>Informe um volume para incluí-lo no card.</small>}
-            </div>}
-            {options.showExercises&&<label className="share-option share-suboption">
-              <input type="checkbox" checked={options.showExerciseTargets}
-                onChange={()=>toggle('showExerciseTargets')}/>
-              <span>Mostrar também as metas dos exercícios <small>(útil para WODs · não são repetições executadas)</small></span>
-            </label>}
+            <div className="share-options-grid" role="group" aria-label="Informações a compartilhar">
+              {choices.map(({key,label,Icon,active})=><button key={key} type="button"
+                className={active?'share-info-card is-active':'share-info-card'}
+                aria-pressed={active} aria-label={label+(active?' (selecionado)':'')}
+                onClick={()=>updateShareOption(key)}>
+                <span className="share-info-icon"><Icon size={17} aria-hidden="true"/></span>
+                <span className="share-info-label">{label}</span>
+                <span className="share-info-indicator" aria-hidden="true">{active&&<Check size={13}/>}</span>
+              </button>)}
+            </div>
+            <small className={selectionHint?'share-minimum-help is-visible':'share-minimum-help'} role="status">
+              Selecione no mínimo duas informações para compartilhar.
+            </small>
+            {options.showExercises&&<button type="button"
+              className={options.showExerciseTargets?'share-target-option is-active':'share-target-option'}
+              aria-pressed={options.showExerciseTargets} onClick={toggleTargets}>
+              <span className="share-info-indicator" aria-hidden="true">
+                {options.showExerciseTargets&&<Check size={13}/>}
+              </span>
+              <span>Incluir os números das metas dos exercícios
+                <small>Ex.: Agachamento · 10. Não são repetições realizadas.</small>
+              </span>
+            </button>}
           </div>
           <p className="share-privacy">A prévia muda conforme suas escolhas. Nenhuma informação pessoal é incluída, e nada será publicado automaticamente.</p>
           {error&&<p className="template-alert" role="alert">{error}</p>}
