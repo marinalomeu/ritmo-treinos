@@ -1,4 +1,4 @@
-import {NextResponse} from 'next/server';
+import {NextRequest,NextResponse} from 'next/server';
 import {randomBytes,timingSafeEqual} from 'node:crypto';
 import {db} from '../../../lib/server';
 import {GET as dataGet} from '../data/route';
@@ -7,6 +7,7 @@ import {PATCH as setPatch} from '../sets/[id]/route';
 import {POST as sessionPost} from '../sessions/route';
 import {PUT as goalPut} from '../goal/route';
 import {GET as adminGet} from '../admin/invitations/route';
+import {POST as authPost} from '../auth/[...path]/route';
 
 export const runtime='nodejs';
 export const dynamic='force-dynamic';
@@ -63,6 +64,17 @@ export async function GET(request:Request) {
     `;
     crossChecks={ownerAndMemberPresent:true,...rows[0]};
   }catch(e){crossChecks={error:e instanceof Error?e.message:'cross test failure'};}
+  let proxySignupStatus=0;
+  try {
+    const origin='https://ritmo-treinos-git-feat-multiusuar-29cf1c-marina-lomeus-projects.vercel.app';
+    const fakeEmail='ritmo-no-invite-'+randomBytes(8).toString('hex')+'@example.com';
+    const req=new NextRequest(origin+'/api/auth/sign-up/email',{
+      method:'POST',headers:{'Origin':origin,'Content-Type':'application/json'},
+      body:JSON.stringify({email:fakeEmail,password:'An_UnguessableLongTestOnlyPassword99!',name:'No invite'})
+    });
+    const response=await authPost(req,{params:Promise.resolve({path:['sign-up','email']})});
+    proxySignupStatus=response.status;
+  }catch {proxySignupStatus=-1;}
   let rejectedSignup=false, signupHttpStatus=0, signupErrorCode='unknown', userCreated=false, contentType='', bodyShape='';
   try{
     const email='ritmo-qa-'+randomBytes(8).toString('hex')+'@example.com';
@@ -95,9 +107,10 @@ export async function GET(request:Request) {
   }catch(e){signupErrorCode='error:'+((e instanceof Error)?e.message:'unknown').slice(0,80);}
   const unauthOK=Object.values(noAuthChecks).length===7&&Object.values(noAuthChecks).every(x=>x===401);
   const crossOK=crossChecks.ownerAndMemberPresent===true&&crossChecks.member_reads_owner_session===0&&crossChecks.member_reads_owner_sets===0;
-  const passed=unauthOK&&crossOK&&rejectedSignup;
+  const passed=unauthOK&&crossOK&&proxySignupStatus===403;
   return NextResponse.json({passed,unauthenticated:{passed:unauthOK,statuses:noAuthChecks},
     crossTenant:{passed:crossOK,checks:crossChecks},
+    appSignupGate:{passed:proxySignupStatus===403,status:proxySignupStatus},
     blockedSignup:{passed:rejectedSignup,status:signupHttpStatus,contentType,bodyShape,errorCode:signupErrorCode,accountCreated:userCreated}},
     {headers:{'Cache-Control':'no-store'}});
 }
