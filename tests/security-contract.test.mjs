@@ -325,21 +325,26 @@ test('histórico não exibe UUID de ficha e conclusão apresenta card compartilh
 });
 
 
-test('card compartilhável não expõe informações sem seleção e usa os mesmos dados no PNG',()=>{
+test('card possui seleção elegante de informações, volume imutável e mínimo de duas',()=>{
   const ui=source('components/WorkoutShareCard.tsx');
   const calc=source('lib/workoutShare.ts');
-  assert.ok(ui.includes('O QUE MOSTRAR NO CARD?'),'controles visíveis');
-  assert.ok(ui.includes("toggleMetric('volume')"),'volume pode ser escolhido');
-  assert.ok(ui.includes("toggle('showWorkoutName')"),'nome pode ser ocultado');
-  assert.ok(ui.includes("toggle('showDate')"),'data pode ser ocultada');
-  assert.ok(ui.includes("options.showDate?'  ·  '"),'PNG respeita ocultação da data');
-  assert.ok(ui.includes("toggle('showExercises')"),'lista de exercícios pode ser ocultada');
-  assert.ok(ui.includes("toggle('showExerciseTargets')"),'metas dos exercícios podem ser ocultadas');
-  assert.ok(ui.includes('shareMetricValues(summary,options,manualVolumeKg)'),'prévia e exportação leem as escolhas');
-  assert.ok(ui.includes('visibleShareExercises(summary,format,metrics.length)'),'exercícios seguem formato do card');
-  assert.ok(ui.includes('pngPoster(detail,format,options,summary,manualVolumeKg)'),'exportação respeita configuração');
-  assert.ok(calc.includes("set.load_unit!=='kg'"),'assistência e velocidade não contam em volume');
-  assert.ok(calc.includes('set.actual_reps'),'volume não é inventado a partir de metas planejadas');
-  assert.ok(calc.includes("label:manual?'VOLUME INFORMADO':'VOLUME REGISTRADO'"),'origem do valor identificada');
-  assert.ok(!ui.includes('user.email'),'card não contém email autenticado');
+  const css=source('app/globals.css');
+  assert.ok(ui.includes('O QUE MOSTRAR NO CARD?'));
+  assert.ok(ui.includes('share-info-card is-active'),'cartões com visual selecionado');
+  assert.ok(ui.includes('share-info-indicator'),'indicador próprio, não checkbox nativo');
+  assert.ok(ui.includes('shareSelectionCount(options)<=2'),'não permite remover a segunda info');
+  assert.ok(ui.includes('aria-pressed={active}'),'estado acessível');
+  assert.ok(ui.includes('updateShareOption(key)'),'opções independentes');
+  assert.ok(ui.includes('toggleTargets'),'metas opcionais para WOD');
+  assert.ok(ui.includes("options.showDate?'  ·  '"),'PNG respeita data');
+  assert.ok(ui.includes('numericShareTarget(entry.target)'),'metas sem texto extra');
+  assert.ok(ui.includes('shareMetricValues(summary,options)'),'prévia e PNG usam mesmos dados');
+  assert.ok(ui.includes('pngPoster(detail,format,options,summary)'),'exportação respeita seleção');
+  assert.ok(calc.includes("set.load_unit!=='kg'"),'assistência e velocidade não contam como volume');
+  assert.ok(calc.includes('set.actual_reps'),'volume não usa reps planejadas');
+  assert.ok(calc.includes("summary.volumeKg===null?'—'"),'sem inventar volume antigo');
+  assert.ok(css.includes('.share-info-card.is-active'),'visual de escolha ativa');
+  assert.ok(!ui.includes('manualVolume'),'volume não pode ser digitado');
+  assert.ok(!ui.includes('Informar outro volume'),'retira edição de carga/volume');
+  assert.ok(!ui.includes('user.email'),'card não compartilha email');
 });
