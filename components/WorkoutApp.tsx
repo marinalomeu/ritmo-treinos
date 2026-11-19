@@ -94,12 +94,33 @@ export default function WorkoutApp({mode,isOwner=false}:{mode:Mode;isOwner?:bool
     (data.historicalExercises||[]).forEach(e=>{if(!existing.has(e.key))existing.set(e.key,{key:e.key,name:e.name,unit:e.unit,modality:'Outros',origin:'existing'});});
     return mergedExerciseCatalog([...existing.values()],data.customExercises||[],BASE_EXERCISES);
   },[visibleTemplates,data.historicalExercises,data.customExercises]);
+  // Apenas fichas fixas e exercícios adicionados explicitamente aos PRs.
+  // Treinos avulsos e exercícios antigos não entram automaticamente nesta página.
+  const fixedPrKeys=useMemo(()=>new Set(visibleTemplates.flatMap(t=>t.exercises.map(e=>e.key))),[visibleTemplates]);
   const prExercises=useMemo(()=>{
     const keys=new Map<string,{key:string;name:string;unit:Unit}>();
-    visibleTemplates.forEach(t=>t.exercises.forEach(e=>{if(!keys.has(e.key))keys.set(e.key,{key:e.key,name:e.name,unit:e.unit});}));
-    (data.historicalExercises||[]).forEach(e=>{if(!keys.has(e.key))keys.set(e.key,{key:e.key,name:e.name+' (histórico)',unit:e.unit});});
+    visibleTemplates.forEach(t=>t.exercises.forEach(e=>{
+      if(!keys.has(e.key))keys.set(e.key,{key:e.key,name:e.name,unit:e.unit});
+    }));
+    (data.prPinned||[]).forEach(key=>{
+      const item=catalogExercises.find(e=>e.key===key);
+      if(item&&!keys.has(key))keys.set(key,{key:item.key,name:item.name,unit:item.unit});
+    });
     return [...keys.values()];
-  },[visibleTemplates,data.historicalExercises]);
+  },[visibleTemplates,data.prPinned,catalogExercises]);
+  const prReferences=useMemo(()=>{
+    const map=new Map<string,{weight_kg:number;target_reps:string;source:'treino'|'ficha'}>();
+    for(const s of data.prReferences||[]){
+      if(s.weight_kg>0)map.set(s.exercise_key,{weight_kg:s.weight_kg,target_reps:s.target_reps,source:'treino'});
+    }
+    for(const t of visibleTemplates)for(const e of t.exercises){
+      if(!map.has(e.key)&&e.defaultLoad!==null&&e.defaultLoad>0
+        &&e.unit!=='km/h'&&e.unit!=='assist_kg'){
+        map.set(e.key,{weight_kg:e.defaultLoad,target_reps:e.target,source:'ficha'});
+      }
+    }
+    return map;
+  },[data.prReferences,visibleTemplates]);
   const exerciseCategories=useMemo(()=>new Map((data.exerciseModalities||[]).map(m=>[m.exercise_key,m.modality])),[data.exerciseModalities]);
   const filteredProgress=useMemo(()=>allProgress.filter(e=>modalityFilter==='Todas'||(exerciseCategories.get(e.key)||'Sem categoria')===modalityFilter),[allProgress,modalityFilter,exerciseCategories]);
   const effectiveSelected=filteredProgress.some(e=>e.key===selectedExercise)
@@ -132,7 +153,7 @@ export default function WorkoutApp({mode,isOwner=false}:{mode:Mode;isOwner?:bool
       </>}
       {view==='history'&&<><PageHeading label="SEU REGISTRO" title="Histórico de treinos" description="Cada sessão fica salva com data, séries realizadas e cargas utilizadas."/><div className="history-toolbar"><span>{data.sessions.length} {data.sessions.length===1?'sessão registrada':'sessões registradas'}</span><button className="btn btn-primary" onClick={ensureStart}><Plus size={16}/> Novo treino</button></div><div className="recent-list">{data.sessions.length?data.sessions.map(s=><SessionRow key={s.id} s={s} showcase={mode==='showcase'} onClick={()=>openWorkout(s.id)}/>):<EmptyState title="Nenhum treino registrado" text="Quando você concluir suas séries, elas aparecerão aqui."/>}</div></>}
       {view==='progress'&&<><PageHeading label="EVOLUÇÃO DE CARGAS" title="Sua força, em perspectiva" description="Selecione um exercício para comparar as cargas registradas nas sessões anteriores."/><div className="progress-card"><div className="progress-filters"><label className="input-label" htmlFor="exercise-modality">MODALIDADE<select id="exercise-modality" className="select-input" value={modalityFilter} onChange={e=>setModalityFilter(e.target.value)}><option>Todas</option><option>Sem categoria</option>{MODALITIES.map(m=><option key={m}>{m}</option>)}</select></label><label className="input-label" htmlFor="exercise-choice">EXERCÍCIO<select id="exercise-choice" className="select-input" value={effectiveSelected} onChange={e=>setSelectedExercise(e.target.value)}>{filteredProgress.length===0?<option value="">Nenhum exercício nesta modalidade</option>:filteredProgress.map(e=><option key={e.key} value={e.key}>{e.name}</option>)}</select></label></div><ProgressGraph points={points} unit={chosen?.unit||'kg'}/></div><div className="progress-note"><TrendingUp size={18}/><span>{chosen?.unit==='assist_kg'?'Na barra assistida, menos quilos de assistência significam mais trabalho realizado por você.':'Os valores mostram a maior carga concluída em cada sessão. Só séries marcadas como feitas entram no gráfico.'}</span></div></>}
-      {view==='prs'&&<><PageHeading label="RECORDES PESSOAIS" title="Seus PRs" description="Registre sua melhor série, consulte o 1RM estimado e planeje a carga conforme as repetições. Classifique os exercícios e filtre por modalidade."/><PersonalRecords mode={mode} exercises={prExercises} records={data.personalRecords||[]} modalities={data.exerciseModalities||[]} onChanged={refresh}/></>}
+      {view==='prs'&&<><PageHeading label="RECORDES PESSOAIS" title="Seus PRs" description="Registre sua melhor série, consulte o 1RM estimado e planeje a carga conforme as repetições. Classifique os exercícios e filtre por modalidade."/><PersonalRecords mode={mode} exercises={prExercises} catalog={catalogExercises} pinnedKeys={data.prPinned||[]} fixedKeys={[...fixedPrKeys]} references={prReferences} records={data.personalRecords||[]} modalities={data.exerciseModalities||[]} onChanged={refresh}/></>}
       {view==='workout'&&detail&&<>
         <button className="back-link" onClick={()=>{setDetail(null);setView('history');void refresh();}}><ArrowLeft size={17}/> Voltar ao histórico</button>
         <div className="workout-heading"><div><p className="overline">{/^[A-Z]$/.test(detail.session.template_id)?`FICHA ${detail.session.template_id}`:'FICHA PERSONALIZADA'} · {detail.session.status==='finished'?'TREINO FINALIZADO':'TREINO EM ANDAMENTO'}</p><h1>{detail.session.template_name}</h1><p>{findVisibleTemplate(detail.session.template_id)?.description}</p></div><div className="workout-head-right"><label className="date-label">DATA<input type="date" value={detail.session.performed_on} disabled /></label></div></div>
