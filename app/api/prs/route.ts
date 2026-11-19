@@ -15,10 +15,10 @@ export async function PUT(request:Request){
     const existing=await sql`
       SELECT 1 FROM public.user_workout_templates t
       CROSS JOIN LATERAL jsonb_array_elements(t.exercises) e
-      WHERE t.user_id=${user.id}::uuid AND e->>'key'=${b.exercise_key} AND e->>'unit'='kg'
+      WHERE t.user_id=${user.id}::uuid AND e->>'key'=${b.exercise_key} AND e->>'unit'<>'km/h'
       UNION ALL
       SELECT 1 FROM public.session_sets ss JOIN public.workout_sessions ws ON ws.id=ss.session_id
-      WHERE ws.user_id=${user.id}::uuid AND ss.exercise_key=${b.exercise_key} AND ss.load_unit='kg'
+      WHERE ws.user_id=${user.id}::uuid AND ss.exercise_key=${b.exercise_key} AND ss.load_unit<>'km/h'
       LIMIT 1
     `;
     if(!existing.length)return NextResponse.json({error:'Exercício não encontrado nos seus treinos.'},{status:404});
