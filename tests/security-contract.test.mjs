@@ -182,3 +182,33 @@ test('busca de exercícios usa lista vertical e mantém criação pessoal separa
   assert.ok(css.includes('.exercise-picker-options{max-height:270px;overflow-y:auto'), 'resultados com rolagem');
   assert.ok(css.includes('.exercise-picker-option-name'), 'nome e origem apresentados separadamente');
 });
+
+
+test('PRs só exibem fichas e exercícios explicitamente adicionados pelo usuário',()=>{
+  const app=source('components/WorkoutApp.tsx');
+  const ui=source('components/PersonalRecords.tsx');
+  const api=source('app/api/pr-exercises/route.ts');
+  const data=source('app/api/data/route.ts');
+  const migration=source('db/migrations/2026-11-19-pr-exercise-selection.sql');
+  assert.ok(app.includes('(data.prPinned||[]).forEach'),'incluir pins próprios');
+  assert.ok(!app.includes("name:e.name+' (histórico)'"),'PRs não listar todo histórico automaticamente');
+  assert.ok(ui.includes('Adicionar exercício'),'seleção de exercícios avulsos');
+  assert.ok(ui.includes('rankExerciseMatches'),'buscar catálogo');
+  assert.ok(ui.includes('Referência: último treino (reps planejadas)'),'não confundir meta com medição');
+  assert.ok(api.includes('currentProfile()'),'autorização privada');
+  assert.ok(api.includes('sameOrigin(request)'),'proteção same-origin');
+  assert.ok(api.includes('user.id'),'sempre atribuir pins da sessão');
+  assert.ok(api.includes('BASE_EXERCISES'),'validar chaves de catálogo');
+  assert.ok(data.includes('FROM public.user_pr_exercises'),'pinned keys no GET');
+  assert.ok(data.includes('ws.status=\'finished\''),'apenas sessões concluídas na referência');
+  assert.ok(migration.includes('PRIMARY KEY(user_id,exercise_key)'),'não duplicar e isolar seleção');
+});
+
+test('busca por peito inclui grupo Peitoral sem limitar a oito resultados',()=>{
+  const picker=source('components/ExercisePicker.tsx');
+  const catalog=source('lib/exerciseCatalog.ts');
+  assert.ok(picker.includes("peito:'Peitoral'"));
+  assert.ok(picker.includes('item.muscleGroup===muscleGroup'));
+  assert.ok(picker.includes('Consulta por grupo muscular mostra TODAS as opções'));
+  assert.ok(catalog.includes('muscleGroup:item.muscleGroup||canonical?.muscleGroup'));
+});
