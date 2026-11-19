@@ -86,3 +86,49 @@ test('fichas, series e sessoes exigem ownership no banco',()=>{
   const template=source('app/api/templates/[id]/route.ts');
   assert.equal((template.match(/WHERE user_id=\$\{user.id\}::uuid AND id=\$\{id\}/g)||[]).length,2);
 });
+
+test('PR e modalidades permanecem por usuario e nao aceitam id do cliente',()=>{
+  const data=source('app/api/data/route.ts');
+  assert.ok(data.includes('FROM public.user_personal_records WHERE user_id=${user.id}::uuid'));
+  assert.ok(data.includes('FROM public.user_exercise_modalities'));
+  const prs=source('app/api/prs/route.ts');
+  const categories=source('app/api/exercise-modalities/route.ts');
+  for(const body of [prs,categories]){
+    assert.ok(body.includes('currentProfile()'));
+    assert.ok(body.includes('sameOrigin(request)'));
+    assert.ok(body.includes('user.id'));
+    assert.ok(body.includes('RETURNING'));
+    assert.ok(!body.includes('b.user_id'));
+  }
+  assert.ok(prs.includes("e->>'unit'='kg'"),'PR Epley nao pode usar velocidade ou assistencia');
+  assert.ok(categories.includes('user_exercise_modalities'));
+  assert.ok(categories.includes("b.modality===''"),'deve permitir remover classificacao');
+});
+
+test('filtro de modalidade compartilhado entre PRs e progressao, sem selecao fixa',()=>{
+  const app=source('components/WorkoutApp.tsx');
+  const prs=source('components/PersonalRecords.tsx');
+  assert.ok(app.includes('modalityFilter'));
+  assert.ok(app.includes('filteredProgress'));
+  assert.ok(app.includes('exerciseCategories'));
+  assert.ok(app.includes('effectiveSelected'));
+  assert.ok(app.includes('<PersonalRecords'));
+  assert.ok(prs.includes('Pesquisar exercício'));
+  assert.ok(prs.includes('modalityMap.get(e.key)'));
+  assert.ok(prs.includes('plannedReps'));
+  assert.ok(prs.includes('plannedLoad'));
+  assert.ok(prs.includes('targetWeightForReps'));
+  assert.ok(prs.includes('estimatedOneRM'));
+});
+
+test('faixas e formula de Epley documentadas como estimativas',()=>{
+  const formula=source('lib/personalRecords.ts');
+  const view=source('components/PersonalRecords.tsx');
+  assert.ok(formula.includes('load*(1+reps/30)'));
+  assert.ok(formula.includes('oneRM/(1+reps/30)'));
+  assert.ok(formula.includes('oneRM*.40'));
+  assert.ok(formula.includes('oneRM*.60'));
+  assert.ok(formula.includes('oneRM*.70'));
+  assert.ok(formula.includes('oneRM*.85'));
+  assert.ok(view.includes('RIR'));
+});
