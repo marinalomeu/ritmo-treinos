@@ -1,11 +1,10 @@
 'use client';
 import { useMemo, useState } from 'react';
-import { CalendarDays, Check, Clock3, Download, Dumbbell, Image as ImageIcon, Layers3, ListChecks, Share2, TrendingUp, Type, X } from 'lucide-react';
+import { CalendarDays, Check, Clock3, Download, Dumbbell, Layers3, ListChecks, Moon, Share2, Sun, TrendingUp, Type, X } from 'lucide-react';
 import type { SessionDetail } from '../lib/templates';
-import { DEFAULT_SHARE_OPTIONS, numericShareTarget, shareMetricValues, shareSelectionCount, visibleShareExercises,
-  workoutShareSummary, type ShareMetric, type ShareOptions, type ShareSummary } from '../lib/workoutShare';
+import { DEFAULT_SHARE_OPTIONS, numericShareTarget, shareMetricValues, shareSelectionCount, visibleShareExercises, SHARE_THEMES,
+  workoutShareSummary, type ShareMetric, type ShareOptions, type ShareSummary, type ShareVisual } from '../lib/workoutShare';
 
-type Format='story'|'feed';
 const cap=(value:string)=>value.charAt(0).toLocaleUpperCase('pt-BR')+value.slice(1);
 const formatDate=(day:string)=>{
   const [year,month,date]=day.split('-');
@@ -27,81 +26,81 @@ function drawWrapped(ctx:CanvasRenderingContext2D,text:string,x:number,y:number,
   for(const row of rows.slice(0,lines)){ctx.fillText(row,x,y+emitted*lineHeight);emitted++;}
 }
 
-async function pngPoster(detail:SessionDetail,format:Format,options:ShareOptions,
+async function pngPoster(detail:SessionDetail,visual:ShareVisual,options:ShareOptions,
   summary:ShareSummary){
   const c=document.createElement('canvas');
-  const story=format==='story';
-  c.width=1080;c.height=story?1920:1080;
+  c.width=1080;c.height=1920;
   const ctx=c.getContext('2d');
   if(!ctx)throw new Error('Não foi possível criar imagem neste navegador.');
   const w=c.width,h=c.height;
   const metrics=shareMetricValues(summary,options);
-  const exercises=visibleShareExercises(summary,format,metrics.length);
+  const exercises=visibleShareExercises(summary,metrics.length);
+  const colors=SHARE_THEMES[visual];
   const grad=ctx.createLinearGradient(0,0,w,h);
-  grad.addColorStop(0,'#463047');grad.addColorStop(.55,'#684b62');grad.addColorStop(1,'#93738a');
+  grad.addColorStop(0,colors.gradient[0]);grad.addColorStop(.55,colors.gradient[1]);grad.addColorStop(1,colors.gradient[2]);
   ctx.fillStyle=grad;ctx.fillRect(0,0,w,h);
-  ctx.strokeStyle='rgba(255,255,255,.09)';ctx.lineWidth=3;
+  ctx.strokeStyle=colors.ring;ctx.lineWidth=3;
   for(const r of [360,490,650]){ctx.beginPath();ctx.arc(w+100,h*.19,r,0,Math.PI*2);ctx.stroke();}
-  ctx.fillStyle='#f9eff5';ctx.font='800 57px Manrope, sans-serif';ctx.fillText('ritmo.',75,115);
-  ctx.fillStyle='#d9bfd0';ctx.font='700 22px DM Sans, sans-serif';
+  ctx.fillStyle=colors.logo;ctx.font='800 57px Manrope, sans-serif';ctx.fillText('ritmo.',75,115);
+  ctx.fillStyle=colors.subtitle;ctx.font='700 22px DM Sans, sans-serif';
   ctx.fillText('SEU DIÁRIO DE TREINOS',78,155);
-  ctx.fillStyle='#efdae7';ctx.font='800 24px DM Sans, sans-serif';
-  ctx.fillText('TREINO REGISTRADO'+(options.showDate?'  ·  '+formatDate(detail.session.performed_on):''),76,story?470:260);
-  const hero=story?650:392;
-  ctx.fillStyle='#fffafc';ctx.font='800 106px Manrope, sans-serif';
+  ctx.fillStyle=colors.kicker;ctx.font='800 24px DM Sans, sans-serif';
+  ctx.fillText('TREINO REGISTRADO'+(options.showDate?'  ·  '+formatDate(detail.session.performed_on):''),76,470);
+  const hero=650;
+  ctx.fillStyle=colors.headline;ctx.font='800 106px Manrope, sans-serif';
   ctx.fillText('FEITO NO',72,hero);ctx.fillText('MEU RITMO.',72,hero+112);
   if(options.showWorkoutName){
-    ctx.fillStyle='#e5d1dd';ctx.font='600 32px DM Sans, sans-serif';
+    ctx.fillStyle=colors.secondary;ctx.font='600 32px DM Sans, sans-serif';
     drawWrapped(ctx,cap(detail.session.template_name),78,hero+190,w-150,42,2);
   }
-  const top=story?939:620;
+  const top=939;
   let metricBottom=top;
   if(metrics.length){
     const cols=metrics.length===4?2:metrics.length;
     const rows=Math.ceil(metrics.length/cols);
-    const rowHeight=story?145:110;
+    const rowHeight=145;
     const boxHeight=rows*rowHeight+28;
     metricBottom=top+boxHeight;
-    ctx.fillStyle='rgba(255,250,252,.10)';
+    ctx.fillStyle=colors.metricsBackground;
     roundedRect(ctx,65,top,w-130,boxHeight,30);ctx.fill();
     metrics.forEach((metric,i)=>{
       const col=i%cols,row=Math.floor(i/cols);
       const cellWidth=(w-184)/cols,x=97+col*cellWidth;
       const y=top+27+row*rowHeight;
-      ctx.fillStyle='#f1dce7';ctx.font='700 19px DM Sans, sans-serif';
+      ctx.fillStyle=colors.metricLabel;ctx.font='700 19px DM Sans, sans-serif';
       ctx.fillText(metric.label,x,y+12);
-      let size=story?48:42;
-      ctx.fillStyle='#fffafc';
+      let size=48;
+      ctx.fillStyle=colors.metricValue;
       do{ctx.font=`800 ${size}px Manrope, sans-serif`;if(ctx.measureText(metric.value).width<cellWidth-16)break;size-=2;}while(size>23);
       ctx.fillText(metric.value,x,y+77);
     });
   }
   if(options.showExercises){
-    const y=metrics.length?(metricBottom+(story?78:50)):(story?1005:685);
-    const lineHeight=story?46:35;
-    ctx.fillStyle='#e8d6e1';ctx.font='700 22px DM Sans, sans-serif';
+    const y=metrics.length?metricBottom+78:1005;
+    const lineHeight=46;
+    ctx.fillStyle=colors.exerciseHeading;ctx.font='700 22px DM Sans, sans-serif';
     ctx.fillText('NESTE TREINO',76,y-32);
-    ctx.fillStyle='#fffafc';ctx.font=`600 ${story?27:24}px DM Sans, sans-serif`;
+    ctx.fillStyle=colors.exerciseText;ctx.font='600 27px DM Sans, sans-serif';
     for(const [i,entry] of exercises.entries.entries()){
       const target=options.showExerciseTargets?numericShareTarget(entry.target):null;
       const label=target?`${entry.name} · ${target}`:entry.name;
-      ctx.fillText('·  '+trimName(label,story?47:42),78,y+i*lineHeight);
+      ctx.fillText('·  '+trimName(label,47),78,y+i*lineHeight);
     }
     if(exercises.extra){
-      ctx.fillStyle='#ebd5e2';ctx.font='600 23px DM Sans, sans-serif';
+      ctx.fillStyle=colors.extra;ctx.font='600 23px DM Sans, sans-serif';
       ctx.fillText(`+ ${exercises.extra} outros exercícios`,78,y+exercises.entries.length*lineHeight);
     }
   }
-  const foot=story?h-125:h-50;
-  ctx.fillStyle='#ead3e1';ctx.font='600 26px DM Sans, sans-serif';
+  const foot=h-125;
+  ctx.fillStyle=colors.footer;ctx.font='600 26px DM Sans, sans-serif';
   ctx.fillText('Um treino de cada vez. Uma evolução de cada vez.',76,foot);
   const blob=await new Promise<Blob|null>(resolve=>c.toBlob(resolve,'image/png'));
   if(!blob)throw new Error('Não foi possível exportar a arte.');
-  return new File([blob],`ritmo-treino-${detail.session.performed_on}-${format}.png`,{type:'image/png'});
+  return new File([blob],`ritmo-treino-${detail.session.performed_on}-${visual}.png`,{type:'image/png'});
 }
 
 export default function WorkoutShareCard({detail,onClose}:{detail:SessionDetail;onClose:()=>void}){
-  const [format,setFormat]=useState<Format>('story');
+  const [visual,setVisual]=useState<ShareVisual>('dark');
   const [options,setOptions]=useState<ShareOptions>(()=>({
     ...DEFAULT_SHARE_OPTIONS,metrics:{...DEFAULT_SHARE_OPTIONS.metrics}
   }));
@@ -111,7 +110,7 @@ export default function WorkoutShareCard({detail,onClose}:{detail:SessionDetail;
   const metrics=shareMetricValues(summary,options);
   const selectedCount=shareSelectionCount(options);
   const [selectionHint,setSelectionHint]=useState(false);
-  const exercises=visibleShareExercises(summary,format,metrics.length);
+  const exercises=visibleShareExercises(summary,metrics.length);
   const metricColumns=metrics.length===4?2:Math.max(1,metrics.length);
   const updateShareOption=(key:'showWorkoutName'|'showDate'|'showExercises'|ShareMetric)=>{
     const isMetric=key in options.metrics;
@@ -142,7 +141,7 @@ export default function WorkoutShareCard({detail,onClose}:{detail:SessionDetail;
   const exportCard=async(share:boolean)=>{
     setBusy(true);setError('');
     try{
-      const file=await pngPoster(detail,format,options,summary);
+      const file=await pngPoster(detail,visual,options,summary);
       if(share&&typeof navigator.share==='function'&&navigator.canShare?.({files:[file]})){
         try{await navigator.share({files:[file],title:'Meu treino no Ritmo'});return;}
         catch(e){if((e as Error).name==='AbortError')return;}
@@ -162,7 +161,7 @@ export default function WorkoutShareCard({detail,onClose}:{detail:SessionDetail;
         <button className="close-btn" type="button" onClick={onClose} aria-label="Fechar"><X size={18}/></button>
       </div>
       <div className="share-layout">
-        <div className={`share-poster share-poster-${format}`} aria-label="Prévia do seu card de treino">
+        <div className={`share-poster share-poster-${visual}`} aria-label={`Prévia vertical 9:16 do seu card de treino, visual ${visual==='dark'?'escuro':'claro'}`}>
           <div className="share-poster-art"><span className="share-poster-logo">ritmo<span>.</span></span>
             <small>SEU DIÁRIO DE TREINOS</small></div>
           <div className="share-poster-main">
@@ -186,13 +185,14 @@ export default function WorkoutShareCard({detail,onClose}:{detail:SessionDetail;
           <div className="share-poster-footer">Um treino de cada vez. Uma evolução de cada vez.</div>
         </div>
         <div className="share-editor">
-          <div className="share-editor-section"><span className="overline">FORMATO</span>
-            <div className="share-format-options">
-              <button type="button" className={format==='story'?'selected':''} aria-pressed={format==='story'}
-                onClick={()=>setFormat('story')}><ImageIcon size={16}/> Story · 9:16</button>
-              <button type="button" className={format==='feed'?'selected':''} aria-pressed={format==='feed'}
-                onClick={()=>setFormat('feed')}><ImageIcon size={16}/> Feed · 1:1</button>
+          <div className="share-editor-section"><span className="overline">VISUAL</span>
+            <div className="share-visual-options" role="group" aria-label="Aparência do card">
+              <button type="button" className={visual==='dark'?'selected':''} aria-pressed={visual==='dark'}
+                onClick={()=>setVisual('dark')}><Moon size={17}/> Escuro</button>
+              <button type="button" className={visual==='light'?'selected':''} aria-pressed={visual==='light'}
+                onClick={()=>setVisual('light')}><Sun size={17}/> Claro</button>
             </div>
+            <small className="share-visual-caption">Card vertical · 9:16</small>
           </div>
           <div className="share-editor-section">
             <div className="share-select-header">
