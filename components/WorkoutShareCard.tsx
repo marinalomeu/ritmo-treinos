@@ -46,7 +46,7 @@ async function pngPoster(detail:SessionDetail,format:Format,options:ShareOptions
   ctx.fillStyle='#d9bfd0';ctx.font='700 22px DM Sans, sans-serif';
   ctx.fillText('SEU DIÁRIO DE TREINOS',78,155);
   ctx.fillStyle='#efdae7';ctx.font='800 24px DM Sans, sans-serif';
-  ctx.fillText('TREINO REGISTRADO  ·  '+formatDate(detail.session.performed_on),76,story?470:260);
+  ctx.fillText('TREINO REGISTRADO'+(options.showDate?'  ·  '+formatDate(detail.session.performed_on):''),76,story?470:260);
   const hero=story?650:392;
   ctx.fillStyle='#fffafc';ctx.font='800 106px Manrope, sans-serif';
   ctx.fillText('FEITO NO',72,hero);ctx.fillText('MEU RITMO.',72,hero+112);
@@ -118,7 +118,7 @@ export default function WorkoutShareCard({detail,onClose}:{detail:SessionDetail;
   const toggleMetric=(key:ShareMetric)=>setOptions(previous=>({
     ...previous,metrics:{...previous.metrics,[key]:!previous.metrics[key]}
   }));
-  const toggle=(key:'showWorkoutName'|'showExercises'|'showExerciseTargets')=>
+  const toggle=(key:'showWorkoutName'|'showDate'|'showExercises'|'showExerciseTargets')=>
     setOptions(previous=>({...previous,[key]:!previous[key]}));
   const exportCard=async(share:boolean)=>{
     setBusy(true);setError('');
@@ -147,7 +147,7 @@ export default function WorkoutShareCard({detail,onClose}:{detail:SessionDetail;
           <div className="share-poster-art"><span className="share-poster-logo">ritmo<span>.</span></span>
             <small>SEU DIÁRIO DE TREINOS</small></div>
           <div className="share-poster-main">
-            <span className="share-poster-kicker">TREINO REGISTRADO · {formatDate(detail.session.performed_on)}</span>
+            <span className="share-poster-kicker">TREINO REGISTRADO{options.showDate&&<> · {formatDate(detail.session.performed_on)}</>}</span>
             <strong>FEITO NO<br/>MEU RITMO<span>.</span></strong>
             {options.showWorkoutName&&<p>{cap(detail.session.template_name)}</p>}
           </div>
@@ -180,6 +180,8 @@ export default function WorkoutShareCard({detail,onClose}:{detail:SessionDetail;
             <div className="share-options-grid">
               <label className="share-option"><input type="checkbox" checked={options.showWorkoutName}
                 onChange={()=>toggle('showWorkoutName')}/><span>Nome do treino</span></label>
+              <label className="share-option"><input type="checkbox" checked={options.showDate}
+                onChange={()=>toggle('showDate')}/><span>Data do treino</span></label>
               <label className="share-option"><input type="checkbox" checked={options.metrics.time}
                 onChange={()=>toggleMetric('time')}/><span>Tempo de treino</span></label>
               <label className="share-option"><input type="checkbox" checked={options.metrics.exerciseCount}
