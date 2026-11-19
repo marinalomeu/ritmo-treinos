@@ -100,6 +100,8 @@ test('PR e modalidades permanecem por usuario e nao aceitam id do cliente',()=>{
     assert.ok(body.includes('RETURNING'));
     assert.ok(!body.includes('b.user_id'));
   }
+  assert.ok(prs.includes('FROM public.user_pr_exercises'),'PR manual permitido para exercício adicionado explicitamente');
+  assert.ok(prs.includes("source='manual'"),'registro pelo formulário mantém proveniência manual');
   assert.ok(prs.includes("e->>'unit'<>'km/h'"),'PR Epley nao pode usar velocidade de corrida');
   assert.ok(prs.includes("ss.load_unit<>'km/h'"),'PRs devem permitir exercicios de peso corporal com carga adicional');
   assert.ok(categories.includes('user_exercise_modalities'));
@@ -271,4 +273,18 @@ test('cronômetro usa início e fim persistidos e reinicia atualização ao reab
   assert.ok(app.includes('Date.parse(finishedAt)'),'sessão concluída usa horário final');
   assert.ok(app.includes("setClockNow(Date.now())"),'cronômetro vivo');
   assert.ok(app.includes('TEMPO DE TREINO'),'mostra contador');
+});
+
+
+test('migrações de WOD/PR são aditivas e preservam o histórico legado',()=>{
+  const migrations=['db/migrations/2026-11-19-pr-exercise-selection.sql',
+    'db/migrations/2026-11-19-session-actual-reps.sql',
+    'db/migrations/2026-11-19-pr-source.sql'];
+  for(const path of migrations){
+    const sql=source(path);
+    assert.ok(!/\b(TRUNCATE|DELETE FROM|DROP TABLE)\b/i.test(sql),path+' não pode excluir histórico');
+  }
+  const prs=source('app/api/data/route.ts');
+  assert.ok(prs.includes('ss.actual_reps,ss.target_reps'),'última carga preserva reps realizadas ou alvo histórico');
+  assert.ok(prs.includes('FROM public.user_pr_exercises'),'lista privada de PRs carregada');
 });
