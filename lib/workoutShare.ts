@@ -59,13 +59,15 @@ export function workoutShareSummary(detail:SessionDetail):ShareSummary{
     exercises:[...exercises.values()]
   };
 }
-export const shareMetricValues=(summary:ShareSummary,options:ShareOptions)=>{
+export const shareMetricValues=(summary:ShareSummary,options:ShareOptions,manualVolumeKg:number|null=null)=>{
   const entries:{key:ShareMetric;label:string;value:string}[]=[];
   if(options.metrics.time)entries.push({key:'time',label:'TEMPO',value:summary.elapsed});
   if(options.metrics.exerciseCount)entries.push({key:'exerciseCount',label:'EXERCÍCIOS',value:String(summary.exerciseCount)});
   if(options.metrics.sets)entries.push({key:'sets',label:'SÉRIES FEITAS',value:String(summary.completedSets)});
-  if(options.metrics.volume&&summary.volumeKg!==null){
-    entries.push({key:'volume',label:'VOLUME REGISTRADO',value:formatVolume(summary.volumeKg)});
+  const manual=typeof manualVolumeKg==='number'&&Number.isFinite(manualVolumeKg)&&manualVolumeKg>0&&manualVolumeKg<=1e9;
+  const chosenVolume=manual?manualVolumeKg:summary.volumeKg;
+  if(options.metrics.volume&&chosenVolume!==null){
+    entries.push({key:'volume',label:manual?'VOLUME INFORMADO':'VOLUME REGISTRADO',value:formatVolume(chosenVolume)});
   }
   return entries;
 };
