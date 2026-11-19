@@ -1,5 +1,5 @@
 'use client';
-import { useMemo, useState, type KeyboardEvent } from 'react';
+import { useId, useMemo, useRef, useState, type KeyboardEvent } from 'react';
 import { Check, Plus, Search } from 'lucide-react';
 import type { CatalogExercise } from '../lib/exerciseCatalog';
 import { normalizeExerciseName } from '../lib/exerciseCatalog';
@@ -42,6 +42,8 @@ const sourceLabel=(origin:CatalogExercise['origin'])=>
   origin==='global'?'Catálogo geral':origin==='personal'?'Meu exercício':'Minhas fichas';
 
 export default function ExercisePicker({value,selectedKey,items,usedKeys,busy=false,onType,onSelect,onCreate}:Props){
+  const root=useRef<HTMLDivElement>(null);
+  const resultsId=useId();
   const [focused,setFocused]=useState(false);
   const [modality,setModality]=useState<Modality>('Academia');
   const [creating,setCreating]=useState(false);
@@ -91,7 +93,7 @@ export default function ExercisePicker({value,selectedKey,items,usedKeys,busy=fa
     }
   };
 
-  return <div className="exercise-picker">
+  return <div className="exercise-picker" ref={root}>
     <label>NOME
       <span className="exercise-picker-input-wrap">
         <Search size={17} aria-hidden="true"/>
@@ -103,7 +105,7 @@ export default function ExercisePicker({value,selectedKey,items,usedKeys,busy=fa
           aria-label="Buscar exercício na biblioteca"
           aria-autocomplete="list"
           aria-expanded={open}
-          aria-controls={open?'exercise-picker-results':undefined}
+          aria-controls={open?resultsId:undefined}
           onKeyDown={onInputKeyDown}
           onChange={e=>{
             onType(e.target.value);
@@ -112,7 +114,10 @@ export default function ExercisePicker({value,selectedKey,items,usedKeys,busy=fa
             setActiveIndex(-1);
           }}
           onFocus={()=>setFocused(true)}
-          onBlur={()=>window.setTimeout(()=>setFocused(false),160)}
+          onBlur={event=>{
+            if(root.current?.contains(event.relatedTarget as Node))return;
+            window.setTimeout(()=>setFocused(false),160);
+          }}
         />
       </span>
     </label>
@@ -122,7 +127,7 @@ export default function ExercisePicker({value,selectedKey,items,usedKeys,busy=fa
         <span>{matches.length?'EXERCÍCIOS ENCONTRADOS':'SEM RESULTADOS'}</span>
         {matches.length>0&&<span>{matches.length} sugestões</span>}
       </div>
-      {matches.length>0?<div className="exercise-picker-options" role="listbox" id="exercise-picker-results" aria-label="Exercícios encontrados">
+      {matches.length>0?<div className="exercise-picker-options" role="listbox" id={resultsId} aria-label="Exercícios encontrados">
         {matches.map((item,index)=>{
           const unavailable=usedKeys.includes(item.key)&&selectedKey!==item.key;
           return <button
