@@ -18,8 +18,8 @@ export type ShareSummary={
   exercises:ExerciseSummary[];
 };
 export const DEFAULT_SHARE_OPTIONS:ShareOptions={
-  showWorkoutName:true,showDate:true,showExercises:false,showExerciseTargets:false,
-  metrics:{time:true,exerciseCount:true,sets:true,volume:false}
+  showWorkoutName:false,showDate:false,showExercises:false,showExerciseTargets:false,
+  metrics:{time:true,exerciseCount:false,sets:false,volume:true}
 };
 export const formatVolume=(value:number)=>new Intl.NumberFormat('pt-BR',{maximumFractionDigits:1}).format(value)+' kg';
 
@@ -60,15 +60,15 @@ export function workoutShareSummary(detail:SessionDetail):ShareSummary{
     exercises:[...exercises.values()]
   };
 }
-export const shareMetricValues=(summary:ShareSummary,options:ShareOptions,manualVolumeKg:number|null=null)=>{
+export const shareMetricValues=(summary:ShareSummary,options:ShareOptions)=>{
   const entries:{key:ShareMetric;label:string;value:string}[]=[];
   if(options.metrics.time)entries.push({key:'time',label:'TEMPO',value:summary.elapsed});
   if(options.metrics.exerciseCount)entries.push({key:'exerciseCount',label:'EXERCÍCIOS',value:String(summary.exerciseCount)});
   if(options.metrics.sets)entries.push({key:'sets',label:'SÉRIES FEITAS',value:String(summary.completedSets)});
-  const manual=typeof manualVolumeKg==='number'&&Number.isFinite(manualVolumeKg)&&manualVolumeKg>0&&manualVolumeKg<=1e9;
-  const chosenVolume=manual?manualVolumeKg:summary.volumeKg;
-  if(options.metrics.volume&&chosenVolume!==null){
-    entries.push({key:'volume',label:manual?'VOLUME INFORMADO':'VOLUME REGISTRADO',value:formatVolume(chosenVolume)});
+  if(options.metrics.volume){
+    // Dados insuficientes não autorizam preencher volume manualmente ou inventá-lo.
+    // Mostrar o campo sem valor mantém fiel a escolha de duas informações por padrão.
+    entries.push({key:'volume',label:'VOLUME (KG)',value:summary.volumeKg===null?'—':formatVolume(summary.volumeKg)});
   }
   return entries;
 };
@@ -76,4 +76,15 @@ export function visibleShareExercises(summary:ShareSummary,format:'story'|'feed'
   // A lista mantém a ordem do treino; se longa, mostra quantos exercícios faltaram.
   const limit=format==='story'?(metricsCount>=4?6:8):(metricsCount>=4?2:3);
   return {entries:summary.exercises.slice(0,limit),extra:Math.max(0,summary.exercises.length-limit)};
+}
+
+/** Contagem de informações públicas independentes; meta é detalhe da lista, não conta à parte. */
+export function shareSelectionCount(options:ShareOptions):number{
+  return Number(options.showWorkoutName)+Number(options.showDate)+Number(options.showExercises)+
+    Object.values(options.metrics).filter(Boolean).length;
+}
+/** Só os números das metas planejadas, preservando protocolos como 21-15-9 ou 3x10. */
+export function numericShareTarget(value:string):string|null{
+  const match=value.match(/\d+(?:[,.]\d+)?(?:\s*[-x×]\s*\d+(?:[,.]\d+)?)*/i);
+  return match?match[0].replace(/\s*[x×]\s*/gi,'×').replace(/\s*-\s*/g,'-'):null;
 }
