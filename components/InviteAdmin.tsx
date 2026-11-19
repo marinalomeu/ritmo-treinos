@@ -2,17 +2,24 @@
 import {useEffect,useState,type FormEvent} from 'react';
 import {Copy,Plus,Trash2,LoaderCircle} from 'lucide-react';
 type Invite={id:string;email:string;status:string;expires_at:string};
+type Member={id:string;email:string;enabled:boolean;email_verified:boolean;created_at:string};
 export default function InviteAdmin(){
   const [items,setItems]=useState<Invite[]>([]);
+  const [members,setMembers]=useState<Member[]>([]);
   const [email,setEmail]=useState('');
   const [url,setUrl]=useState('');
   const [busy,setBusy]=useState(false);
   const [error,setError]=useState('');
   async function refresh(){
-    const response=await fetch('/api/admin/invitations',{cache:'no-store'});
-    const body=await response.json();
+    const [response,memberResponse]=await Promise.all([
+      fetch('/api/admin/invitations',{cache:'no-store'}),
+      fetch('/api/admin/members',{cache:'no-store'})
+    ]);
+    const [body,memberBody]=await Promise.all([response.json(),memberResponse.json()]);
     if(!response.ok)throw new Error(body.error||'Não foi possível carregar os convites.');
+    if(!memberResponse.ok)throw new Error(memberBody.error||'Não foi possível carregar os usuários.');
     setItems(body.invitations||[]);
+    setMembers(memberBody.members||[]);
   }
   useEffect(()=>{refresh().catch(e=>setError(e.message));},[]);
   async function add(event:FormEvent){
@@ -35,6 +42,20 @@ export default function InviteAdmin(){
       if(!response.ok)throw new Error('Não foi possível revogar.');
       await refresh();
     }catch(e){setError(e instanceof Error?e.message:'Erro ao revogar.');}
+    finally{setBusy(false);}
+  }
+  async function changeAccess(member:Member){
+    const action=member.enabled?'Desativar':'Reativar';
+    if(!window.confirm(`${action} o acesso de ${member.email}?`))return;
+    setBusy(true);setError('');
+    try{
+      const response=await fetch('/api/admin/members',{method:'PATCH',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({id:member.id,enabled:!member.enabled})});
+      const body=await response.json();
+      if(!response.ok)throw new Error(body.error||'Não foi possível atualizar o acesso.');
+      await refresh();
+    }catch(e){setError(e instanceof Error?e.message:'Erro ao alterar acesso.');}
     finally{setBusy(false);}
   }
   return <main className="login-page"><div className="login-card" style={{maxWidth:650}}>
@@ -64,6 +85,15 @@ export default function InviteAdmin(){
         {item.status==='pending'&&<button disabled={busy} type="button" title="Revogar" onClick={()=>void revoke(item.id)}><Trash2 size={16}/></button>}
       </div>
     )}
+    <h2 style={{marginTop:30}}>Usuários cadastrados</h2>
+    <p className="login-note">Só você pode autorizar ou bloquear contas. O bloqueio impede o uso do aplicativo mesmo com uma sessão ainda aberta.</p>
+    {members.length===0?<p>Nenhum convidado cadastrado.</p>:members.map(member=><div key={member.id}
+      style={{display:'flex',justifyContent:'space-between',alignItems:'center',gap:12,padding:'12px 0',borderBottom:'1px solid #e4deda'}}>
+      <div><strong>{member.email}</strong><p className="login-note">{member.enabled?'Acesso ativo':'Acesso bloqueado'} · {member.email_verified?'E-mail verificado':'E-mail não verificado'}</p></div>
+      <button className="btn" type="button" disabled={busy||!member.email_verified} onClick={()=>void changeAccess(member)}>
+        {member.enabled?'Bloquear':'Reativar'}
+      </button>
+    </div>)}
     <p className="login-note"><a href="/">Voltar ao aplicativo</a></p>
   </div></main>;
 }
