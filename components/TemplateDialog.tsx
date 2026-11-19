@@ -3,7 +3,10 @@ import { useState } from 'react';
 import { Check, Dumbbell, LoaderCircle, Pencil, Plus, Trash2, X } from 'lucide-react';
 import type { Template, Exercise } from '../lib/templates';
 import type { Mode } from '../lib/clientStore';
-import { persistTemplate, removeTemplate } from '../lib/clientStore';
+import { createCustomExercise, persistTemplate, removeTemplate } from '../lib/clientStore';
+import type { CatalogExercise } from '../lib/exerciseCatalog';
+import type { Modality } from '../lib/personalRecords';
+import ExercisePicker from './ExercisePicker';
 import { normalizeTemplate } from '../lib/templateEditor';
 
 const newExercise=():Exercise=>({
@@ -16,8 +19,9 @@ const copyTemplate=(t:Template):Template=>JSON.parse(JSON.stringify(t)) as Templ
 const fmtLoad=(e:Exercise)=>e.unit==='none'?'Peso corporal':
   e.defaultLoad===null?'Carga livre':`${e.defaultLoad} ${e.unit==='assist_kg'?'kg de assistência':e.unit}`;
 
-export default function TemplateDialog({template,mode,onClose,onChanged,onStart}:{
+export default function TemplateDialog({template,mode,onClose,onChanged,onStart,catalog}:{
   template:Template|null; mode:Mode;onClose:()=>void;onChanged:()=>Promise<void>;
+  catalog:CatalogExercise[];
   onStart:(id:string)=>void;
 }){
   const [editing,setEditing]=useState(!template);
@@ -28,6 +32,12 @@ export default function TemplateDialog({template,mode,onClose,onChanged,onStart}
     setDraft(d=>({...d,exercises:d.exercises.map((e,index)=>index===i?{...e,...patch}:e)}));
   };
   const save=async()=>{
+    // Nenhum nome novo deve gerar ID aleatorio sem passar pela biblioteca.
+    const unlinked=draft.exercises.find(e=>
+      !catalog.some(item=>item.key===e.key&&item.name===e.name)&&
+      !template?.exercises.some(old=>old.key===e.key&&old.name===e.name)
+    );
+    if(unlinked){setError('Selecione um exercício da lista ou use Salvar só para mim antes de salvar a ficha.');return;}
     const normalized=normalizeTemplate(draft,template?.id||'draft');
     if(!normalized){setError('Informe o nome da ficha e preencha pelo menos um exercício. Confira séries, metas e cargas.');return;}
     setBusy(true);setError('');
@@ -80,7 +90,24 @@ export default function TemplateDialog({template,mode,onClose,onChanged,onStart}
         <div className="template-editor-heading"><strong>Exercícios</strong><button type="button" className="text-btn" onClick={()=>setDraft(d=>({...d,exercises:[...d.exercises,newExercise()]}))} disabled={draft.exercises.length>=40||busy}><Plus size={15}/> Adicionar exercício</button></div>
         <div className="template-edit-exercises">{draft.exercises.map((e,i)=><div className="template-edit-exercise" key={e.key}>
           <div className="template-edit-head"><strong>Exercício {i+1}</strong><button type="button" className="template-remove-exercise" disabled={draft.exercises.length<=1||busy} onClick={()=>setDraft(d=>({...d,exercises:d.exercises.filter(x=>x.key!==e.key)}))}><X size={14}/> Remover</button></div>
-          <label>NOME<input maxLength={100} placeholder="Nome do exercício" value={e.name} onChange={v=>updateExercise(i,{name:v.target.value})}/></label>
+          <ExercisePicker
+            value={e.name}
+            selectedKey={e.key}
+            items={catalog}
+            usedKeys={draft.exercises.filter((_,j)=>j!==i).map(item=>item.key)}
+            busy={busy}
+            onType={name=>updateExercise(i,{name})}
+            onSelect={item=>{setError('');updateExercise(i,{key:item.key,name:item.name,unit:item.unit,defaultLoad:item.unit==='none'?null:e.defaultLoad});}}
+            onCreate={async(name:string,modality:Modality)=>{
+              const unit:Exercise['unit']=modality==='Corrida'?'km/h':(['Funcional','Calistenia','Alongamentos','Pilates'].includes(modality)?'none':'kg');
+              setError('');
+              try{
+                const created=await createCustomExercise(mode,name,unit,modality);
+                updateExercise(i,{key:created.key,name:created.name,unit:created.unit,defaultLoad:null});
+                await onChanged();
+              }catch(err){setError(err instanceof Error?err.message:'Falha ao cadastrar exercício pessoal.');}
+            }}
+          />
           <div className="template-exercise-input-grid">
             <label>SÉRIES<input type="number" min="1" max="20" step="1" value={e.sets} onChange={v=>updateExercise(i,{sets:Number(v.target.value)})}/></label>
             <label>REPETIÇÕES / META<input maxLength={100} value={e.target} onChange={v=>updateExercise(i,{target:v.target.value})}/></label>
