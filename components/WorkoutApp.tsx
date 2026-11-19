@@ -76,14 +76,17 @@ export default function WorkoutApp({mode,isOwner=false}:{mode:Mode;isOwner?:bool
   const patchSet=async(id:string,changes:Partial<StoredSet>)=>{
     if(!detail)return;const before=detail.sets.find(s=>s.id===id);if(!before)return;
     const next={...before,...changes};const finalWeight=next.weight_kg;
+    if(next.actual_reps!=null&&(!Number.isInteger(next.actual_reps)||next.actual_reps<0||next.actual_reps>10000)){setError('Confira as repetições realizadas.');return;}
     if(finalWeight!==null&&(!Number.isFinite(finalWeight)||finalWeight<0||finalWeight>2000)){setError('Confira a carga ou a velocidade informada.');return;}
     setDetail(d=>d?{...d,sets:d.sets.map(s=>s.id===id?next:s)}:d);setSaving(s=>[...s,id]);setError('');
-    try{await saveSet(mode,id,next.completed,finalWeight);await refresh();}
+    try{await saveSet(mode,id,next.completed,finalWeight,next.actual_reps??null);await refresh();}
     catch(e){setDetail(d=>d?{...d,sets:d.sets.map(s=>s.id===id?before:s)}:d);alertError(e);}
     finally{setSaving(s=>s.filter(x=>x!==id));}
   };
   const updateLocalWeight=(id:string,value:string)=>setDetail(d=>d?{...d,sets:d.sets.map(s=>s.id===id?{...s,weight_kg:value===''?null:Number(value)}:s)}:d);
   const saveEditedWeight=(id:string)=>{const s=detail?.sets.find(s=>s.id===id);if(s?.completed)void patchSet(id,{weight_kg:s.weight_kg});};
+  const updateLocalReps=(id:string,value:string)=>setDetail(d=>d?{...d,sets:d.sets.map(s=>s.id===id?{...s,actual_reps:value===''?null:Number(value)}:s)}:d);
+  const saveEditedReps=(id:string)=>{const s=detail?.sets.find(s=>s.id===id);if(s?.completed)void patchSet(id,{actual_reps:s.actual_reps});};
   const finish=async()=>{
     if(!detail)return;
     const incomplete=detail.sets.filter(s=>!s.completed).length;
@@ -181,7 +184,7 @@ export default function WorkoutApp({mode,isOwner=false}:{mode:Mode;isOwner?:bool
         </div></div>
         <div className="completion-card"><div><strong>{detail.sets.filter(s=>s.completed).length} de {detail.sets.length} séries</strong><span>concluídas nesta sessão</span></div><span className="completion-pct">{Math.round(100*detail.sets.filter(s=>s.completed).length/Math.max(detail.sets.length,1))}%</span><div className="progress-track"><div style={{width:`${100*detail.sets.filter(s=>s.completed).length/Math.max(detail.sets.length,1)}%`}}/></div></div>
         {mode!=='showcase'&&detail.session.template_name==='HYROX adaptado'&&detail.sets.some(s=>s.load_unit==='km/h')&&<div className="hyrox-info"><Footprints size={18}/><div><strong>6 blocos de 500 m</strong><span>Velocidade-alvo de 10 km/h, com pausas conforme necessário. Faça cada estação após sua corrida.</span></div></div>}
-        <WorkoutSets detail={detail} template={findVisibleTemplate(detail.session.template_id)} saving={saving} patchSet={patchSet} updateLocalWeight={updateLocalWeight} saveEditedWeight={saveEditedWeight}/>
+        <WorkoutSets detail={detail} template={findVisibleTemplate(detail.session.template_id)} saving={saving} patchSet={patchSet} updateLocalWeight={updateLocalWeight} saveEditedWeight={saveEditedWeight} updateLocalReps={updateLocalReps} saveEditedReps={saveEditedReps}/>
         <div className="workout-footer"><button className="btn btn-danger-outline" disabled={busy} onClick={()=>void remove(detail.session.id)}><Trash2 size={16}/> Excluir registro</button>{detail.session.status==='active'?<button className="btn btn-primary" disabled={busy||saving.length>0} onClick={()=>void finish()}><CheckCircle2 size={17}/> Finalizar treino</button>:<span className="finished-chip"><CheckCircle2 size={17}/> Treino finalizado</span>}</div>
       </>}
       </>}
@@ -204,7 +207,7 @@ function TemplateCard({t,onClick}:{t:Template;onClick:()=>void}){return <button 
 function SessionRow({s,onClick,showcase}:{s:HistoryData['sessions'][number];onClick:()=>void;showcase:boolean}){return <button className="session-row" onClick={onClick}><div className="session-icon">{s.template_id==='D'&&!showcase?<Footprints size={19}/>:<Dumbbell size={19}/>}</div><div className="session-text"><strong>{s.template_name}</strong><span>{humanDate(s.performed_on)} · Ficha {s.template_id}</span></div><div className="session-summary"><span className={`status ${s.status}`}>{s.status==='finished'?'Finalizado':'Em andamento'}</span><small>{s.completed_sets}/{s.total_sets} séries</small></div><ChevronRight size={18} className="row-arrow"/></button>;}
 function EmptyState({title,text}:{title:string;text:string}){return <div className="empty-state"><div><Clock3 size={22}/></div><strong>{title}</strong><p>{text}</p></div>;}
 function PageHeading({label,title,description}:{label:string;title:string;description:string}){return <div className="page-heading"><p className="overline">{label}</p><h1>{title}</h1><p>{description}</p></div>;}
-function WorkoutSets({detail,template,saving,patchSet,updateLocalWeight,saveEditedWeight}:{detail:SessionDetail;template:Template|undefined;saving:string[];patchSet:(id:string,c:Partial<StoredSet>)=>Promise<void>;updateLocalWeight:(id:string,v:string)=>void;saveEditedWeight:(id:string)=>void}){
+function WorkoutSets({detail,template,saving,patchSet,updateLocalWeight,saveEditedWeight,updateLocalReps,saveEditedReps}:{detail:SessionDetail;template:Template|undefined;saving:string[];patchSet:(id:string,c:Partial<StoredSet>)=>Promise<void>;updateLocalWeight:(id:string,v:string)=>void;saveEditedWeight:(id:string)=>void;updateLocalReps:(id:string,v:string)=>void;saveEditedReps:(id:string)=>void}){
   const group=detail.sets.reduce<{key:string;name:string;block:number|null;sets:StoredSet[]}[]>((acc,s)=>{let g=acc.find(x=>x.key===s.exercise_key);if(!g){g={key:s.exercise_key,name:s.exercise_name,block:s.block_number,sets:[]};acc.push(g);}g.sets.push(s);return acc;},[]);
   return <div className="exercise-list">{group.map((g,i)=>{
     const first=g.sets[0];const isRun=first.load_unit==='km/h';const allDone=g.sets.every(s=>s.completed);
@@ -216,6 +219,7 @@ function WorkoutSets({detail,template,saving,patchSet,updateLocalWeight,saveEdit
         <button className={`check-square ${s.completed?'checked':''}`} aria-label={`Marcar série ${s.set_number} de ${s.exercise_name}`} aria-pressed={s.completed} disabled={saving.includes(s.id)} onClick={()=>void patchSet(s.id,{completed:!s.completed})}>{saving.includes(s.id)?<LoaderCircle size={15} className="spin"/>:s.completed?<Check size={17}/>:null}</button>
         <span className="set-number">Série {s.set_number}</span>
         <span className="set-target">{s.target_reps}</span>
+        <label className="reps-field"><input type="number" min="0" max="10000" step="1" inputMode="numeric" aria-label={`Repetições realizadas da série ${s.set_number} de ${s.exercise_name}`} value={s.actual_reps??''} placeholder="—" onChange={e=>updateLocalReps(s.id,e.target.value)} onBlur={()=>saveEditedReps(s.id)} /><span>reps feitas</span></label>
         {s.load_unit==='none'?<span className="bodyweight-label">Peso corporal</span>:<label className="load-field"><input type="number" min="0" max="2000" step="0.5" inputMode="decimal" aria-label={`${s.load_unit==='km/h'?'Velocidade':'Carga'} da série ${s.set_number} de ${s.exercise_name}`} value={s.weight_kg??''} placeholder="—" onChange={e=>updateLocalWeight(s.id,e.target.value)} onBlur={()=>saveEditedWeight(s.id)} /><span>{s.load_unit==='assist_kg'?'kg assist.':s.load_unit}</span></label>}
       </div>)}</div>
     </div>;
