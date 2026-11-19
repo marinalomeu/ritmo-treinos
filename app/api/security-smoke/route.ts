@@ -63,7 +63,7 @@ export async function GET(request:Request) {
     `;
     crossChecks={ownerAndMemberPresent:true,...rows[0]};
   }catch(e){crossChecks={error:e instanceof Error?e.message:'cross test failure'};}
-  let rejectedSignup=false, signupHttpStatus=0, signupErrorCode='unknown', userCreated=false;
+  let rejectedSignup=false, signupHttpStatus=0, signupErrorCode='unknown', userCreated=false, contentType='', bodyShape='';
   try{
     const email='ritmo-qa-'+randomBytes(8).toString('hex')+'@example.com';
     const authUrl=(process.env.NEON_AUTH_BASE_URL||'').replace(/\/$/,'');
@@ -77,8 +77,17 @@ export async function GET(request:Request) {
       cache:'no-store',signal:AbortSignal.timeout(12000)
     });
     signupHttpStatus=result.status;
+    contentType=result.headers.get('content-type')||'missing';
     const responseBody=(await result.text()).slice(0,3000);
-    signupErrorCode=responseBody.match(/INVITE_REQUIRED|SIGNUP_NOT_ALLOWED|not invited|convite/i)?.[0]||'not-in-response';
+    try {
+      const parsed=JSON.parse(responseBody);
+      bodyShape='json-keys:'+Object.keys(parsed).slice(0,12).join(',');
+      const errorObj=parsed.error&&typeof parsed.error==='object'?parsed.error:{};
+      signupErrorCode=String(parsed.code||parsed.error_code||errorObj.code||parsed.message||errorObj.message||'unknown').slice(0,150);
+    }catch{ bodyShape=responseBody.trim().startsWith('<')?'html':'text:'+responseBody.slice(0,80); }
+    if(signupErrorCode==='unknown'){
+      signupErrorCode=responseBody.match(/INVITE_REQUIRED|SIGNUP_NOT_ALLOWED|not invited|convite/i)?.[0]||'not-in-response';
+    }
     const sql=db();
     const created=await sql`SELECT count(*)::int AS count FROM neon_auth."user" WHERE lower(email)=${email}`;
     userCreated=Number(created[0]?.count||0)>0;
@@ -89,6 +98,6 @@ export async function GET(request:Request) {
   const passed=unauthOK&&crossOK&&rejectedSignup;
   return NextResponse.json({passed,unauthenticated:{passed:unauthOK,statuses:noAuthChecks},
     crossTenant:{passed:crossOK,checks:crossChecks},
-    blockedSignup:{passed:rejectedSignup,status:signupHttpStatus,errorCode:signupErrorCode,accountCreated:userCreated}},
+    blockedSignup:{passed:rejectedSignup,status:signupHttpStatus,contentType,bodyShape,errorCode:signupErrorCode,accountCreated:userCreated}},
     {headers:{'Cache-Control':'no-store'}});
 }
