@@ -1,6 +1,6 @@
 export const MODALITIES=['Academia','CrossFit','Funcional','Calistenia','Corrida','Pilates','Alongamentos','Outros'] as const;
 export type Modality=(typeof MODALITIES)[number];
-export type PersonalRecord={exercise_key:string;weight_kg:number;repetitions:number;updated_at:string};
+export type PersonalRecord={exercise_key:string;weight_kg:number;repetitions:number;updated_at:string;source?:'manual'|'workout'};
 export type ExerciseModality={exercise_key:string;modality:Modality};
 
 // Metas de repetição históricas não são medições. Só interpretar uma quantidade
