@@ -56,7 +56,7 @@ export default function PersonalRecords({mode,exercises,records,modalities,onCha
     await mutate('/api/prs','PUT',{exercise_key:key,weight_kg:weight,repetitions},key);
   }
   return <div className="prs-page">
-    <div className="prs-intro">Insira a carga e as repetições do seu melhor resultado em cada exercício. O Ritmo estima o 1RM com Epley e recalcula as faixas sempre que você atualizar o PR.</div>
+    <div className="prs-intro">Insira a carga externa e as repetições do seu melhor resultado em cada exercício de força, inclusive os que atualmente usam peso corporal. O Ritmo estima o 1RM com Epley e recalcula as faixas sempre que você atualizar o PR. Corrida terá recordes próprios de distância, tempo e pace.</div>
     {mode!=='cloud'&&<p className="prs-tip">No modo demonstração, o cadastro de PRs está disponível somente para visualização.</p>}
     {error&&<p role="alert" className="template-alert">{error}</p>}
     {message&&<p role="status" className="prs-tip">{message}</p>}
@@ -72,14 +72,14 @@ export default function PersonalRecords({mode,exercises,records,modalities,onCha
           const bands=prBands(estimated);
           const draft=edits[e.key]||{load:pr?String(pr.weight_kg):'',reps:pr?String(pr.repetitions):'1'};
           return <tr key={e.key}>
-            <td><button type="button" className="prs-exercise-name" onClick={()=>{setSelected(e.key);setPlannedReps('10');setPlannedLoad('');}}>{e.name}</button><small>{e.unit==='assist_kg'?'Carga de assistência':e.unit==='km/h'?'Velocidade':e.unit==='none'?'Peso corporal':'Carga em kg'}</small></td>
+            <td><button type="button" className="prs-exercise-name" onClick={()=>{setSelected(e.key);setPlannedReps('10');setPlannedLoad('');}}>{e.name}</button><small>{e.unit==='assist_kg'?'Assistência no treino · PR de carga externa':e.unit==='km/h'?'Corrida · distância/tempo':e.unit==='none'?'Peso corporal · carga extra opcional':'Carga em kg'}</small></td>
             <td><select aria-label={`Modalidade de ${e.name}`} value={modalityMap.get(e.key)||''} disabled={mode!=='cloud'||!!busy} onChange={v=>void mutate('/api/exercise-modalities','PUT',{exercise_key:e.key,modality:v.target.value},e.key)}>
               <option value="">Sem categoria</option>{MODALITIES.map(m=><option key={m} value={m}>{m}</option>)}
             </select></td>
-            <td>{e.unit==='kg'?<div className="prs-pr-edit"><input type="number" min="0.01" max="2000" step="0.5" inputMode="decimal" aria-label={`PR em kg de ${e.name}`} value={draft.load} disabled={mode!=='cloud'||!!busy} onChange={v=>setEdits(x=>({...x,[e.key]:{...draft,load:v.target.value}}))}/><span>×</span><input type="number" min="1" max="30" step="1" aria-label={`Repetições do PR de ${e.name}`} value={draft.reps} disabled={mode!=='cloud'||!!busy} onChange={v=>setEdits(x=>({...x,[e.key]:{...draft,reps:v.target.value}}))}/></div>:<span className="prs-na">Não aplicável</span>}</td>
+            <td>{e.unit!=='km/h'?<div className="prs-pr-edit"><input type="number" min="0.01" max="2000" step="0.5" inputMode="decimal" aria-label={`PR em kg de ${e.name}`} value={draft.load} disabled={mode!=='cloud'||!!busy} onChange={v=>setEdits(x=>({...x,[e.key]:{...draft,load:v.target.value}}))}/><span>×</span><input type="number" min="1" max="30" step="1" aria-label={`Repetições do PR de ${e.name}`} value={draft.reps} disabled={mode!=='cloud'||!!busy} onChange={v=>setEdits(x=>({...x,[e.key]:{...draft,reps:v.target.value}}))}/></div>:<span className="prs-na">Recorde aeróbico</span>}</td>
             <td className="prs-num">{pr?`${fmt(estimated)} kg`:'—'}</td>
             <td>{pr?range(bands.leve):'—'}</td><td>{pr?range(bands.moderada):'—'}</td><td>{pr?range(bands.pesada):'—'}</td>
-            <td><div className="prs-actions">{e.unit==='kg'&&<button type="button" disabled={mode!=='cloud'||!!busy} onClick={()=>void save(e.key)} title="Salvar PR"><Save size={15}/> Salvar</button>}{pr&&<button type="button" disabled={mode!=='cloud'||!!busy} onClick={()=>{if(window.confirm('Excluir o PR deste exercício?'))void mutate('/api/prs','DELETE',{exercise_key:e.key},e.key);}} title="Excluir PR"><Trash2 size={15}/></button>}</div></td>
+            <td><div className="prs-actions">{e.unit!=='km/h'&&<button type="button" disabled={mode!=='cloud'||!!busy} onClick={()=>void save(e.key)} title="Salvar PR"><Save size={15}/> Salvar</button>}{pr&&<button type="button" disabled={mode!=='cloud'||!!busy} onClick={()=>{if(window.confirm('Excluir o PR deste exercício?'))void mutate('/api/prs','DELETE',{exercise_key:e.key},e.key);}} title="Excluir PR"><Trash2 size={15}/></button>}</div></td>
           </tr>;
         })}</tbody>
       </table>
@@ -87,7 +87,7 @@ export default function PersonalRecords({mode,exercises,records,modalities,onCha
     </div>
     {chosen&&<div className="prs-planner">
       <div><p className="overline">PLANEJADOR DE SÉRIE</p><h3>{chosen.name}</h3></div>
-      {!record?<p>Salve primeiro o PR desse exercício para simular uma série.</p>:<>
+      {chosen.unit==='km/h'?<p>Corrida não usa estimativa de 1RM. Seus recordes serão comparados por distância, duração e pace.</p>:!record?<p>Salve primeiro um PR com carga externa e repetições para simular uma série. Se hoje você usa apenas peso corporal, pode deixar o PR em branco até acrescentar carga.</p>:<>
         <p>1RM estimado: <strong>{fmt(oneRM)} kg</strong>. Informe as repetições que pretende fazer e, se quiser, a carga planejada.</p>
         <div className="prs-plan-inputs">
           <label>Repetições planejadas <input type="number" min="1" max="30" step="1" value={plannedReps} onChange={e=>setPlannedReps(e.target.value)}/></label>
@@ -98,7 +98,7 @@ export default function PersonalRecords({mode,exercises,records,modalities,onCha
           <div><span>Intensidade da carga planejada</span><strong>{Number.isFinite(loadPct)?`${fmt(loadPct)}% · ${intensityLabel(actualLoad,oneRM)}`:'Preencha a carga'}</strong></div>
           <div><span>Exigência relativa estimada por Epley</span><strong>{Number.isFinite(epleyPct)?`${fmt(epleyPct)}% do seu PR`:'Preencha carga e reps'}</strong></div>
         </div>
-        <p className="prs-disclaimer">O valor teórico representa uma estimativa de carga máxima para a quantidade escolhida de repetições, não uma prescrição. A exigência relativa também é uma aproximação: para medir o esforço real, considere técnica, RIR e proximidade da falha. Epley não é adequado para exercícios de assistência, velocidade ou apenas peso corporal.</p>
+        <p className="prs-disclaimer">Para exercícios feitos com peso corporal ou assistência, o cálculo considera somente a carga externa cadastrada, não o peso total do corpo nem os quilos de assistência. O valor teórico representa uma estimativa de carga máxima para a quantidade escolhida de repetições, não uma prescrição. A exigência relativa também é uma aproximação: para medir o esforço real, considere técnica, RIR e proximidade da falha. Epley não é adequado para exercícios de assistência, velocidade ou apenas peso corporal.</p>
       </>}
     </div>}
     <p className="prs-disclaimer">As faixas de 60–70% são intermediárias e ficam fora das três faixas de referência. A classificação indica intensidade relativa à força, não qualidade, segurança ou resultado do treino.</p>
