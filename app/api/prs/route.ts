@@ -19,6 +19,9 @@ export async function PUT(request:Request){
       UNION ALL
       SELECT 1 FROM public.session_sets ss JOIN public.workout_sessions ws ON ws.id=ss.session_id
       WHERE ws.user_id=${user.id}::uuid AND ss.exercise_key=${b.exercise_key} AND ss.load_unit<>'km/h'
+      UNION ALL
+      SELECT 1 FROM public.user_pr_exercises
+      WHERE user_id=${user.id}::uuid AND exercise_key=${b.exercise_key}
       LIMIT 1
     `;
     if(!existing.length)return NextResponse.json({error:'Exercício não encontrado nos seus treinos.'},{status:404});
