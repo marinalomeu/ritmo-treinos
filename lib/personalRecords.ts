@@ -3,6 +3,15 @@ export type Modality=(typeof MODALITIES)[number];
 export type PersonalRecord={exercise_key:string;weight_kg:number;repetitions:number;updated_at:string};
 export type ExerciseModality={exercise_key:string;modality:Modality};
 
+// Metas de repetição históricas não são medições. Só interpretar uma quantidade
+// única explícita; nunca inferir execução real de intervalos, AMRAP ou duração.
+export const parsePlannedReps=(target:string):number|null=>{
+  const match=target.trim().match(/^(\d{1,2})\s*(?:(?:repeti(?:ç(?:ão|ões)|coes|cao))|reps?)?\s*$/i);
+  if(!match)return null;
+  const reps=Number(match[1]);
+  return reps>=1&&reps<=30?reps:null;
+};
+
 export const estimatedOneRM=(load:number,reps:number):number=>{
   if(!Number.isFinite(load)||load<=0||!Number.isInteger(reps)||reps<1||reps>30)return NaN;
   // Uma repeticao valida e uma medicao direta, nao uma estimativa de 1,033 x carga.
