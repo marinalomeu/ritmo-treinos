@@ -229,7 +229,6 @@
 .share-poster{--poster-scale:1;position:relative;display:flex;flex-direction:column;justify-content:space-between;isolation:isolate;overflow:hidden;color:#fff7fc;border-radius:19px;background:linear-gradient(145deg,#443043 0%,#684c62 54%,#93758b 100%);box-shadow:0 14px 38px #3723392a;min-width:0;padding:26px;aspect-ratio:9/16}
 .share-poster:before,.share-poster:after{content:"";position:absolute;pointer-events:none;z-index:-1;border-radius:50%;border:1px solid rgba(255,255,255,.11);width:100%;aspect-ratio:1;right:-55%;top:8%;transform:scale(1.5)}
 .share-poster:after{transform:scale(1.18);right:-50%;top:12%}
-.share-poster-feed{aspect-ratio:1/1;padding:23px}
 .share-poster-art{display:grid;gap:1px}
 .share-poster-logo{font:800 26px/1 'Manrope',sans-serif;letter-spacing:-1.2px}
 .share-poster-logo span{color:#e6bfd1}
@@ -247,18 +246,8 @@
 .share-poster-exercises small{font-size:8px;font-weight:800;letter-spacing:1.2px;margin-bottom:4px}
 .share-poster-exercises span{font-size:10px;font-weight:600;line-height:1.35;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .share-poster-footer{font-size:9px;color:#e8d3e0;font-weight:600;margin-top:22px;line-height:1.5}
-.share-poster-feed .share-poster-main{padding:20px 0 13px;gap:7px}
-.share-poster-feed .share-poster-main>strong{font-size:31px}
-.share-poster-feed .share-poster-main p{font-size:12px}
-.share-poster-feed .share-poster-metrics{padding:12px 8px}
-.share-poster-feed .share-poster-metrics strong{font-size:17px}
-.share-poster-feed .share-poster-footer{margin-top:10px}
-.share-poster-feed .share-poster-exercises{margin-top:9px}
 .share-editor{display:grid;align-content:center;gap:13px}
 .share-editor-section{display:grid;gap:10px}
-.share-format-options{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.share-format-options button{border:1px solid var(--border);background:#fffdfa;color:var(--muted);border-radius:9px;display:flex;align-items:center;justify-content:center;gap:6px;padding:11px 8px;font-size:11px;font-weight:800}
-.share-format-options button.selected{border-color:#a88ba0;background:#f5eaf1;color:var(--plum)}
 .share-toggle{display:flex;align-items:start;gap:11px;border-radius:12px;border:1px solid var(--border);background:white;padding:13px;cursor:pointer}
 .share-toggle>input{accent-color:var(--plum);width:17px;height:17px;margin-top:3px}
 .share-toggle span{display:grid;gap:4px}
@@ -268,9 +257,34 @@
 .share-editor>.btn{width:100%;justify-content:center}
 .share-continue{font-size:11px;color:var(--plum);font-weight:800;border:0;background:transparent;padding:10px}
 .share-continue:hover{text-decoration:underline}
-@media(max-width:760px){.post-workout-share-invite{display:grid}.post-workout-share-invite button{width:100%}.workout-share-modal{padding:17px}.share-layout{grid-template-columns:1fr;gap:19px}.share-poster{max-width:320px;width:100%;margin:0 auto}.share-poster-main>strong{font-size:40px}.share-editor{gap:12px}.share-poster-feed{max-width:320px}}
-@media(max-width:440px){.share-poster{max-width:270px;padding:20px}.share-poster-main>strong{font-size:33px}.share-poster-metrics strong{font-size:18px}.share-poster-feed .share-poster-main>strong{font-size:27px}}
+@media(max-width:760px){.post-workout-share-invite{display:grid}.post-workout-share-invite button{width:100%}.workout-share-modal{padding:17px}.share-layout{grid-template-columns:1fr;gap:19px}.share-poster{max-width:320px;width:100%;margin:0 auto}.share-poster-main>strong{font-size:40px}.share-editor{gap:12px}}
+@media(max-width:440px){.share-poster{max-width:270px;padding:20px}.share-poster-main>strong{font-size:33px}.share-poster-metrics strong{font-size:18px}}
 
+
+/* Um único formato vertical 9:16, em dois visuais coerentes com o PNG. */
+.share-visual-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.share-visual-options button{display:flex;align-items:center;justify-content:center;gap:9px;min-height:45px;background:#fffdfa;border:1px solid #e6dae2;border-radius:11px;color:#756774;font-size:12px;font-weight:800;cursor:pointer;transition:background .15s,border-color .15s,box-shadow .15s}
+.share-visual-options button.selected{background:#f1e6ee;color:#66485f;border-color:#a98b9e;box-shadow:inset 0 0 0 .5px #c5aebc}
+.share-visual-options button:focus-visible{outline:3px solid #92718a;outline-offset:2px}
+.share-visual-options button:hover{border-color:#ad8b9f}
+.share-visual-caption{font-size:10px;color:#9b8c99}
+.share-poster-light{color:#302733;background:linear-gradient(145deg,#fffdfa 0%,#f6f0f3 55%,#eadde6 100%);box-shadow:0 14px 38px rgba(66,46,63,.13)}
+.share-poster-light:before,.share-poster-light:after{border-color:rgba(98,70,93,.12)}
+.share-poster-light .share-poster-logo{color:#4b3547}
+.share-poster-light .share-poster-logo span{color:#845c75}
+.share-poster-light .share-poster-art small{color:#76586f}
+.share-poster-light .share-poster-kicker{color:#74556d}
+.share-poster-light .share-poster-main>strong{color:#28242d}
+.share-poster-light .share-poster-main>strong>span{color:#845b76}
+.share-poster-light .share-poster-main p{color:#664a60}
+.share-poster-light .share-poster-metrics{background:rgba(103,76,98,.09);border-color:rgba(103,76,98,.10)}
+.share-poster-light .share-poster-metrics small{color:#74566f}
+.share-poster-light .share-poster-metrics strong{color:#302733}
+.share-poster-light .share-poster-exercises{color:#362b38}
+.share-poster-light .share-poster-exercises small{color:#664a60}
+.share-poster-light .share-poster-exercises em{color:#76586c}
+.share-poster-light .share-poster-more{color:#75586d}
+.share-poster-light .share-poster-footer{color:#71586c}
 
 /* Configurações granulares do card: controle real de cada informação publicada. */
 .workout-share-modal{overflow-y:auto}
@@ -297,10 +311,5 @@
 .share-poster-metrics small{line-height:1.3}
 .share-poster-exercises em{font-style:normal;color:#d7bad0}
 .share-poster-more{color:#f1d5e6;font-weight:800}
-.share-poster-feed .share-poster-metrics{gap:5px 9px}
-.share-poster-feed .share-poster-metrics strong{font-size:clamp(13px,1.3vw,17px)}
-.share-poster-feed .share-poster-metrics small{font-size:7px}
-.share-poster-feed .share-poster-exercises span{font-size:9px}
-.share-poster-feed .share-poster-footer{font-size:8px}
-@media(max-width:760px){.share-options-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.share-poster-feed .share-poster-metrics strong{font-size:15px}}
+@media(max-width:760px){.share-options-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:400px){.share-info-card{font-size:10px;padding:8px;gap:6px;min-height:51px}.share-info-icon{width:27px;height:27px}.share-options-grid{gap:7px}}
