@@ -1,12 +1,11 @@
 import { NextResponse } from 'next/server';
 import { db, sameOrigin, forbiddenOrigin, unauthorized, serverError } from '../../../../../lib/server';
 import { currentProfile, multiuserConfigured } from '../../../../../lib/multiuser';
-import { estimatedOneRM } from '../../../../../lib/personalRecords';
 import type { Template, Unit } from '../../../../../lib/templates';
 type Ctx={params:Promise<{id:string}>};
 type CompletedSet={
   exercise_key:string;load_unit:Unit;weight_kg:number|null;actual_reps:number|null;
-  set_number:number;sort_order:number;
+  set_number:number;sort_order:number;completed:boolean;
 };
 const uuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const templateKey=/^[A-Za-z0-9_-]{1,100}$/;
@@ -29,28 +28,38 @@ export async function POST(request:Request,context:Ctx){
     if(!sessions.length)return NextResponse.json({error:'Treino não encontrado.'},{status:404});
     if(sessions[0].status!=='finished')
       return NextResponse.json({error:'Finalize o treino antes de aplicar os resultados.'},{status:409});
+    // As séries de PR podem ser parciais: a escolha de exercícios e medições
+    // é explícita no fechamento, sem depender de completed=true em todas as séries.
     const sets=await sql`
       SELECT ss.exercise_key,ss.load_unit,ss.weight_kg::float8 AS weight_kg,ss.actual_reps,
-        ss.set_number,ss.sort_order
+        ss.set_number,ss.sort_order,ss.completed
       FROM public.session_sets ss
       JOIN public.workout_sessions ws ON ws.id=ss.session_id
-      WHERE ws.user_id=${user.id}::uuid AND ss.session_id=${id}::uuid AND ss.completed=true
+      WHERE ws.user_id=${user.id}::uuid AND ss.session_id=${id}::uuid
       ORDER BY ss.sort_order,ss.set_number
     ` as CompletedSet[];
-    const best=new Map<string,{exercise_key:string;weight_kg:number;repetitions:number}>();
-    if(updatePRs)for(const s of sets){
-      if(s.load_unit!=='kg'&&s.load_unit!=='none')continue;
-      const actual=s.actual_reps;
-      if(typeof s.weight_kg!=='number'||s.weight_kg<=0||s.weight_kg>2000||
-        typeof actual!=='number'||!Number.isInteger(actual)||actual<1||actual>30)continue;
-      const candidate={exercise_key:s.exercise_key,weight_kg:s.weight_kg,repetitions:actual};
-      const older=best.get(s.exercise_key);
-      if(!older||estimatedOneRM(candidate.weight_kg,candidate.repetitions)>
-        estimatedOneRM(older.weight_kg,older.repetitions))best.set(s.exercise_key,candidate);
+    const selected=payload.pr_selections;
+    if(updatePRs&&(!Array.isArray(selected)||selected.length<1||selected.length>40))
+      return NextResponse.json({error:'Selecione pelo menos um exercício para atualizar o PR.'},{status:400});
+    const eligible=new Set(sets.filter(s=>s.load_unit==='kg'||s.load_unit==='none').map(s=>s.exercise_key));
+    const seenKeys=new Set<string>();
+    const prs:{exercise_key:string;weight_kg:number;repetitions:number}[]=[];
+    if(updatePRs){
+      for(const raw of selected as unknown[]){
+        if(!raw||typeof raw!=='object')return NextResponse.json({error:'Dados de PR inválidos.'},{status:400});
+        const row=raw as Record<string,unknown>;
+        const key=row.exercise_key,weight=row.weight_kg,reps=row.repetitions;
+        if(typeof key!=='string'||!templateKey.test(key)||!eligible.has(key)||seenKeys.has(key)||
+          typeof weight!=='number'||!Number.isFinite(weight)||weight<=0||weight>2000||
+          Math.abs(weight*100-Math.round(weight*100))>1e-6||
+          typeof reps!=='number'||!Number.isInteger(reps)||reps<1||reps>30){
+          return NextResponse.json({error:'Selecione exercícios do treino e informe carga externa positiva e 1 a 30 repetições para cada PR.'},{status:422});
+        }
+        seenKeys.add(key);
+        prs.push({exercise_key:key,weight_kg:weight,repetitions:reps});
+      }
     }
-    const prs=[...best.values()];
-    if(updatePRs&&prs.length===0)
-      return NextResponse.json({error:'Nenhuma série concluída tem carga externa e 1 a 30 repetições realizadas. Preencha as reps feitas antes de atualizar PRs.'},{status:422});
+    const completedSets=sets.filter(s=>s.completed);
 
     let targetId='',templateExercises:Template['exercises']=[],matching=0,changed=0;
     if(updateTemplate){
@@ -64,7 +73,7 @@ export async function POST(request:Request,context:Ctx){
       `;
       if(!templates.length)return NextResponse.json({error:'Ficha de destino não encontrada.'},{status:404});
       const last=new Map<string,CompletedSet>();
-      for(const s of sets){
+      for(const s of completedSets){
         if(s.weight_kg===null||!Number.isFinite(s.weight_kg)||s.weight_kg<0||s.weight_kg>2000 ||
           (s.load_unit!=='kg'&&s.load_unit!=='assist_kg'))continue;
         last.set(s.exercise_key,s);
@@ -79,8 +88,8 @@ export async function POST(request:Request,context:Ctx){
       if(!matching)return NextResponse.json({error:'A ficha selecionada não possui exercícios com cargas compatíveis com este treino.'},{status:422});
     }
     // Atualiza os dois destinos em uma ÚNICA instrução SQL transacional.
-    // PRs só melhoram (Epley para 1-30 reps reais); Pins só nascem após
-    // clique explícito; atualização de ficha não altera séries históricas.
+    // PRs só melhoram (Epley, medições selecionadas manualmente). A ficha
+    // usa séries concluídas; nenhum histórico de séries é reescrito.
     const result=await sql`
       WITH candidates AS (
         SELECT x.exercise_key,x.weight_kg,x.repetitions
