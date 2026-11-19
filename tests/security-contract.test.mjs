@@ -323,3 +323,21 @@ test('histórico não exibe UUID de ficha e conclusão apresenta card compartilh
   assert.ok(share.includes('includeExercises'),'exercícios são opt-in no card');
   assert.ok(!share.includes('user.email'),'não expor e-mail no compartilhamento');
 });
+
+
+test('card compartilhável não expõe informações sem seleção e usa os mesmos dados no PNG',()=>{
+  const ui=source('components/WorkoutShareCard.tsx');
+  const calc=source('lib/workoutShare.ts');
+  assert.ok(ui.includes('O QUE MOSTRAR NO CARD?'),'controles visíveis');
+  assert.ok(ui.includes("toggleMetric('volume')"),'volume pode ser escolhido');
+  assert.ok(ui.includes("toggle('showWorkoutName')"),'nome pode ser ocultado');
+  assert.ok(ui.includes("toggle('showExercises')"),'lista de exercícios pode ser ocultada');
+  assert.ok(ui.includes("toggle('showExerciseTargets')"),'metas dos exercícios podem ser ocultadas');
+  assert.ok(ui.includes('shareMetricValues(summary,options,manualVolumeKg)'),'prévia e exportação leem as escolhas');
+  assert.ok(ui.includes('visibleShareExercises(summary,format,metrics.length)'),'exercícios seguem formato do card');
+  assert.ok(ui.includes('pngPoster(detail,format,options,summary,manualVolumeKg)'),'exportação respeita configuração');
+  assert.ok(calc.includes("set.load_unit!=='kg'"),'assistência e velocidade não contam em volume');
+  assert.ok(calc.includes('set.actual_reps'),'volume não é inventado a partir de metas planejadas');
+  assert.ok(calc.includes("label:manual?'VOLUME INFORMADO':'VOLUME REGISTRADO'"),'origem do valor identificada');
+  assert.ok(!ui.includes('user.email'),'card não contém email autenticado');
+});
