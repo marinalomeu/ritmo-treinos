@@ -101,9 +101,9 @@ export async function getSession(mode:Mode,id:string):Promise<SessionDetail> {
   if (mode==='cloud') return parseResponse<SessionDetail>(await fetch(`/api/sessions/${encodeURIComponent(id)}`,{cache:'no-store'}));
   const session=read(mode).find(s=>s.session.id===id); if (!session) throw new Error('Sessão não encontrada.'); return recalc(session);
 }
-export async function saveSet(mode:Mode,setId:string,completed:boolean,weight_kg:number|null):Promise<void> {
-  if (mode==='cloud') { await parseResponse(await fetch(`/api/sets/${encodeURIComponent(setId)}`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({completed,weight_kg})})); return; }
-  const list=read(mode); for (const d of list) {const s=d.sets.find(x=>x.id===setId); if (!s) continue; s.completed=completed;s.weight_kg=weight_kg;s.completed_at=completed?(s.completed_at || new Date().toISOString()):null;break;}write(mode,list);
+export async function saveSet(mode:Mode,setId:string,completed:boolean,weight_kg:number|null,actual_reps:number|null=null):Promise<void> {
+  if (mode==='cloud') { await parseResponse(await fetch(`/api/sets/${encodeURIComponent(setId)}`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({completed,weight_kg,actual_reps})})); return; }
+  const list=read(mode); for (const d of list) {const s=d.sets.find(x=>x.id===setId); if (!s) continue; s.completed=completed;s.weight_kg=weight_kg;s.actual_reps=actual_reps;s.completed_at=completed?(s.completed_at || new Date().toISOString()):null;break;}write(mode,list);
 }
 export async function finishSession(mode:Mode,id:string):Promise<void> {
   if(mode==='cloud') {await parseResponse(await fetch(`/api/sessions/${encodeURIComponent(id)}/finish`,{method:'POST'}));return;}
