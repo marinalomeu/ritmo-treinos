@@ -13,8 +13,9 @@ export async function POST(request:Request){
     const sql=db();
     const rows=await sql`
       UPDATE public.app_invitations
-      SET activated_at=NOW()
+      SET activated_at=COALESCE(activated_at,NOW())
       WHERE token_hash=${hash} AND status='pending' AND expires_at>NOW()
+        AND (activated_at IS NULL OR activated_at>NOW()-INTERVAL '30 minutes')
       RETURNING email,expires_at::text AS expires_at
     `;
     if(!rows.length)return NextResponse.json({error:'Convite expirado, revogado ou já utilizado.'},{status:404});
