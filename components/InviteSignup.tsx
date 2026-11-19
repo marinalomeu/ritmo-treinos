@@ -56,7 +56,6 @@ export default function InviteSignup({token}:{token:string}) {
     {busy&&!email?<p>Validando convite...</p>:!email?<p role="alert">{error||'Este convite não está disponível.'}</p>:
       phase==='done'?<p>Conta verificada. Entrando...</p>:<form onSubmit={submit}>
         {phase==='signup'?<>
-          <p>Seus treinos serão privados e independentes dos demais usuários.</p>
           <label htmlFor="invite-email">E-mail do convite</label>
           <input id="invite-email" value={email} readOnly />
           <label htmlFor="invite-name">Seu nome</label>
