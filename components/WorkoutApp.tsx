@@ -7,6 +7,7 @@ import { createSession, deleteSession, finishSession, getSession, listData, save
 import { DEFAULT_GOAL, SHOWCASE_GOAL, defaultMemberGoal, goalProgress, isValidGoal, type TrainingGoal } from '../lib/goal';
 import TemplateDialog from './TemplateDialog';
 import WodDialog from './WodDialog';
+import PrUpdateDialog, { type PrSelection } from './PrUpdateDialog';
 import PersonalRecords from './PersonalRecords';
 import { MODALITIES } from '../lib/personalRecords';
 import { BASE_EXERCISES, mergedExerciseCatalog, type CatalogExercise } from '../lib/exerciseCatalog';
@@ -36,6 +37,7 @@ export default function WorkoutApp({mode,isOwner=false}:{mode:Mode;isOwner?:bool
   const [showWod,setShowWod]=useState(false);
   const [applyTarget,setApplyTarget]=useState('');
   const [applyNotice,setApplyNotice]=useState('');
+  const [prUpdateMode,setPrUpdateMode]=useState<'prs'|'both'|null>(null);
   const inspectedTemplate=visibleTemplates.find(t=>t.id===inspectedTemplateId)||null;
   const openStartFor=(id:string)=>{
     setActiveTemplate(id);setInspectedTemplateId(null);setShowNew(true);
@@ -75,7 +77,7 @@ export default function WorkoutApp({mode,isOwner=false}:{mode:Mode;isOwner?:bool
     return ()=>window.clearInterval(interval);
   },[view,detail?.session.id,detail?.session.status]);
   const alertError=(e:unknown)=>setError(e instanceof Error?e.message:'Ocorreu um erro.');
-  const openWorkout=async(id:string)=>{setBusy(true);setError('');setApplyNotice('');setApplyTarget('');try{const r=await getSession(mode,id);setDetail(r);setView('workout');setShowNew(false);}catch(e){alertError(e);}finally{setBusy(false);}};
+  const openWorkout=async(id:string)=>{setBusy(true);setError('');setApplyNotice('');setApplyTarget('');setPrUpdateMode(null);try{const r=await getSession(mode,id);setDetail(r);setView('workout');setShowNew(false);}catch(e){alertError(e);}finally{setBusy(false);}};
   const startWorkout=async()=>{setBusy(true);setError('');try{const id=await createSession(mode,activeTemplate,date);await openWorkout(id);await refresh();}catch(e){alertError(e);}finally{setBusy(false);}};
   const patchSet=async(id:string,changes:Partial<StoredSet>)=>{
     if(!detail)return;const before=detail.sets.find(s=>s.id===id);if(!before)return;
@@ -88,39 +90,39 @@ export default function WorkoutApp({mode,isOwner=false}:{mode:Mode;isOwner?:bool
     finally{setSaving(s=>s.filter(x=>x!==id));}
   };
   const updateLocalWeight=(id:string,value:string)=>setDetail(d=>d?{...d,sets:d.sets.map(s=>s.id===id?{...s,weight_kg:value===''?null:Number(value)}:s)}:d);
-  const saveEditedWeight=(id:string)=>{const s=detail?.sets.find(s=>s.id===id);if(s?.completed)void patchSet(id,{weight_kg:s.weight_kg});};
+  const saveEditedWeight=(id:string)=>{const s=detail?.sets.find(s=>s.id===id);if(s)void patchSet(id,{weight_kg:s.weight_kg});};
   const updateLocalReps=(id:string,value:string)=>setDetail(d=>d?{...d,sets:d.sets.map(s=>s.id===id?{...s,actual_reps:value===''?null:Number(value)}:s)}:d);
-  const saveEditedReps=(id:string)=>{const s=detail?.sets.find(s=>s.id===id);if(s?.completed)void patchSet(id,{actual_reps:s.actual_reps});};
+  const saveEditedReps=(id:string)=>{const s=detail?.sets.find(s=>s.id===id);if(s)void patchSet(id,{actual_reps:s.actual_reps});};
   const finish=async()=>{
     if(!detail)return;
     const incomplete=detail.sets.filter(s=>!s.completed).length;
     if(incomplete&&!window.confirm(`Ainda faltam ${incomplete} séries. Deseja finalizar mesmo assim?`))return;
     setBusy(true);try{await finishSession(mode,detail.session.id);setDetail(null);setView('home');await refresh();}catch(e){alertError(e);}finally{setBusy(false);}
   };
-  const applyWorkoutResults=async(updatePRs:boolean,updateTemplate:boolean)=>{
+  const applyWorkoutResults=async(updatePRs:boolean,updateTemplate:boolean,choices:PrSelection[]=[])=>{
     if(mode!=='cloud'||!detail||detail.session.status!=='finished')return;
+    if(updatePRs&&!choices.length){setError('Selecione os exercícios antes de atualizar os PRs.');return;}
     const target=detail.session.template_id==='wod'?applyTarget:detail.session.template_id;
     if(updateTemplate&&!visibleTemplates.some(t=>t.id===target)){
       setError('Escolha uma ficha fixa de destino para aplicar as cargas.');return;
     }
-    const confirmation=updatePRs&&updateTemplate?'Atualizar PRs (sem reduzir recordes anteriores) e cargas da ficha selecionada?':
-      updatePRs?'Atualizar os PRs com as melhores séries realmente realizadas? Os exercícios válidos entram na sua lista de PRs.':
-        'Atualizar as cargas planejadas desta ficha para os próximos treinos? O histórico não será alterado.';
-    if(!window.confirm(confirmation))return;
+    if(!updatePRs&&!window.confirm('Atualizar as cargas planejadas da ficha para os próximos treinos? O histórico não será alterado.'))return;
     setBusy(true);setError('');setApplyNotice('');
     try{
       const response=await fetch(`/api/sessions/${detail.session.id}/apply`,{
         method:'POST',headers:{'Content-Type':'application/json'},
         body:JSON.stringify({update_prs:updatePRs,update_template:updateTemplate,
+          ...(updatePRs?{pr_selections:choices}:{}),
           ...(updateTemplate?{target_template_id:target}:{})})
       });
       const result=await response.json().catch(()=>({}));
       if(!response.ok)throw new Error(result.error||'Não foi possível aplicar o treino.');
       await refresh();
       const pieces=[];
-      if(updatePRs)pieces.push(`${result.prs_updated} PR(s) novos ou melhorados`);
+      if(updatePRs)pieces.push(`${result.prs_updated} PR(s) novos ou melhorados dentre ${choices.length} selecionados`);
       if(updateTemplate)pieces.push(`${result.template_loads_changed} carga(s) de ficha atualizada(s)`);
       setApplyNotice(pieces.join(' · ')+'. Nenhuma série histórica foi alterada.');
+      setPrUpdateMode(null);
     }catch(error){alertError(error);}finally{setBusy(false);}
   };
   const remove=async(id:string)=>{if(!window.confirm('Excluir esta sessão e todas as séries registradas? Esta ação não pode ser desfeita.'))return;setBusy(true);try{await deleteSession(mode,id);if(detail?.session.id===id){setDetail(null);setView('history');}await refresh();}catch(e){alertError(e);}finally{setBusy(false);}};
@@ -219,7 +221,7 @@ export default function WorkoutApp({mode,isOwner=false}:{mode:Mode;isOwner?:bool
 
         {detail.session.status==='finished'&&mode==='cloud'&&<div className="post-workout-panel">
           <div><p className="overline">APÓS O TREINO</p><h3>Aplicar seus resultados</h3></div>
-          <p>Os PRs só são atualizados com séries concluídas que tenham carga e repetições realizadas. Uma carga inferior nunca substitui um PR melhor. Atualizar uma ficha muda apenas as cargas planejadas para os próximos treinos.</p>
+          <p>Escolha quais exercícios terão seus PRs atualizados, inclusive resultados de séries parciais. Uma marca inferior não substitui seu melhor PR. Atualizar ficha altera apenas as cargas futuras, sem reescrever o histórico.</p>
           {detail.session.template_id==='wod'&&visibleTemplates.length>0&&
             <label>FICHA DE DESTINO PARA CARGAS
               <select value={applyTarget} onChange={event=>setApplyTarget(event.target.value)}>
@@ -231,11 +233,11 @@ export default function WorkoutApp({mode,isOwner=false}:{mode:Mode;isOwner?:bool
             <p>Você ainda não possui uma ficha fixa para atualizar. Pode atualizar os PRs deste WOD normalmente.</p>}
           <div className="post-workout-buttons">
             <button type="button" className="btn btn-outline-template" disabled={busy}
-              onClick={()=>void applyWorkoutResults(true,false)}>Atualizar PRs</button>
+              onClick={()=>setPrUpdateMode('prs')}>Atualizar PRs</button>
             <button type="button" className="btn btn-outline-template" disabled={busy||!visibleTemplates.some(t=>t.id===(detail.session.template_id==='wod'?applyTarget:detail.session.template_id))}
               onClick={()=>void applyWorkoutResults(false,true)}>Atualizar ficha</button>
             <button type="button" className="btn btn-primary" disabled={busy||!visibleTemplates.some(t=>t.id===(detail.session.template_id==='wod'?applyTarget:detail.session.template_id))}
-              onClick={()=>void applyWorkoutResults(true,true)}>Atualizar ficha e PRs</button>
+              onClick={()=>setPrUpdateMode('both')}>Atualizar ficha e PRs</button>
           </div>
           {applyNotice&&<p className="post-workout-confirmation" role="status"><CheckCircle2 size={16}/>{applyNotice}</p>}
         </div>}
@@ -251,6 +253,10 @@ export default function WorkoutApp({mode,isOwner=false}:{mode:Mode;isOwner?:bool
       <label htmlFor="goal-weekly">TREINOS POR SEMANA<select id="goal-weekly" value={goalDraft.workouts_per_week} onChange={e=>setGoalDraft(g=>({...g,workouts_per_week:Number(e.target.value)}))}>{[1,2,3,4,5,6,7].map(n=><option key={n} value={n}>{n} {n===1?'treino':'treinos'} por semana</option>)}</select></label>
       <p>O total considera segunda a domingo e semanas parciais. O histórico de treinos não é apagado quando você muda de meta.</p>
       <button className="btn btn-primary full" type="button" disabled={busy} onClick={()=>void submitGoal()}>{busy?<LoaderCircle size={17} className="spin"/>:<Check size={17}/>} Salvar meta</button></div></div></div>}
+    {prUpdateMode&&detail&&mode==='cloud'&&<PrUpdateDialog key={detail.session.id+prUpdateMode}
+      detail={detail} includeTemplate={prUpdateMode==='both'} busy={busy}
+      onClose={()=>setPrUpdateMode(null)}
+      onConfirm={async choices=>applyWorkoutResults(true,prUpdateMode==='both',choices)}/>}
     {showWod&&mode==='cloud'&&<WodDialog mode={mode} catalog={catalogExercises} initialDate={todayLocal()} onChanged={refresh}
       onClose={()=>setShowWod(false)} onStarted={async id=>{setShowWod(false);await openWorkout(id);await refresh();}}/>}
     {(creatingTemplate||inspectedTemplate)&&<TemplateDialog key={creatingTemplate?'new-template':inspectedTemplate!.id} template={creatingTemplate?null:inspectedTemplate} mode={mode}
