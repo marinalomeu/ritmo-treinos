@@ -191,7 +191,8 @@ test('PRs só exibem fichas e exercícios explicitamente adicionados pelo usuár
   const data=source('app/api/data/route.ts');
   const migration=source('db/migrations/2026-11-19-pr-exercise-selection.sql');
   assert.ok(app.includes('(data.prPinned||[]).forEach'),'incluir pins próprios');
-  assert.ok(!app.includes("name:e.name+' (histórico)'"),'PRs não listar todo histórico automaticamente');
+  const onlyPrList=app.split('const prExercises=useMemo')[1]?.split('const prReferences=useMemo')[0]||'';
+  assert.ok(onlyPrList.length>0&&!onlyPrList.includes('historicalExercises'),'PRs não listar todo histórico automaticamente');
   assert.ok(ui.includes('Adicionar exercício'),'seleção de exercícios avulsos');
   assert.ok(ui.includes('rankExerciseMatches'),'buscar catálogo');
   assert.ok(ui.includes('Referência: último treino (reps planejadas)'),'não confundir meta com medição');
