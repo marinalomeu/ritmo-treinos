@@ -59,7 +59,7 @@ export async function GET() {
       ORDER BY ss.exercise_key,ss.completed_at DESC NULLS LAST,ss.id DESC
     `;
     const personalRecords=await sql`
-      SELECT exercise_key,weight_kg::float8 AS weight_kg,repetitions,updated_at::text AS updated_at
+      SELECT exercise_key,weight_kg::float8 AS weight_kg,repetitions,source,updated_at::text AS updated_at
       FROM public.user_personal_records WHERE user_id=${user.id}::uuid ORDER BY exercise_key
     `;
     // A página de PRs só recebe exercícios de fichas fixas ou desta lista
