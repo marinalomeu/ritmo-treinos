@@ -8,7 +8,7 @@ import type { Unit } from '../lib/templates';
 import { estimatedOneRM, intensityLabel, MODALITIES, parsePlannedReps, prBands, targetWeightForReps, type PersonalRecord, type ExerciseModality } from '../lib/personalRecords';
 
 export type ExerciseOption={key:string;name:string;unit:Unit};
-type PRReference={weight_kg:number;target_reps:string;source:'treino'|'ficha'};
+type PRReference={weight_kg:number;actual_reps:number|null;target_reps:string;source:'treino'|'ficha'};
 type Props={mode:Mode;exercises:ExerciseOption[];catalog:CatalogExercise[];
   pinnedKeys:string[];fixedKeys:string[];references:Map<string,PRReference>;
   records:PersonalRecord[];modalities:ExerciseModality[];onChanged:()=>Promise<void>};
@@ -33,7 +33,7 @@ export default function PersonalRecords({mode,exercises,catalog,pinnedKeys,fixed
   const addMatches=useMemo(()=>rankExerciseMatches(catalog,addSearch),[catalog,addSearch]);
   const referenceRecord=(key:string)=>{
     const ref=references.get(key);
-    const repetitions=ref?parsePlannedReps(ref.target_reps):null;
+    const repetitions=ref?(ref.actual_reps??parsePlannedReps(ref.target_reps)):null;
     return ref&&repetitions?{weight_kg:ref.weight_kg,repetitions}:null;
   };
   const modalityMap=useMemo(()=>new Map(modalities.map(m=>[m.exercise_key,m.modality])),[modalities]);
@@ -109,7 +109,7 @@ export default function PersonalRecords({mode,exercises,catalog,pinnedKeys,fixed
           const bands=prBands(estimated);
           const draft=edits[e.key]||{load:current?String(current.weight_kg):'',reps:current?String(current.repetitions):'1'};
           return <tr key={e.key}>
-            <td><button type="button" className="prs-exercise-name" onClick={()=>{setSelected(e.key);setPlannedReps('10');setPlannedLoad('');}}>{e.name}</button><small>{pr?'PR confirmado manualmente':fallback?ref?.source==='treino'?'Referência: último treino (reps planejadas)':'Referência: carga e reps previstas na ficha':e.unit==='assist_kg'?'Assistência — sem 1RM por Epley':e.unit==='km/h'?'Corrida · distância/tempo':e.unit==='none'?'Peso corporal · carga extra opcional':'PR ainda não medido'}</small></td>
+            <td><button type="button" className="prs-exercise-name" onClick={()=>{setSelected(e.key);setPlannedReps('10');setPlannedLoad('');}}>{e.name}</button><small>{pr?'PR confirmado manualmente':fallback?ref?.source==='treino'?ref?.actual_reps!=null?'Referência: último treino (reps realizadas)':'Referência: último treino (reps planejadas)':'Referência: carga e reps previstas na ficha':e.unit==='assist_kg'?'Assistência — sem 1RM por Epley':e.unit==='km/h'?'Corrida · distância/tempo':e.unit==='none'?'Peso corporal · carga extra opcional':'PR ainda não medido'}</small></td>
             <td><select aria-label={`Modalidade de ${e.name}`} value={modalityMap.get(e.key)||''} disabled={mode!=='cloud'||!!busy} onChange={v=>void mutate('/api/exercise-modalities','PUT',{exercise_key:e.key,modality:v.target.value},e.key)}>
               <option value="">Sem categoria</option>{MODALITIES.map(m=><option key={m} value={m}>{m}</option>)}
             </select></td>
