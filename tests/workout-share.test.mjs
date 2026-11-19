@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {test} from 'node:test';
-import {DEFAULT_SHARE_OPTIONS,workoutShareSummary,shareMetricValues,visibleShareExercises,formatVolume} from '../lib/workoutShare.ts';
+import {DEFAULT_SHARE_OPTIONS,workoutShareSummary,shareMetricValues,shareSelectionCount,numericShareTarget,visibleShareExercises,formatVolume} from '../lib/workoutShare.ts';
 
 const detail={
   session:{
@@ -34,9 +34,8 @@ test('não inventa volume para fichas históricas sem repetições realizadas',(
   const summary=workoutShareSummary(onlyHistorical);
   assert.equal(summary.volumeKg,null);
   const selected={...DEFAULT_SHARE_OPTIONS,metrics:{...DEFAULT_SHARE_OPTIONS.metrics,volume:true}};
-  assert.equal(shareMetricValues(summary,selected).some(v=>v.key==='volume'),false);
-  assert.deepEqual(shareMetricValues(summary,selected,1250).find(v=>v.key==='volume'),{
-    key:'volume',label:'VOLUME INFORMADO',value:'1.250 kg'
+  assert.deepEqual(shareMetricValues(summary,selected).find(v=>v.key==='volume'),{
+    key:'volume',label:'VOLUME (KG)',value:'—'
   });
 });
 
@@ -46,9 +45,9 @@ test('cada informação do card pode ser ligada ou desligada sem misturar fontes
   const metrics=shareMetricValues(summary,all);
   assert.deepEqual(metrics.map(m=>m.key),['time','exerciseCount','sets','volume']);
   assert.equal(metrics.find(m=>m.key==='volume').value,'540 kg');
-  assert.equal(metrics.find(m=>m.key==='volume').label,'VOLUME REGISTRADO');
-  assert.equal(shareMetricValues(summary,all,1800).find(m=>m.key==='volume').label,'VOLUME INFORMADO');
-  assert.equal(shareMetricValues(summary,all,-10).find(m=>m.key==='volume').value,'540 kg');
+  assert.equal(metrics.find(m=>m.key==='volume').label,'VOLUME (KG)');
+  // O valor não aceita substituição arbitrária: sempre vem das séries medidas.
+  assert.equal(shareMetricValues(summary,all).find(m=>m.key==='volume').value,'540 kg');
   assert.deepEqual(shareMetricValues(summary,{...all,metrics:{time:false,exerciseCount:false,sets:false,volume:false}}),[]);
   assert.equal(formatVolume(1540.5),'1.540,5 kg');
 });
@@ -60,4 +59,24 @@ test('exercícios preservam sequência do WOD e cabem nas dimensões do card',()
   const feed=visibleShareExercises(summary,'feed',4);
   assert.equal(story.entries.length,5);assert.equal(story.extra,0);
   assert.equal(feed.entries.length,2);assert.equal(feed.extra,3);
+});
+
+test('padrão tem exatamente tempo e volume, e exige no mínimo duas informações',()=>{
+  assert.deepEqual(DEFAULT_SHARE_OPTIONS,{
+    showWorkoutName:false,showDate:false,showExercises:false,showExerciseTargets:false,
+    metrics:{time:true,exerciseCount:false,sets:false,volume:true}
+  });
+  assert.equal(shareSelectionCount(DEFAULT_SHARE_OPTIONS),2);
+  const other={...DEFAULT_SHARE_OPTIONS,showExercises:true};
+  assert.equal(shareSelectionCount(other),3);
+  assert.equal(shareSelectionCount({...DEFAULT_SHARE_OPTIONS,metrics:{time:false,exerciseCount:false,sets:false,volume:false}}),0);
+  assert.equal(shareSelectionCount({...DEFAULT_SHARE_OPTIONS,showExerciseTargets:true}),2);
+});
+
+test('meta do WOD aparece apenas em formato numérico, sem a palavra meta',()=>{
+  assert.equal(numericShareTarget('10 repetições'),'10');
+  assert.equal(numericShareTarget('21-15-9 reps'),'21-15-9');
+  assert.equal(numericShareTarget('3 x 10 repetições'),'3×10');
+  assert.equal(numericShareTarget('500 m'),'500');
+  assert.equal(numericShareTarget('AMRAP'),null);
 });
