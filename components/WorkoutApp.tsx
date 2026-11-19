@@ -8,6 +8,7 @@ import { DEFAULT_GOAL, SHOWCASE_GOAL, defaultMemberGoal, goalProgress, isValidGo
 import TemplateDialog from './TemplateDialog';
 import WodDialog from './WodDialog';
 import PrUpdateDialog, { type PrSelection } from './PrUpdateDialog';
+import WorkoutShareCard from './WorkoutShareCard';
 import PersonalRecords from './PersonalRecords';
 import { MODALITIES } from '../lib/personalRecords';
 import { BASE_EXERCISES, mergedExerciseCatalog, type CatalogExercise } from '../lib/exerciseCatalog';
@@ -38,6 +39,7 @@ export default function WorkoutApp({mode,isOwner=false}:{mode:Mode;isOwner?:bool
   const [applyTarget,setApplyTarget]=useState('');
   const [applyNotice,setApplyNotice]=useState('');
   const [prUpdateMode,setPrUpdateMode]=useState<'prs'|'both'|null>(null);
+  const [showShare,setShowShare]=useState(false);
   const inspectedTemplate=visibleTemplates.find(t=>t.id===inspectedTemplateId)||null;
   const openStartFor=(id:string)=>{
     setActiveTemplate(id);setInspectedTemplateId(null);setShowNew(true);
@@ -77,7 +79,7 @@ export default function WorkoutApp({mode,isOwner=false}:{mode:Mode;isOwner?:bool
     return ()=>window.clearInterval(interval);
   },[view,detail?.session.id,detail?.session.status]);
   const alertError=(e:unknown)=>setError(e instanceof Error?e.message:'Ocorreu um erro.');
-  const openWorkout=async(id:string)=>{setBusy(true);setError('');setApplyNotice('');setApplyTarget('');setPrUpdateMode(null);try{const r=await getSession(mode,id);setDetail(r);setView('workout');setShowNew(false);}catch(e){alertError(e);}finally{setBusy(false);}};
+  const openWorkout=async(id:string)=>{setBusy(true);setError('');setApplyNotice('');setApplyTarget('');setPrUpdateMode(null);setShowShare(false);try{const r=await getSession(mode,id);setDetail(r);setView('workout');setShowNew(false);}catch(e){alertError(e);}finally{setBusy(false);}};
   const startWorkout=async()=>{setBusy(true);setError('');try{const id=await createSession(mode,activeTemplate,date);await openWorkout(id);await refresh();}catch(e){alertError(e);}finally{setBusy(false);}};
   const patchSet=async(id:string,changes:Partial<StoredSet>)=>{
     if(!detail)return;const before=detail.sets.find(s=>s.id===id);if(!before)return;
@@ -97,7 +99,14 @@ export default function WorkoutApp({mode,isOwner=false}:{mode:Mode;isOwner?:bool
     if(!detail)return;
     const incomplete=detail.sets.filter(s=>!s.completed).length;
     if(incomplete&&!window.confirm(`Ainda faltam ${incomplete} séries. Deseja finalizar mesmo assim?`))return;
-    setBusy(true);try{await finishSession(mode,detail.session.id);setDetail(null);setView('home');await refresh();}catch(e){alertError(e);}finally{setBusy(false);}
+    setBusy(true);try{
+      await finishSession(mode,detail.session.id);
+      const completed=await getSession(mode,detail.session.id);
+      setDetail(completed);
+      setView('workout');
+      setShowShare(true);
+      await refresh();
+    }catch(e){alertError(e);}finally{setBusy(false);}
   };
   const applyWorkoutResults=async(updatePRs:boolean,updateTemplate:boolean,choices:PrSelection[]=[])=>{
     if(mode!=='cloud'||!detail||detail.session.status!=='finished')return;
@@ -126,7 +135,7 @@ export default function WorkoutApp({mode,isOwner=false}:{mode:Mode;isOwner?:bool
     }catch(error){alertError(error);}finally{setBusy(false);}
   };
   const remove=async(id:string)=>{if(!window.confirm('Excluir esta sessão e todas as séries registradas? Esta ação não pode ser desfeita.'))return;setBusy(true);try{await deleteSession(mode,id);if(detail?.session.id===id){setDetail(null);setView('history');}await refresh();}catch(e){alertError(e);}finally{setBusy(false);}};
-  const selectView=(next:View)=>{setView(next);setError('');setShowNew(false);if(next!=='workout')setDetail(null);};
+  const selectView=(next:View)=>{setView(next);setError('');setShowNew(false);setShowShare(false);setPrUpdateMode(null);if(next!=='workout')setDetail(null);};
   const progress=mode==='showcase'?{daysLeft:48,checkins:5,planned:40}:goalProgress(goal,data.sessions,currentDate);
   const nav=[{id:'home' as View,label:'Visão geral',Icon:Activity},{id:'history' as View,label:'Histórico',Icon:History},{id:'progress' as View,label:'Evolução',Icon:BarChart3},{id:'prs' as View,label:'PRs',Icon:Trophy}];
   const allProgress=useMemo(()=>{
@@ -219,6 +228,13 @@ export default function WorkoutApp({mode,isOwner=false}:{mode:Mode;isOwner?:bool
         {mode!=='showcase'&&detail.session.template_name==='HYROX adaptado'&&detail.sets.some(s=>s.load_unit==='km/h')&&<div className="hyrox-info"><Footprints size={18}/><div><strong>6 blocos de 500 m</strong><span>Velocidade-alvo de 10 km/h, com pausas conforme necessário. Faça cada estação após sua corrida.</span></div></div>}
         <WorkoutSets detail={detail} template={findVisibleTemplate(detail.session.template_id)} saving={saving} patchSet={patchSet} updateLocalWeight={updateLocalWeight} saveEditedWeight={saveEditedWeight} updateLocalReps={updateLocalReps} saveEditedReps={saveEditedReps}/>
 
+        {detail.session.status==='finished'&&<div className="post-workout-share-invite">
+          <div><p className="overline">COMPARTILHE SUA CONQUISTA</p>
+            <h3>Mais um treino no seu ritmo.</h3>
+            <p>Crie uma arte para Stories ou feed. Nada é publicado sem você escolher.</p>
+          </div>
+          <button type="button" className="btn btn-primary" onClick={()=>setShowShare(true)}>Criar card do treino</button>
+        </div>}
         {detail.session.status==='finished'&&mode==='cloud'&&<div className="post-workout-panel">
           <div><p className="overline">APÓS O TREINO</p><h3>Aplicar seus resultados</h3></div>
           <p>Escolha quais exercícios terão seus PRs atualizados, inclusive resultados de séries parciais. Uma marca inferior não substitui seu melhor PR. Atualizar ficha altera apenas as cargas futuras, sem reescrever o histórico.</p>
@@ -253,6 +269,8 @@ export default function WorkoutApp({mode,isOwner=false}:{mode:Mode;isOwner?:bool
       <label htmlFor="goal-weekly">TREINOS POR SEMANA<select id="goal-weekly" value={goalDraft.workouts_per_week} onChange={e=>setGoalDraft(g=>({...g,workouts_per_week:Number(e.target.value)}))}>{[1,2,3,4,5,6,7].map(n=><option key={n} value={n}>{n} {n===1?'treino':'treinos'} por semana</option>)}</select></label>
       <p>O total considera segunda a domingo e semanas parciais. O histórico de treinos não é apagado quando você muda de meta.</p>
       <button className="btn btn-primary full" type="button" disabled={busy} onClick={()=>void submitGoal()}>{busy?<LoaderCircle size={17} className="spin"/>:<Check size={17}/>} Salvar meta</button></div></div></div>}
+    {showShare&&detail&&detail.session.status==='finished'&&
+      <WorkoutShareCard detail={detail} onClose={()=>setShowShare(false)}/>}
     {prUpdateMode&&detail&&mode==='cloud'&&<PrUpdateDialog key={detail.session.id+prUpdateMode}
       detail={detail} includeTemplate={prUpdateMode==='both'} busy={busy}
       onClose={()=>setPrUpdateMode(null)}
