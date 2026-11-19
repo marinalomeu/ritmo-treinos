@@ -1,4 +1,5 @@
 import { DEMO_TEMPLATES } from './demoTemplates';
+import type { PersonalRecord, ExerciseModality } from './personalRecords';
 
 export type Unit = 'kg' | 'assist_kg' | 'km/h' | 'none';
 export type Exercise = {
@@ -47,7 +48,7 @@ export type WorkoutSession = {
   total_sets: number;
 };
 export type SessionDetail = {session: WorkoutSession; sets: StoredSet[]};
-export type HistoryData = {sessions: WorkoutSession[]; progress: {exercise_key:string;exercise_name:string;load_unit:Unit;performed_on:string;weight_kg:number;session_id:string}[];goal?:import('./goal').TrainingGoal;templates?:Template[];historicalExercises?:{key:string;name:string;unit:Unit}[]};
+export type HistoryData = {sessions: WorkoutSession[]; progress: {exercise_key:string;exercise_name:string;load_unit:Unit;performed_on:string;weight_kg:number;session_id:string}[];goal?:import('./goal').TrainingGoal;templates?:Template[];historicalExercises?:{key:string;name:string;unit:Unit}[];personalRecords?:PersonalRecord[];exerciseModalities?:ExerciseModality[]};
 export const makeSets = (template: Template, past: Record<string, number> = {}): StoredSet[] => template.exercises.flatMap((e, index) => Array.from({length: e.sets}, (_, i) => ({
   id: `${e.key}-${i+1}`, exercise_key: e.key, exercise_name: e.name, sort_order: index, block_number: e.block ?? null,
   set_number: i+1, target_reps: e.target, load_unit: e.unit, weight_kg: past[e.key] ?? e.defaultLoad,
