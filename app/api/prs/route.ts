@@ -23,10 +23,10 @@ export async function PUT(request:Request){
     `;
     if(!existing.length)return NextResponse.json({error:'Exercício não encontrado nos seus treinos.'},{status:404});
     const rows=await sql`
-      INSERT INTO public.user_personal_records(user_id,exercise_key,weight_kg,repetitions)
-      VALUES (${user.id}::uuid,${b.exercise_key},${b.weight_kg},${b.repetitions})
-      ON CONFLICT(user_id,exercise_key) DO UPDATE SET weight_kg=EXCLUDED.weight_kg,repetitions=EXCLUDED.repetitions,updated_at=NOW()
-      RETURNING exercise_key,weight_kg::float8 AS weight_kg,repetitions,updated_at::text AS updated_at
+      INSERT INTO public.user_personal_records(user_id,exercise_key,weight_kg,repetitions,source)
+      VALUES (${user.id}::uuid,${b.exercise_key},${b.weight_kg},${b.repetitions},'manual')
+      ON CONFLICT(user_id,exercise_key) DO UPDATE SET weight_kg=EXCLUDED.weight_kg,repetitions=EXCLUDED.repetitions,source='manual',updated_at=NOW()
+      RETURNING exercise_key,weight_kg::float8 AS weight_kg,repetitions,source,updated_at::text AS updated_at
     `;
     return NextResponse.json(rows[0],{headers:{'Cache-Control':'no-store'}});
   }catch(e){return serverError(e);}
