@@ -331,6 +331,8 @@ test('card compartilhável não expõe informações sem seleção e usa os mesm
   assert.ok(ui.includes('O QUE MOSTRAR NO CARD?'),'controles visíveis');
   assert.ok(ui.includes("toggleMetric('volume')"),'volume pode ser escolhido');
   assert.ok(ui.includes("toggle('showWorkoutName')"),'nome pode ser ocultado');
+  assert.ok(ui.includes("toggle('showDate')"),'data pode ser ocultada');
+  assert.ok(ui.includes("options.showDate?'  ·  '"),'PNG respeita ocultação da data');
   assert.ok(ui.includes("toggle('showExercises')"),'lista de exercícios pode ser ocultada');
   assert.ok(ui.includes("toggle('showExerciseTargets')"),'metas dos exercícios podem ser ocultadas');
   assert.ok(ui.includes('shareMetricValues(summary,options,manualVolumeKg)'),'prévia e exportação leem as escolhas');
