@@ -55,3 +55,40 @@
 
 ### Próximo teste com e-mail acessível
 Para testar ponta a ponta sem usar dados dos amigos: usar **um segundo endereço de e-mail sob controle da proprietária**, criar convite no painel `/admin/convites`, usar o link e verificar OTP, login e isolamento com duas sessões reais. Também validar cadastro diretamente sem convite (deve ser bloqueado pelo webhook), expiração e revogação. Não compartilhar senhas/códigos na conversa. Não criar convite real até obter o e-mail do teste.
+
+
+## Rodada final automatizada (18–19/11/2026)
+
+### Evidências positivas
+- Contas reais: proprietária e membro com e-mail confirmado, senha configurada, perfis ativos e pelo menos uma sessão válida para cada identidade no Neon staging.
+- Convite real do membro: status `accepted`, vinculado ao cadastro.
+- Integridade do **snapshot de staging** do proprietário: quatro fichas, duas sessões, 29 séries, uma meta; comparações de atributos das fichas e da meta sem divergências. Estes números **não** são o inventário atual de produção.
+- Teste runtime a partir de rota temporária restrita à branch e a uma chave efêmera (removida ao fim): 7/7 handlers privados testados diretamente, sem sessão, responderam `401`:
+  - GET `/api/data`
+  - GET `/api/sessions/:id`
+  - DELETE `/api/sessions/:id`
+  - PATCH `/api/sets/:id`
+  - POST `/api/sessions`
+  - PUT `/api/goal`
+  - GET `/api/admin/invitations`.
+- Consultas SQL de regressão: os dados do proprietário não aparecem com `user_id` da conta membro; tentativas de correspondência por ID de sessão e série de terceiro deram zero.
+- O app ganhou uma barreira adicional antes da passagem para Neon Auth: `POST /api/auth/sign-up/email` exige convite pendente, não expirado e ativado há no máximo 30 minutos. Um cadastro sem convite retornou **403** em teste de execução do próprio handler.
+- `tests/security-contract.test.mjs` e workflow `.github/workflows/security-contract.yml` foram adicionados; GitHub Actions run **44448132981 passou**. São testes de invariantes de código, não substitutos para E2E.
+- A rota temporária `/api/security-smoke` foi removida da branch. A variável Vercel `RITMO_SECURITY_SMOKE_KEY` teve seu valor invalidado; o conector não permite sua exclusão. Apagar a variável da Vercel manualmente quando conveniente.
+
+### Incidente/ambiguidade investigado — bloqueio de signup no provedor
+- Com cadastro habilitado apenas em staging, requisições de teste **diretamente ao endpoint do Neon Auth** usando e-mails sintéticos sem convite retornaram **HTTP 200 com campos `token` e `user`**, porém nenhuma conta correspondente apareceu em `neon_auth.user`, `neon_auth.session` ou `neon_auth.verification`. A resposta NÃO foi uma recusa `INVITE_REQUIRED` comprovada. A existência de sessão válida após essa resposta não foi demonstrada.
+- **Medida de contenção aplicada:** `allow_sign_up=false` no Neon staging. Com essa configuração, tentativa direta ao provedor retornou **400 `EMAIL_PASSWORD_SIGN_UP_DISABLED`**, sem usuário criado.
+- Adicionada proteção duplicada no proxy da aplicação; isso impede cadastro sem convite **via site**, mas **não demonstra que o próprio endpoint público do provedor recusa toda tentativa direta quando o cadastro estiver reabilitado**.
+- Por segurança, manter cadastro de staging **desabilitado** até esclarecer e testar o comportamento do `user.before_create` e da persistência do Auth.
+
+### Critérios de aceite ainda NÃO comprovados
+- Teste E2E de ataque IDOR com **duas sessões HTTP autenticadas independentes** para todas as operações CRUD (as credenciais pessoais não foram acessadas nem extraídas; não criar sessões por adulteração do banco).
+- Prova de recusa de cadastro sem convite na URL direta do Neon Auth com cadastro habilitado (resultado anterior ambíguo).
+- Teste de revogação, expiração e replay de convites de ponta a ponta (foi validado o aceite real de um convite).
+- Revisão de papel SQL e RLS; a aplicação hoje usa consultas com filtros de dono, mas o usuário de banco do servidor tem privilégios amplos.
+- Configuração SMTP customizado necessária para produção do Managed Auth, checagem de quotas e rate limit efetivo. WAF Vercel recusou criação de regra nova com HTTP 402 (plano atual não oferece o recurso).
+- Novo snapshot e backfill baseados em produção no instante do corte; a produção da última leitura possui 4 fichas, 1 sessão, 15 séries, 1 meta.
+- Validação de rollout, rollback e go/no-go da proprietária.
+
+**Conclusão:** testes pontuais de isolamento e proteção sem sessão passaram, mas o produto **NÃO ESTÁ HOMOLOGADO para produção**. PR #2 permanece draft, nenhum merge, nenhum dado principal modificado.
