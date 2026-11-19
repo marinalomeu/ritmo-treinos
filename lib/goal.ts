@@ -12,13 +12,20 @@ export const DEFAULT_GOAL: TrainingGoal = {
 export const SHOWCASE_GOAL: TrainingGoal = {
   name: 'Desafio 8 semanas', starts_on: '2026-11-02', ends_on: '2027-01-03', workouts_per_week: 5
 };
+// Aplicado apenas a contas novas sem meta salva. Metas existentes permanecem intactas.
+export const defaultMemberGoal = (today: string): TrainingGoal => ({
+  name: 'Minha primeira meta',
+  starts_on: today,
+  ends_on: `${today.slice(0, 4)}-12-31`,
+  workouts_per_week: 7,
+});
+
 const DAY_MS = 86400000;
 export const utcDay = (value: string) => {
   const [year, month, day] = value.slice(0, 10).split('-').map(Number);
   return Math.floor(Date.UTC(year, month - 1, day) / DAY_MS);
 };
 const isoFromDay = (day: number) => new Date(day * DAY_MS).toISOString().slice(0, 10);
-const isTrainingDay = (day: number) => new Date(day * DAY_MS).getUTCDay() !== 0;
 const monday = (day: number) => (day - (new Date(day * DAY_MS).getUTCDay() + 6) % 7);
 export const isValidGoal = (goal: TrainingGoal) =>
   typeof goal.name === 'string' && goal.name.trim().length >= 2 && goal.name.trim().length <= 60 &&
@@ -26,13 +33,12 @@ export const isValidGoal = (goal: TrainingGoal) =>
   [goal.starts_on, goal.ends_on].every(d => /^\d{4}-\d{2}-\d{2}$/.test(d) && isoFromDay(utcDay(d)) === d) &&
   utcDay(goal.ends_on) >= utcDay(goal.starts_on) &&
   utcDay(goal.ends_on) - utcDay(goal.starts_on) <= 365 * 5 &&
-  Number.isInteger(goal.workouts_per_week) && goal.workouts_per_week >= 1 && goal.workouts_per_week <= 6;
+  Number.isInteger(goal.workouts_per_week) && goal.workouts_per_week >= 1 && goal.workouts_per_week <= 7;
 
 export const goalProgress = (goal: TrainingGoal, sessions: HistoryData['sessions'], today: string) => {
   const from = utcDay(goal.starts_on), to = utcDay(goal.ends_on);
   const weekly = new Map<number, {slots:number,checkins:Set<string>}>();
   for (let day = from; day <= to; day++) {
-    if (!isTrainingDay(day)) continue;
     const week = monday(day), entry = weekly.get(week) || {slots:0,checkins:new Set<string>()};
     entry.slots++;
     weekly.set(week,entry);
@@ -40,7 +46,6 @@ export const goalProgress = (goal: TrainingGoal, sessions: HistoryData['sessions
   for (const s of sessions) {
     if (s.status !== 'finished' || s.completed_sets < 1 || s.performed_on > today || s.performed_on < goal.starts_on || s.performed_on > goal.ends_on) continue;
     const day = utcDay(s.performed_on);
-    if (!isTrainingDay(day)) continue;
     weekly.get(monday(day))?.checkins.add(s.performed_on);
   }
   const weeklyEntries = [...weekly.values()];
