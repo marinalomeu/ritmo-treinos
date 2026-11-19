@@ -15,4 +15,4 @@ jobs:
         with:
           node-version: '22'
       - name: Testar invariantes de isolamento e convites
-        run: node --test tests/security-contract.test.mjs
+        run: node --experimental-strip-types --test tests/security-contract.test.mjs tests/goal.test.mjs
