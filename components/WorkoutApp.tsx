@@ -8,6 +8,7 @@ import { DEFAULT_GOAL, SHOWCASE_GOAL, goalProgress, isValidGoal, type TrainingGo
 import TemplateDialog from './TemplateDialog';
 import PersonalRecords from './PersonalRecords';
 import { MODALITIES } from '../lib/personalRecords';
+import { BASE_EXERCISES, mergedExerciseCatalog, type CatalogExercise } from '../lib/exerciseCatalog';
 
 type View = 'home' | 'history' | 'progress' | 'prs' | 'workout';
 const todayLocal = () => {const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;};
@@ -93,6 +94,12 @@ export default function WorkoutApp({mode,isOwner=false}:{mode:Mode;isOwner?:bool
     });
     return [...keys.values()];
   },[visibleTemplates,data.historicalExercises,data.progress]);
+  const catalogExercises=useMemo(()=>{
+    const existing=new Map<string,CatalogExercise>();
+    visibleTemplates.forEach(t=>t.exercises.forEach(e=>{if(!existing.has(e.key))existing.set(e.key,{key:e.key,name:e.name,unit:e.unit,modality:'Outros',origin:'existing'});}));
+    (data.historicalExercises||[]).forEach(e=>{if(!existing.has(e.key))existing.set(e.key,{key:e.key,name:e.name,unit:e.unit,modality:'Outros',origin:'existing'});});
+    return mergedExerciseCatalog([...existing.values()],data.customExercises||[],BASE_EXERCISES);
+  },[visibleTemplates,data.historicalExercises,data.customExercises]);
   const prExercises=useMemo(()=>{
     const keys=new Map<string,{key:string;name:string;unit:Unit}>();
     visibleTemplates.forEach(t=>t.exercises.forEach(e=>{if(!keys.has(e.key))keys.set(e.key,{key:e.key,name:e.name,unit:e.unit});}));
@@ -152,7 +159,7 @@ export default function WorkoutApp({mode,isOwner=false}:{mode:Mode;isOwner?:bool
       <button className="btn btn-primary full" type="button" disabled={busy} onClick={()=>void submitGoal()}>{busy?<LoaderCircle size={17} className="spin"/>:<Check size={17}/>} Salvar meta</button></div></div></div>}
     {(creatingTemplate||inspectedTemplate)&&<TemplateDialog key={creatingTemplate?'new-template':inspectedTemplate!.id} template={creatingTemplate?null:inspectedTemplate} mode={mode}
       onClose={()=>{setCreatingTemplate(false);setInspectedTemplateId(null);}}
-      onChanged={refresh} onStart={openStartFor}/>}
+      onChanged={refresh} onStart={openStartFor} catalog={catalogExercises}/>}
     {showNew&&<div className="modal-backdrop" onMouseDown={e=>{if(e.target===e.currentTarget)setShowNew(false);}}><div className="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title"><div className="modal-head"><div><p className="overline">NOVA SESSÃO</p><h2 id="modal-title">Qual treino vamos fazer?</h2></div><button className="close-btn" onClick={()=>setShowNew(false)} aria-label="Fechar">×</button></div><div className="modal-templates">{visibleTemplates.map(t=><button key={t.id} className={`modal-option ${activeTemplate===t.id?'selected':''}`} onClick={()=>setActiveTemplate(t.id)}><span className="template-letter">{/^[A-Z]$/.test(t.id)?t.id:t.name.slice(0,1).toUpperCase()}</span><span><strong>{t.name}</strong><small>{t.days}</small></span>{activeTemplate===t.id?<CheckCircle2 size={20}/>:<Circle size={20}/>}</button>)}</div><label className="input-label" htmlFor="new-date">DATA DO TREINO</label><input className="date-input" id="new-date" type="date" value={date} onChange={e=>setDate(e.target.value)}/><button className="btn btn-primary full" disabled={busy||!date||visibleTemplates.length===0} onClick={()=>void startWorkout()}>{busy?<LoaderCircle className="spin" size={17}/>:<ArrowRight size={17}/>} Começar treino</button></div></div>}
   </div>;
 }
