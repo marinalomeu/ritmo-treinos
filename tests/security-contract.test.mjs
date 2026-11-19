@@ -100,7 +100,8 @@ test('PR e modalidades permanecem por usuario e nao aceitam id do cliente',()=>{
     assert.ok(body.includes('RETURNING'));
     assert.ok(!body.includes('b.user_id'));
   }
-  assert.ok(prs.includes("e->>'unit'='kg'"),'PR Epley nao pode usar velocidade ou assistencia');
+  assert.ok(prs.includes("e->>'unit'<>'km/h'"),'PR Epley nao pode usar velocidade de corrida');
+  assert.ok(prs.includes("ss.load_unit<>'km/h'"),'PRs devem permitir exercicios de peso corporal com carga adicional');
   assert.ok(categories.includes('user_exercise_modalities'));
   assert.ok(categories.includes("b.modality===''"),'deve permitir remover classificacao');
 });
@@ -131,4 +132,6 @@ test('faixas e formula de Epley documentadas como estimativas',()=>{
   assert.ok(formula.includes('oneRM*.70'));
   assert.ok(formula.includes('oneRM*.85'));
   assert.ok(view.includes('RIR'));
+  assert.ok(view.includes("e.unit!=='km/h'"),'nao bloquear PR de exercicios com peso corporal');
+  assert.ok(formula.includes("'Alongamentos'"),'alongamentos deve ser modalidade disponivel');
 });
