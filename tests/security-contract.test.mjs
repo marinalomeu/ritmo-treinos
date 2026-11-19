@@ -320,7 +320,7 @@ test('histórico não exibe UUID de ficha e conclusão apresenta card compartilh
   assert.ok(share.includes("c.width=1080;c.height=story?1920:1080"),'exportar Story e Feed');
   assert.ok(share.includes('navigator.share'),'usuário inicia compartilhamento');
   assert.ok(share.includes('Baixar imagem PNG'),'download de arte disponível');
-  assert.ok(share.includes('includeExercises'),'exercícios são opt-in no card');
+  assert.ok(share.includes('options.showExercises'),'exercícios são opt-in no card');
   assert.ok(!share.includes('user.email'),'não expor e-mail no compartilhamento');
 });
 
