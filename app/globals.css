@@ -194,3 +194,79 @@
 .post-workout-confirmation{display:flex;align-items:start;gap:8px;background:#edf3ee;color:#547763!important;border-radius:9px;padding:10px 12px;font-size:12px!important}
 .post-workout-confirmation svg{flex-shrink:0}
 @media(max-width:760px){.hero-actions{align-items:stretch}.btn-wod{font-size:11px}.history-actions{justify-content:flex-end}.post-workout-panel{padding:15px}.post-workout-buttons{display:grid}.post-workout-buttons .btn{width:100%}}
+
+
+/* PRs: escolha individual, inclusive série parcial com registro explícito */
+.pr-select-modal{max-width:620px}
+.pr-select-intro{font-size:12px;color:var(--muted);line-height:1.65;margin:0 0 14px}
+.pr-select-note{display:flex;align-items:center;gap:8px;background:#f5eef3;border-radius:10px;padding:11px 13px;font-size:11px;color:var(--plum2);font-weight:700;line-height:1.45}
+.pr-select-note svg{flex-shrink:0}
+.pr-select-list{display:grid;gap:8px;max-height:42vh;overflow-y:auto;overscroll-behavior:contain;margin:14px 0}
+.pr-select-item{border:1px solid #e8dee3;border-radius:11px;background:white;padding:12px 14px}
+.pr-select-item.is-checked{border-color:#b99dac;background:#fcf8fa}
+.pr-select-choice{display:flex;align-items:center;gap:12px;cursor:pointer}
+.pr-select-choice>input{width:17px;height:17px;accent-color:var(--plum);flex-shrink:0}
+.pr-select-choice span{display:grid;gap:3px;min-width:0}
+.pr-select-choice strong{font-size:13px;color:var(--ink);letter-spacing:0}
+.pr-select-choice small{font-size:11px;color:#8c7e89;letter-spacing:0;font-weight:500}
+.pr-select-values{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0 0 29px}
+.pr-select-values label{font-size:10px;color:var(--plum2);font-weight:800;display:grid;gap:6px}
+.pr-select-values input{background:#fff;border:1px solid var(--border);border-radius:8px;padding:10px;font-size:13px;min-width:0;letter-spacing:0;font-weight:500}
+.pr-select-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:16px}
+.pr-select-actions>.btn{min-width:125px}
+@media(max-width:560px){.pr-select-values{margin-left:0}.pr-select-actions{flex-wrap:wrap}.pr-select-actions>.btn{flex:1;white-space:normal}}
+
+/* Compartilhamento de treino: card editorial Ritmo, formatos Story e Feed */
+.post-workout-share-invite{margin-top:20px;display:flex;justify-content:space-between;align-items:center;gap:18px;padding:19px 21px;border-radius:15px;color:var(--plum);background:linear-gradient(125deg,#f5eaf1,#fdfaf9);border:1px solid #e7dae3}
+.post-workout-share-invite h3{font-size:16px;margin:5px 0}
+.post-workout-share-invite p:not(.overline){font-size:11px;color:#8f7c8b;line-height:1.5}
+.post-workout-share-invite button{flex-shrink:0}
+.workout-share-backdrop{z-index:75}
+.workout-share-modal{max-width:865px;padding:26px;max-height:96vh}
+.workout-share-head h2{font-size:22px}
+.workout-share-head p:not(.overline){font-size:12px;color:var(--muted);margin-top:6px}
+.share-layout{display:grid;grid-template-columns:minmax(0,390px) minmax(0,1fr);align-items:center;gap:26px}
+.share-poster{--poster-scale:1;position:relative;display:flex;flex-direction:column;justify-content:space-between;isolation:isolate;overflow:hidden;color:#fff7fc;border-radius:19px;background:linear-gradient(145deg,#443043 0%,#684c62 54%,#93758b 100%);box-shadow:0 14px 38px #3723392a;min-width:0;padding:26px;aspect-ratio:9/16}
+.share-poster:before,.share-poster:after{content:"";position:absolute;pointer-events:none;z-index:-1;border-radius:50%;border:1px solid rgba(255,255,255,.11);width:100%;aspect-ratio:1;right:-55%;top:8%;transform:scale(1.5)}
+.share-poster:after{transform:scale(1.18);right:-50%;top:12%}
+.share-poster-feed{aspect-ratio:1/1;padding:23px}
+.share-poster-art{display:grid;gap:1px}
+.share-poster-logo{font:800 26px/1 'Manrope',sans-serif;letter-spacing:-1.2px}
+.share-poster-logo span{color:#e6bfd1}
+.share-poster-art small{font-size:8px;letter-spacing:1.6px;font-weight:800;color:#e7cddd}
+.share-poster-main{display:grid;gap:12px;margin-top:auto;padding:32px 0}
+.share-poster-kicker{font-size:9px;font-weight:800;letter-spacing:1.3px;color:#f0d9e6}
+.share-poster-main>strong{font:800 clamp(29px,3vw,47px)/1.02 'Manrope',sans-serif;letter-spacing:-1.8px}
+.share-poster-main>strong>span{color:#ecc5d8}
+.share-poster-main p{font-size:14px;font-weight:700;color:#f4e0ed;line-height:1.35;overflow-wrap:anywhere}
+.share-poster-metrics{border-radius:13px;background:#ffffff1c;border:1px solid #ffffff24;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;padding:16px 12px}
+.share-poster-metrics>div{display:grid;gap:5px;justify-items:start;min-width:0}
+.share-poster-metrics small{font-size:8px;font-weight:800;letter-spacing:.5px;color:#edd7e5}
+.share-poster-metrics strong{font:800 22px/1.2 'Manrope',sans-serif;letter-spacing:-.5px;font-variant-numeric:tabular-nums}
+.share-poster-exercises{display:grid;gap:3px;margin-top:17px;color:#f6e3ef;min-height:0}
+.share-poster-exercises small{font-size:8px;font-weight:800;letter-spacing:1.2px;margin-bottom:4px}
+.share-poster-exercises span{font-size:10px;font-weight:600;line-height:1.35;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.share-poster-footer{font-size:9px;color:#e8d3e0;font-weight:600;margin-top:22px;line-height:1.5}
+.share-poster-feed .share-poster-main{padding:20px 0 13px;gap:7px}
+.share-poster-feed .share-poster-main>strong{font-size:31px}
+.share-poster-feed .share-poster-main p{font-size:12px}
+.share-poster-feed .share-poster-metrics{padding:12px 8px}
+.share-poster-feed .share-poster-metrics strong{font-size:17px}
+.share-poster-feed .share-poster-footer{margin-top:10px}
+.share-poster-feed .share-poster-exercises{margin-top:9px}
+.share-editor{display:grid;align-content:center;gap:13px}
+.share-editor-section{display:grid;gap:10px}
+.share-format-options{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.share-format-options button{border:1px solid var(--border);background:#fffdfa;color:var(--muted);border-radius:9px;display:flex;align-items:center;justify-content:center;gap:6px;padding:11px 8px;font-size:11px;font-weight:800}
+.share-format-options button.selected{border-color:#a88ba0;background:#f5eaf1;color:var(--plum)}
+.share-toggle{display:flex;align-items:start;gap:11px;border-radius:12px;border:1px solid var(--border);background:white;padding:13px;cursor:pointer}
+.share-toggle>input{accent-color:var(--plum);width:17px;height:17px;margin-top:3px}
+.share-toggle span{display:grid;gap:4px}
+.share-toggle strong{font-size:12px}
+.share-toggle small{font-size:11px;color:var(--muted);line-height:1.45}
+.share-privacy{font-size:11px;color:var(--muted);line-height:1.6}
+.share-editor>.btn{width:100%;justify-content:center}
+.share-continue{font-size:11px;color:var(--plum);font-weight:800;border:0;background:transparent;padding:10px}
+.share-continue:hover{text-decoration:underline}
+@media(max-width:760px){.post-workout-share-invite{display:grid}.post-workout-share-invite button{width:100%}.workout-share-modal{padding:17px}.share-layout{grid-template-columns:1fr;gap:19px}.share-poster{max-width:320px;width:100%;margin:0 auto}.share-poster-main>strong{font-size:40px}.share-editor{gap:12px}.share-poster-feed{max-width:320px}}
+@media(max-width:440px){.share-poster{max-width:270px;padding:20px}.share-poster-main>strong{font-size:33px}.share-poster-metrics strong{font-size:18px}.share-poster-feed .share-poster-main>strong{font-size:27px}}
