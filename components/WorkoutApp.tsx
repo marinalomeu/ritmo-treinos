@@ -126,14 +126,14 @@ export default function WorkoutApp({mode,isOwner=false}:{mode:Mode;isOwner?:bool
     return [...keys.values()];
   },[visibleTemplates,data.prPinned,catalogExercises]);
   const prReferences=useMemo(()=>{
-    const map=new Map<string,{weight_kg:number;target_reps:string;source:'treino'|'ficha'}>();
+    const map=new Map<string,{weight_kg:number;actual_reps:number|null;target_reps:string;source:'treino'|'ficha'}>();
     for(const s of data.prReferences||[]){
-      if(s.weight_kg>0)map.set(s.exercise_key,{weight_kg:s.weight_kg,target_reps:s.target_reps,source:'treino'});
+      if(s.weight_kg>0)map.set(s.exercise_key,{weight_kg:s.weight_kg,actual_reps:s.actual_reps,target_reps:s.target_reps,source:'treino'});
     }
     for(const t of visibleTemplates)for(const e of t.exercises){
       if(!map.has(e.key)&&e.defaultLoad!==null&&e.defaultLoad>0
         &&e.unit!=='km/h'&&e.unit!=='assist_kg'){
-        map.set(e.key,{weight_kg:e.defaultLoad,target_reps:e.target,source:'ficha'});
+        map.set(e.key,{weight_kg:e.defaultLoad,actual_reps:null,target_reps:e.target,source:'ficha'});
       }
     }
     return map;
