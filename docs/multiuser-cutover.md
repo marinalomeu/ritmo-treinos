@@ -21,7 +21,7 @@ Issue: #1. PR em rascunho: #2. Nenhuma migração do banco principal foi aplicad
 - Convites: token de 32 bytes aleatórios; apenas hash SHA-256 no banco.
 - Envio: link copiado manualmente pela conta proprietária. Não precisamos enviar e-mails de convite pelo servidor.
 - Validade: 7 dias; vínculo com e-mail específico; status pending/accepted/revoked.
-- O webhook assinado `user.before_create` precisa **bloquear todo cadastro sem convite ativo**, inclusive POST direto à API de autenticação.
+- O webhook assinado `user.before_create` precisa **bloquear toda persistência de usuário sem convite ativo**, inclusive POST direto à API de autenticação. **O status HTTP isolado não demonstra autorização**: quando email verification é obrigatória, Better Auth pode retornar HTTP 200 com um usuário sintético e `token:null` para prevenir enumeração de e-mails (Better Auth docs, "Email Enumeration Protection"). Homologar pelo webhook assinado registrando `allowed:false`, inexistência de registro `neon_auth."user"` e ausência de perfil/sessão; teste positivo exige persistência e verificação só com convite.
 - O webhook `user.created` vincula a conta criada ao perfil de membro.
 - Não habilitar sign-up na branch até que webhook, domínio, WAF e teste negativo funcionem.
 - Neon Auth produção exige SMTP customizado; verificar antes de ativar usuários reais.
@@ -34,7 +34,7 @@ Issue: #1. PR em rascunho: #2. Nenhuma migração do banco principal foi aplicad
 5. Conta B não herda a meta "Projeto Carnaval" nem as cargas existentes do proprietário.
 6. A ausência de perfil causa bloqueio, mesmo que Neon Auth considere a sessão válida.
 7. Link de convite inválido, expirado, já utilizado ou revogado não cria conta.
-8. Cadastro direto sem convite é bloqueado pelo provedor, não somente pela UI.
+8. Cadastro direto sem convite é bloqueado pelo provedor, não somente pela UI. **Critério específico:** webhook `user.before_create` com assinatura verificada retorna `allowed:false`, banco mantém 0 novos usuários/perfis e o fluxo não permite sessão nem acesso. Não exigir status HTTP 4xx do Neon Auth quando ele emitir `200` sintético de proteção contra enumeração. Repetir com convite válido e OTP para provar o caminho positivo.
 9. Verificação e recuperação de e-mail, login, logout, reentrada, refresh e sessão expirada.
 10. Preview não consegue acessar DATABASE_URL de produção; procurar nomes das variáveis sem revelar valores.
 11. Atualizar regra WAF: o login antigo `/api/login` foi substituído por Neon Auth (endpoints efetivos a verificar).
