@@ -55,7 +55,11 @@ export async function GET() {
       SELECT exercise_key,modality FROM public.user_exercise_modalities
       WHERE user_id=${user.id}::uuid ORDER BY exercise_key
     `;
-    return NextResponse.json({sessions,progress,goal:goals[0]||null,templates,historicalExercises,personalRecords,exerciseModalities},
+    const customExercises=await sql`
+      SELECT exercise_key AS key,name,unit,modality FROM public.user_custom_exercises
+      WHERE user_id=${user.id}::uuid ORDER BY name
+    `;
+    return NextResponse.json({sessions,progress,goal:goals[0]||null,templates,historicalExercises,personalRecords,exerciseModalities,customExercises:customExercises.map(e=>({...e,origin:'personal'}))},
       {headers:{'Cache-Control':'no-store'}});
   } catch(error) { return serverError(error); }
 }
