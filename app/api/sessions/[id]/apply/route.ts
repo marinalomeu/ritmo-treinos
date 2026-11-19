@@ -40,9 +40,10 @@ export async function POST(request:Request,context:Ctx){
     const best=new Map<string,{exercise_key:string;weight_kg:number;repetitions:number}>();
     if(updatePRs)for(const s of sets){
       if(s.load_unit!=='kg'&&s.load_unit!=='none')continue;
+      const actual=s.actual_reps;
       if(typeof s.weight_kg!=='number'||s.weight_kg<=0||s.weight_kg>2000||
-        !Number.isInteger(s.actual_reps)||s.actual_reps!<1||s.actual_reps!>30)continue;
-      const candidate={exercise_key:s.exercise_key,weight_kg:s.weight_kg,repetitions:s.actual_reps};
+        typeof actual!=='number'||!Number.isInteger(actual)||actual<1||actual>30)continue;
+      const candidate={exercise_key:s.exercise_key,weight_kg:s.weight_kg,repetitions:actual};
       const older=best.get(s.exercise_key);
       if(!older||estimatedOneRM(candidate.weight_kg,candidate.repetitions)>
         estimatedOneRM(older.weight_kg,older.repetitions))best.set(s.exercise_key,candidate);
