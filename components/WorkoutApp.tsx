@@ -4,7 +4,7 @@ import { Activity, ArrowLeft, ArrowRight, BarChart3, CalendarDays, Check, CheckC
 import { TEMPLATES, type HistoryData, type SessionDetail, type StoredSet, type Template, type Unit } from '../lib/templates';
 import { DEMO_TEMPLATES } from '../lib/demoTemplates';
 import { createSession, deleteSession, finishSession, getSession, listData, saveSet, saveGoal, type Mode } from '../lib/clientStore';
-import { DEFAULT_GOAL, SHOWCASE_GOAL, goalProgress, isValidGoal, type TrainingGoal } from '../lib/goal';
+import { DEFAULT_GOAL, SHOWCASE_GOAL, defaultMemberGoal, goalProgress, isValidGoal, type TrainingGoal } from '../lib/goal';
 import TemplateDialog from './TemplateDialog';
 import PersonalRecords from './PersonalRecords';
 import { MODALITIES } from '../lib/personalRecords';
@@ -35,20 +35,14 @@ export default function WorkoutApp({mode,isOwner=false}:{mode:Mode;isOwner?:bool
     setShowNew(true);
   };
   const findVisibleTemplate = (id:string) => visibleTemplates.find(t=>t.id===id);
-  // Cada convidado começa com uma meta genérica editável, sem herdar o Projeto Carnaval.
-  const freshGoal = useMemo<TrainingGoal>(() => {
-    const start = new Date();
-    const end = new Date(start);
-    end.setDate(end.getDate()+55);
-    const day=(d:Date)=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-    return {name:'Minha primeira meta',starts_on:day(start),ends_on:day(end),workouts_per_week:3};
-  },[]);
+  // Convidados sem meta salva começam até 31/12, sete dias por semana.
+  const freshGoal = useMemo<TrainingGoal>(() => defaultMemberGoal(todayLocal()),[]);
   const goal = mode==='showcase'?SHOWCASE_GOAL:(data.goal || (mode==='cloud'?freshGoal:DEFAULT_GOAL));
   const [showGoalEditor,setShowGoalEditor]=useState(false);
   const [goalDraft,setGoalDraft]=useState<TrainingGoal>(DEFAULT_GOAL);
   const openGoalEditor=()=>{setGoalDraft({...goal});setError('');setShowGoalEditor(true);};
   const submitGoal=async()=>{
-    if(!isValidGoal(goalDraft)){setError('Confira o nome, o período (até 5 anos) e a frequência (1 a 6 dias por semana).');return;}
+    if(!isValidGoal(goalDraft)){setError('Confira o nome, o período (até 5 anos) e a frequência (1 a 7 dias por semana).');return;}
     setBusy(true);setError('');
     try{const saved=await saveGoal(mode,goalDraft);setData(prev=>({...prev,goal:saved}));setShowGoalEditor(false);}
     catch(e){alertError(e);}finally{setBusy(false);}
@@ -154,8 +148,8 @@ export default function WorkoutApp({mode,isOwner=false}:{mode:Mode;isOwner?:bool
     {showGoalEditor&&mode==='cloud'&&<div className="modal-backdrop" onMouseDown={e=>{if(e.target===e.currentTarget)setShowGoalEditor(false);}}><div className="modal" role="dialog" aria-modal="true" aria-labelledby="goal-modal-title"><div className="modal-head"><div><p className="overline">SEU OBJETIVO</p><h2 id="goal-modal-title">Definir minha meta</h2></div><button type="button" className="close-btn" onClick={()=>setShowGoalEditor(false)} aria-label="Fechar">×</button></div>
       <div className="goal-form"><label htmlFor="goal-name">NOME DA META<input id="goal-name" maxLength={60} value={goalDraft.name} onChange={e=>setGoalDraft(g=>({...g,name:e.target.value}))} placeholder="Ex.: Projeto 2027"/></label>
       <div className="goal-date-grid"><label htmlFor="goal-start">DATA INICIAL<input id="goal-start" type="date" value={goalDraft.starts_on} onChange={e=>setGoalDraft(g=>({...g,starts_on:e.target.value}))}/></label><label htmlFor="goal-end">DATA FINAL<input id="goal-end" type="date" value={goalDraft.ends_on} onChange={e=>setGoalDraft(g=>({...g,ends_on:e.target.value}))}/></label></div>
-      <label htmlFor="goal-weekly">TREINOS POR SEMANA<select id="goal-weekly" value={goalDraft.workouts_per_week} onChange={e=>setGoalDraft(g=>({...g,workouts_per_week:Number(e.target.value)}))}>{[1,2,3,4,5,6].map(n=><option key={n} value={n}>{n} {n===1?'treino':'treinos'} por semana</option>)}</select></label>
-      <p>O total considera segunda a sábado e semanas parciais. O histórico de treinos não é apagado quando você muda de meta.</p>
+      <label htmlFor="goal-weekly">TREINOS POR SEMANA<select id="goal-weekly" value={goalDraft.workouts_per_week} onChange={e=>setGoalDraft(g=>({...g,workouts_per_week:Number(e.target.value)}))}>{[1,2,3,4,5,6,7].map(n=><option key={n} value={n}>{n} {n===1?'treino':'treinos'} por semana</option>)}</select></label>
+      <p>O total considera segunda a domingo e semanas parciais. O histórico de treinos não é apagado quando você muda de meta.</p>
       <button className="btn btn-primary full" type="button" disabled={busy} onClick={()=>void submitGoal()}>{busy?<LoaderCircle size={17} className="spin"/>:<Check size={17}/>} Salvar meta</button></div></div></div>}
     {(creatingTemplate||inspectedTemplate)&&<TemplateDialog key={creatingTemplate?'new-template':inspectedTemplate!.id} template={creatingTemplate?null:inspectedTemplate} mode={mode}
       onClose={()=>{setCreatingTemplate(false);setInspectedTemplateId(null);}}
