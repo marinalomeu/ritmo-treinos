@@ -58,8 +58,8 @@ async function pngPoster(detail:SessionDetail,format:Format,includeExercises:boo
     ctx.fillStyle='#fffafc';ctx.font='800 48px Manrope, sans-serif';ctx.fillText(value,x,statY+61);
   });
   if(includeExercises){
-    const names=[...new Set(detail.sets.map(s=>s.exercise_name))].slice(0,4);
-    const y=story?1305:972;
+    const names=[...new Set(detail.sets.map(s=>s.exercise_name))].slice(0,story?4:2);
+    const y=story?1305:915;
     ctx.fillStyle='#e8d6e1';ctx.font='700 22px DM Sans, sans-serif';ctx.fillText('NESTE TREINO',76,y-50);
     ctx.font='600 27px DM Sans, sans-serif';ctx.fillStyle='#fffafc';
     names.forEach((name,i)=>ctx.fillText('·  '+trimName(name,39),78,y+43*i));
@@ -118,7 +118,7 @@ export default function WorkoutShareCard({detail,onClose}:{detail:SessionDetail;
             <div><small>SÉRIES FEITAS</small><strong>{stats.sets}</strong></div>
           </div>
           {includeExercises&&<div className="share-poster-exercises">
-            <small>NESTE TREINO</small>{stats.names.map(name=><span key={name}>· {name}</span>)}
+            <small>NESTE TREINO</small>{stats.names.slice(0,format==='story'?4:2).map(name=><span key={name}>· {name}</span>)}
           </div>}
           <div className="share-poster-footer">Um treino de cada vez. Uma evolução de cada vez.</div>
         </div>
