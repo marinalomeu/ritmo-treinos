@@ -3,6 +3,7 @@ import type { SessionDetail } from './templates';
 export type ShareMetric='time'|'exerciseCount'|'sets'|'volume';
 export type ShareOptions={
   showWorkoutName:boolean;
+  showDate:boolean;
   showExercises:boolean;
   showExerciseTargets:boolean;
   metrics:Record<ShareMetric,boolean>;
@@ -17,7 +18,7 @@ export type ShareSummary={
   exercises:ExerciseSummary[];
 };
 export const DEFAULT_SHARE_OPTIONS:ShareOptions={
-  showWorkoutName:true,showExercises:false,showExerciseTargets:false,
+  showWorkoutName:true,showDate:true,showExercises:false,showExerciseTargets:false,
   metrics:{time:true,exerciseCount:true,sets:true,volume:false}
 };
 export const formatVolume=(value:number)=>new Intl.NumberFormat('pt-BR',{maximumFractionDigits:1}).format(value)+' kg';
