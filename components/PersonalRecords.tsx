@@ -1,17 +1,24 @@
 'use client';
 import { useMemo, useState } from 'react';
-import { Search, Save, Trash2 } from 'lucide-react';
+import { Check, Plus, Search, Save, Trash2, X } from 'lucide-react';
+import { rankExerciseMatches } from './ExercisePicker';
+import { normalizeExerciseName, type CatalogExercise } from '../lib/exerciseCatalog';
 import type { Mode } from '../lib/clientStore';
 import type { Unit } from '../lib/templates';
-import { estimatedOneRM, intensityLabel, MODALITIES, prBands, targetWeightForReps, type PersonalRecord, type ExerciseModality } from '../lib/personalRecords';
+import { estimatedOneRM, intensityLabel, MODALITIES, parsePlannedReps, prBands, targetWeightForReps, type PersonalRecord, type ExerciseModality } from '../lib/personalRecords';
 
 export type ExerciseOption={key:string;name:string;unit:Unit};
-type Props={mode:Mode;exercises:ExerciseOption[];records:PersonalRecord[];modalities:ExerciseModality[];onChanged:()=>Promise<void>};
+type PRReference={weight_kg:number;target_reps:string;source:'treino'|'ficha'};
+type Props={mode:Mode;exercises:ExerciseOption[];catalog:CatalogExercise[];
+  pinnedKeys:string[];fixedKeys:string[];references:Map<string,PRReference>;
+  records:PersonalRecord[];modalities:ExerciseModality[];onChanged:()=>Promise<void>};
 const fmt=(n:number)=>Number.isFinite(n)?n.toLocaleString('pt-BR',{maximumFractionDigits:1}):'—';
 const range=(a:readonly[number,number])=>`${fmt(a[0])}–${fmt(a[1])} kg`;
 
-export default function PersonalRecords({mode,exercises,records,modalities,onChanged}:Props){
+export default function PersonalRecords({mode,exercises,catalog,pinnedKeys,fixedKeys,references,records,modalities,onChanged}:Props){
   const [search,setSearch]=useState('');
+  const [addOpen,setAddOpen]=useState(false);
+  const [addSearch,setAddSearch]=useState('');
   const [filter,setFilter]=useState('Todas');
   const [edits,setEdits]=useState<Record<string,{load:string;reps:string}>>({});
   const [selected,setSelected]=useState('');
@@ -21,13 +28,21 @@ export default function PersonalRecords({mode,exercises,records,modalities,onCha
   const [error,setError]=useState('');
   const [message,setMessage]=useState('');
   const recordMap=useMemo(()=>new Map(records.map(r=>[r.exercise_key,r])),[records]);
+  const pinnedSet=useMemo(()=>new Set(pinnedKeys),[pinnedKeys]);
+  const fixedSet=useMemo(()=>new Set(fixedKeys),[fixedKeys]);
+  const addMatches=useMemo(()=>rankExerciseMatches(catalog,addSearch),[catalog,addSearch]);
+  const referenceRecord=(key:string)=>{
+    const ref=references.get(key);
+    const repetitions=ref?parsePlannedReps(ref.target_reps):null;
+    return ref&&repetitions?{weight_kg:ref.weight_kg,repetitions}:null;
+  };
   const modalityMap=useMemo(()=>new Map(modalities.map(m=>[m.exercise_key,m.modality])),[modalities]);
   const visible=useMemo(()=>exercises.filter(e=>(
     e.name.toLocaleLowerCase('pt-BR').includes(search.trim().toLocaleLowerCase('pt-BR')) &&
     (filter==='Todas' || (modalityMap.get(e.key)||'Sem categoria')===filter)
   )).sort((a,b)=>a.name.localeCompare(b.name,'pt-BR')),[exercises,search,filter,modalityMap]);
   const chosen=exercises.find(e=>e.key===selected);
-  const record=chosen?recordMap.get(chosen.key):undefined;
+  const record=chosen?(recordMap.get(chosen.key)||referenceRecord(chosen.key)):undefined;
   const oneRM=record?estimatedOneRM(record.weight_kg,record.repetitions):NaN;
   const reps=Number(plannedReps);
   const suggested=record?targetWeightForReps(oneRM,reps):NaN;
@@ -47,8 +62,24 @@ export default function PersonalRecords({mode,exercises,records,modalities,onCha
     }catch(e){setError(e instanceof Error?e.message:'Falha ao salvar.');}
     finally{setBusy('');}
   }
+  async function setPinned(key:string,method:'POST'|'DELETE'){
+    if(mode!=='cloud')return;
+    setBusy(key);setError('');setMessage('');
+    try{
+      const response=await fetch('/api/pr-exercises',{
+        method,headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({exercise_key:key})
+      });
+      const body=await response.json().catch(()=>({}));
+      if(!response.ok)throw new Error(body.error||'Não foi possível atualizar a lista de PRs.');
+      await onChanged();
+      if(method==='POST'){setAddOpen(false);setAddSearch('');setMessage('Exercício adicionado à sua lista de PRs.');}
+      else {setMessage('Exercício retirado da lista; histórico e recordes preservados.');setSelected('');}
+    }catch(e){setError(e instanceof Error?e.message:'Falha ao atualizar a lista.');}
+    finally{setBusy('');}
+  }
   async function save(key:string){
-    const existing=recordMap.get(key);
+    const existing=recordMap.get(key)||referenceRecord(key);
     const draft=edits[key]||{load:existing?String(existing.weight_kg):'',reps:existing?String(existing.repetitions):'1'};
     const weight=Number(draft.load.replace(',','.')),repetitions=Number(draft.reps);
     if(draft.load.trim()===''||!Number.isFinite(weight)||weight<=0||weight>2000||Math.abs(weight*100-Math.round(weight*100))>1e-6||
@@ -63,23 +94,31 @@ export default function PersonalRecords({mode,exercises,records,modalities,onCha
     <div className="prs-tools">
       <label className="prs-search"><Search size={17}/><input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Pesquisar exercício" aria-label="Pesquisar exercício"/></label>
       <label>Modalidade <select value={filter} onChange={e=>setFilter(e.target.value)}><option>Todas</option><option>Sem categoria</option>{MODALITIES.map(m=><option key={m}>{m}</option>)}</select></label>
+      <button className="btn btn-primary prs-add-button" type="button" disabled={mode!=='cloud'||!!busy}
+        onClick={()=>{setAddSearch('');setAddOpen(true);}}><Plus size={16}/> Adicionar</button>
     </div>
     <div className="prs-table-scroll">
       <table className="prs-table">
         <thead><tr><th>Exercício</th><th>Modalidade</th><th>PR (kg × reps)</th><th>1RM est.</th><th>Leve 40–60%</th><th>Moderada 70–85%</th><th>Pesada 85–100%</th><th>Ações</th></tr></thead>
         <tbody>{visible.map(e=>{
-          const pr=recordMap.get(e.key),estimated=pr?estimatedOneRM(pr.weight_kg,pr.repetitions):NaN;
+          const pr=recordMap.get(e.key);
+          const ref=references.get(e.key);
+          const fallback=referenceRecord(e.key);
+          const current=pr||fallback;
+          const estimated=current?estimatedOneRM(current.weight_kg,current.repetitions):NaN;
           const bands=prBands(estimated);
-          const draft=edits[e.key]||{load:pr?String(pr.weight_kg):'',reps:pr?String(pr.repetitions):'1'};
+          const draft=edits[e.key]||{load:current?String(current.weight_kg):'',reps:current?String(current.repetitions):'1'};
           return <tr key={e.key}>
-            <td><button type="button" className="prs-exercise-name" onClick={()=>{setSelected(e.key);setPlannedReps('10');setPlannedLoad('');}}>{e.name}</button><small>{e.unit==='assist_kg'?'Assistência no treino · PR de carga externa':e.unit==='km/h'?'Corrida · distância/tempo':e.unit==='none'?'Peso corporal · carga extra opcional':'Carga em kg'}</small></td>
+            <td><button type="button" className="prs-exercise-name" onClick={()=>{setSelected(e.key);setPlannedReps('10');setPlannedLoad('');}}>{e.name}</button><small>{pr?'PR confirmado manualmente':fallback?ref?.source==='treino'?'Referência: último treino (reps planejadas)':'Referência: carga e reps previstas na ficha':e.unit==='assist_kg'?'Assistência — sem 1RM por Epley':e.unit==='km/h'?'Corrida · distância/tempo':e.unit==='none'?'Peso corporal · carga extra opcional':'PR ainda não medido'}</small></td>
             <td><select aria-label={`Modalidade de ${e.name}`} value={modalityMap.get(e.key)||''} disabled={mode!=='cloud'||!!busy} onChange={v=>void mutate('/api/exercise-modalities','PUT',{exercise_key:e.key,modality:v.target.value},e.key)}>
               <option value="">Sem categoria</option>{MODALITIES.map(m=><option key={m} value={m}>{m}</option>)}
             </select></td>
             <td>{e.unit!=='km/h'?<div className="prs-pr-edit"><input type="number" min="0.01" max="2000" step="0.5" inputMode="decimal" aria-label={`PR em kg de ${e.name}`} value={draft.load} disabled={mode!=='cloud'||!!busy} onChange={v=>setEdits(x=>({...x,[e.key]:{...draft,load:v.target.value}}))}/><span>×</span><input type="number" min="1" max="30" step="1" aria-label={`Repetições do PR de ${e.name}`} value={draft.reps} disabled={mode!=='cloud'||!!busy} onChange={v=>setEdits(x=>({...x,[e.key]:{...draft,reps:v.target.value}}))}/></div>:<span className="prs-na">Recorde aeróbico</span>}</td>
-            <td className="prs-num">{pr?`${fmt(estimated)} kg`:'—'}</td>
-            <td>{pr?range(bands.leve):'—'}</td><td>{pr?range(bands.moderada):'—'}</td><td>{pr?range(bands.pesada):'—'}</td>
-            <td><div className="prs-actions">{e.unit!=='km/h'&&<button type="button" disabled={mode!=='cloud'||!!busy} onClick={()=>void save(e.key)} title="Salvar PR"><Save size={15}/> Salvar</button>}{pr&&<button type="button" disabled={mode!=='cloud'||!!busy} onClick={()=>{if(window.confirm('Excluir o PR deste exercício?'))void mutate('/api/prs','DELETE',{exercise_key:e.key},e.key);}} title="Excluir PR"><Trash2 size={15}/></button>}</div></td>
+            <td className="prs-num">{current?`${fmt(estimated)} kg${pr?'':' (ref.)'}`:'—'}</td>
+            <td>{current?range(bands.leve):'—'}</td><td>{current?range(bands.moderada):'—'}</td><td>{current?range(bands.pesada):'—'}</td>
+            <td><div className="prs-actions">{e.unit!=='km/h'&&<button type="button" disabled={mode!=='cloud'||!!busy} onClick={()=>void save(e.key)} title="Salvar PR"><Save size={15}/> Salvar</button>}{pr&&<button type="button" disabled={mode!=='cloud'||!!busy} onClick={()=>{if(window.confirm('Excluir a medição manual do PR? O exercício continuará na lista se estiver na sua ficha ou tiver sido adicionado.'))void mutate('/api/prs','DELETE',{exercise_key:e.key},e.key);}} title="Excluir PR"><Trash2 size={15}/></button>}
+            {pinnedSet.has(e.key)&&!fixedSet.has(e.key)&&<button type="button" disabled={mode!=='cloud'||!!busy} title="Retirar da lista de PRs"
+              onClick={()=>{if(window.confirm('Retirar este exercício da lista de PRs? O recorde salvo não será apagado.'))void setPinned(e.key,'DELETE');}}><X size={15}/> Retirar</button>}</div></td>
           </tr>;
         })}</tbody>
       </table>
