@@ -65,3 +65,24 @@ test('nenhuma rota temporaria de testes fica no codigo entregue',()=>{
   assert.equal(existsSync(new URL('../app/api/security-smoke/route.ts',import.meta.url)),false);
   assert.equal(existsSync(new URL('../app/api/__security-smoke/route.ts',import.meta.url)),false);
 });
+
+test('ativacao de convite preserva primeiro timestamp e nao renova prazo',()=>{
+  const body=source('app/api/invitations/activate/route.ts');
+  assert.ok(body.includes('SET activated_at=COALESCE(activated_at,NOW())'));
+  assert.ok(body.includes("activated_at IS NULL OR activated_at>NOW()-INTERVAL '30 minutes'"));
+  assert.ok(body.includes("status='pending' AND expires_at>NOW()"));
+  assert.ok(body.includes('token_hash=${hash}'));
+});
+
+test('fichas, series e sessoes exigem ownership no banco',()=>{
+  const session=source('app/api/sessions/[id]/route.ts');
+  assert.ok(session.includes('ws.id=${id}::uuid AND ws.user_id=${user.id}::uuid'));
+  assert.ok(session.includes('DELETE FROM public.workout_sessions'));
+  assert.ok(session.includes('WHERE id=${id}::uuid AND user_id=${user.id}::uuid'));
+  const sets=source('app/api/sets/[id]/route.ts');
+  assert.ok(sets.includes('ss.session_id=ws.id AND ws.user_id=${user.id}::uuid'));
+  const finish=source('app/api/sessions/[id]/finish/route.ts');
+  assert.ok(finish.includes('WHERE id=${id}::uuid AND user_id=${user.id}::uuid'));
+  const template=source('app/api/templates/[id]/route.ts');
+  assert.equal((template.match(/WHERE user_id=\$\{user.id\}::uuid AND id=\$\{id\}/g)||[]).length,2);
+});
