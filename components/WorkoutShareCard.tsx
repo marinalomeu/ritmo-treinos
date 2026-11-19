@@ -2,6 +2,8 @@
 import { useMemo, useState } from 'react';
 import { Download, Image as ImageIcon, Share2, X } from 'lucide-react';
 import type { SessionDetail } from '../lib/templates';
+import { DEFAULT_SHARE_OPTIONS, formatVolume, shareMetricValues, visibleShareExercises,
+  workoutShareSummary, type ShareMetric, type ShareOptions, type ShareSummary } from '../lib/workoutShare';
 
 type Format='story'|'feed';
 const cap=(value:string)=>value.charAt(0).toLocaleUpperCase('pt-BR')+value.slice(1);
@@ -28,44 +30,75 @@ function drawWrapped(ctx:CanvasRenderingContext2D,text:string,x:number,y:number,
   if(line)rows.push(line);
   for(const row of rows.slice(0,lines)){ctx.fillText(row,x,y+emitted*lineHeight);emitted++;}
 }
-async function pngPoster(detail:SessionDetail,format:Format,includeExercises:boolean){
-  const c=document.createElement('canvas');const story=format==='story';
+
+async function pngPoster(detail:SessionDetail,format:Format,options:ShareOptions,
+  summary:ShareSummary,manualVolumeKg:number|null){
+  const c=document.createElement('canvas');
+  const story=format==='story';
   c.width=1080;c.height=story?1920:1080;
-  const ctx=c.getContext('2d');if(!ctx)throw new Error('Não foi possível criar imagem neste navegador.');
+  const ctx=c.getContext('2d');
+  if(!ctx)throw new Error('Não foi possível criar imagem neste navegador.');
   const w=c.width,h=c.height;
+  const metrics=shareMetricValues(summary,options,manualVolumeKg);
+  const exercises=visibleShareExercises(summary,format,metrics.length);
   const grad=ctx.createLinearGradient(0,0,w,h);
   grad.addColorStop(0,'#463047');grad.addColorStop(.55,'#684b62');grad.addColorStop(1,'#93738a');
   ctx.fillStyle=grad;ctx.fillRect(0,0,w,h);
   ctx.strokeStyle='rgba(255,255,255,.09)';ctx.lineWidth=3;
   for(const r of [360,490,650]){ctx.beginPath();ctx.arc(w+100,h*.19,r,0,Math.PI*2);ctx.stroke();}
   ctx.fillStyle='#f9eff5';ctx.font='800 57px Manrope, sans-serif';ctx.fillText('ritmo.',75,115);
-  ctx.fillStyle='#d9bfd0';ctx.font='700 22px DM Sans, sans-serif';ctx.fillText('SEU DIÁRIO DE TREINOS',78,155);
-  ctx.fillStyle='#efdae7';ctx.font='800 24px DM Sans, sans-serif';ctx.fillText('TREINO REGISTRADO  ·  '+formatDate(detail.session.performed_on),76,story?470:280);
-  const hero=story?650:408;
+  ctx.fillStyle='#d9bfd0';ctx.font='700 22px DM Sans, sans-serif';
+  ctx.fillText('SEU DIÁRIO DE TREINOS',78,155);
+  ctx.fillStyle='#efdae7';ctx.font='800 24px DM Sans, sans-serif';
+  ctx.fillText('TREINO REGISTRADO  ·  '+formatDate(detail.session.performed_on),76,story?470:260);
+  const hero=story?650:392;
   ctx.fillStyle='#fffafc';ctx.font='800 106px Manrope, sans-serif';
-  ctx.fillText('FEITO NO',72,hero);
-  ctx.fillText('MEU RITMO.',72,hero+115);
-  ctx.fillStyle='#e5d1dd';ctx.font='600 32px DM Sans, sans-serif';
-  drawWrapped(ctx,cap(detail.session.template_name),78,hero+195,w-150,43,2);
-  const statY=story?1010:690;
-  ctx.fillStyle='rgba(255,250,252,.10)';
-  roundedRect(ctx,65,statY-86,w-130,250,34);ctx.fill();
-  const labels=[['TEMPO',duration(detail.session.started_at,detail.session.finished_at).text],
-    ['EXERCÍCIOS',String(new Set(detail.sets.map(s=>s.exercise_key)).size)],
-    ['SÉRIES FEITAS',String(detail.sets.filter(s=>s.completed).length)]];
-  labels.forEach(([label,value],i)=>{
-    const x=113+i*310;ctx.fillStyle='#f1dce7';ctx.font='700 19px DM Sans, sans-serif';ctx.fillText(label,x,statY-20);
-    ctx.fillStyle='#fffafc';ctx.font='800 48px Manrope, sans-serif';ctx.fillText(value,x,statY+61);
-  });
-  if(includeExercises){
-    const names=[...new Set(detail.sets.map(s=>s.exercise_name))].slice(0,story?4:2);
-    const y=story?1305:915;
-    ctx.fillStyle='#e8d6e1';ctx.font='700 22px DM Sans, sans-serif';ctx.fillText('NESTE TREINO',76,y-50);
-    ctx.font='600 27px DM Sans, sans-serif';ctx.fillStyle='#fffafc';
-    names.forEach((name,i)=>ctx.fillText('·  '+trimName(name,39),78,y+43*i));
+  ctx.fillText('FEITO NO',72,hero);ctx.fillText('MEU RITMO.',72,hero+112);
+  if(options.showWorkoutName){
+    ctx.fillStyle='#e5d1dd';ctx.font='600 32px DM Sans, sans-serif';
+    drawWrapped(ctx,cap(detail.session.template_name),78,hero+190,w-150,42,2);
+  }
+  const top=story?939:620;
+  let metricBottom=top;
+  if(metrics.length){
+    const cols=metrics.length===4?2:metrics.length;
+    const rows=Math.ceil(metrics.length/cols);
+    const rowHeight=story?145:110;
+    const boxHeight=rows*rowHeight+28;
+    metricBottom=top+boxHeight;
+    ctx.fillStyle='rgba(255,250,252,.10)';
+    roundedRect(ctx,65,top,w-130,boxHeight,30);ctx.fill();
+    metrics.forEach((metric,i)=>{
+      const col=i%cols,row=Math.floor(i/cols);
+      const cellWidth=(w-184)/cols,x=97+col*cellWidth;
+      const y=top+27+row*rowHeight;
+      ctx.fillStyle='#f1dce7';ctx.font='700 19px DM Sans, sans-serif';
+      ctx.fillText(metric.label,x,y+12);
+      let size=story?48:42;
+      ctx.fillStyle='#fffafc';
+      do{ctx.font=`800 ${size}px Manrope, sans-serif`;if(ctx.measureText(metric.value).width<cellWidth-16)break;size-=2;}while(size>23);
+      ctx.fillText(metric.value,x,y+77);
+    });
+  }
+  if(options.showExercises){
+    const y=metrics.length?(metricBottom+(story?78:50)):(story?1005:685);
+    const lineHeight=story?46:35;
+    ctx.fillStyle='#e8d6e1';ctx.font='700 22px DM Sans, sans-serif';
+    ctx.fillText('NESTE TREINO',76,y-32);
+    ctx.fillStyle='#fffafc';ctx.font=`600 ${story?27:24}px DM Sans, sans-serif`;
+    for(const [i,entry] of exercises.entries.entries()){
+      const label=options.showExerciseTargets?
+        `${entry.name} · meta: ${entry.target}`:entry.name;
+      ctx.fillText('·  '+trimName(label,story?47:42),78,y+i*lineHeight);
+    }
+    if(exercises.extra){
+      ctx.fillStyle='#ebd5e2';ctx.font='600 23px DM Sans, sans-serif';
+      ctx.fillText(`+ ${exercises.extra} outros exercícios`,78,y+exercises.entries.length*lineHeight);
+    }
   }
   const foot=story?h-125:h-50;
-  ctx.fillStyle='#ead3e1';ctx.font='600 26px DM Sans, sans-serif';ctx.fillText('Um treino de cada vez. Uma evolução de cada vez.',76,foot);
+  ctx.fillStyle='#ead3e1';ctx.font='600 26px DM Sans, sans-serif';
+  ctx.fillText('Um treino de cada vez. Uma evolução de cada vez.',76,foot);
   const blob=await new Promise<Blob|null>(resolve=>c.toBlob(resolve,'image/png'));
   if(!blob)throw new Error('Não foi possível exportar a arte.');
   return new File([blob],`ritmo-treino-${detail.session.performed_on}-${format}.png`,{type:'image/png'});
