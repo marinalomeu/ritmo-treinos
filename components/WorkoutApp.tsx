@@ -16,8 +16,15 @@ const humanDate = (value:string) => {const [y,m,d]=value.slice(0,10).split('-');
 const formatLong = (s:string) => new Intl.DateTimeFormat('pt-BR',{weekday:'long',day:'numeric',month:'long'}).format(new Date(s+'T12:00:00'));
 const fmt = (n:number) => Number.isInteger(n) ? String(n) : n.toLocaleString('pt-BR',{maximumFractionDigits:2});
 const unitName = (u:Unit) => u==='assist_kg'?'kg de assistência':u==='km/h'?'km/h':u==='kg'?'kg':'peso corporal';
+const sessionDuration=(startedAt:string,finishedAt:string|null,now:number)=>{
+  const start=Date.parse(startedAt),end=finishedAt?Date.parse(finishedAt):now;
+  if(!Number.isFinite(start)||!Number.isFinite(end))return '00:00:00';
+  const seconds=Math.max(0,Math.floor((end-start)/1000));
+  return `${String(Math.floor(seconds/3600)).padStart(2,'0')}:${String(Math.floor((seconds%3600)/60)).padStart(2,'0')}:${String(seconds%60).padStart(2,'0')}`;
+};
 export default function WorkoutApp({mode,isOwner=false}:{mode:Mode;isOwner?:boolean}) {
   const [view,setView]=useState<View>('home');const [data,setData]=useState<HistoryData>({sessions:[],progress:[]});
+  const [clockNow,setClockNow]=useState(()=>Date.now());
   const [detail,setDetail]=useState<SessionDetail|null>(null);const [loading,setLoading]=useState(true);const [busy,setBusy]=useState(false);const [error,setError]=useState('');
   const [date,setDate]=useState(todayLocal());const [currentDate,setCurrentDate]=useState(todayLocal());const [activeTemplate,setActiveTemplate]=useState('A');const [showNew,setShowNew]=useState(false);
   const [selectedExercise,setSelectedExercise]=useState(mode==='showcase'?'a1':'');
@@ -56,6 +63,13 @@ export default function WorkoutApp({mode,isOwner=false}:{mode:Mode;isOwner?:bool
     window.addEventListener('focus',syncDate);
     return ()=>{window.clearInterval(interval);window.removeEventListener('focus',syncDate);};
   },[]);
+  // Sessão usa o timestamp persistido no servidor, não uma contagem local perdida no refresh.
+  useEffect(()=>{
+    if(view!=='workout'||!detail||detail.session.status!=='active')return;
+    setClockNow(Date.now());
+    const interval=window.setInterval(()=>setClockNow(Date.now()),1000);
+    return ()=>window.clearInterval(interval);
+  },[view,detail?.session.id,detail?.session.status]);
   const alertError=(e:unknown)=>setError(e instanceof Error?e.message:'Ocorreu um erro.');
   const openWorkout=async(id:string)=>{setBusy(true);setError('');try{const r=await getSession(mode,id);setDetail(r);setView('workout');setShowNew(false);}catch(e){alertError(e);}finally{setBusy(false);}};
   const startWorkout=async()=>{setBusy(true);setError('');try{const id=await createSession(mode,activeTemplate,date);await openWorkout(id);await refresh();}catch(e){alertError(e);}finally{setBusy(false);}};
@@ -156,7 +170,15 @@ export default function WorkoutApp({mode,isOwner=false}:{mode:Mode;isOwner?:bool
       {view==='prs'&&<><PageHeading label="RECORDES PESSOAIS" title="Seus PRs" description="Registre sua melhor série, consulte o 1RM estimado e planeje a carga conforme as repetições. Classifique os exercícios e filtre por modalidade."/><PersonalRecords mode={mode} exercises={prExercises} catalog={catalogExercises} pinnedKeys={data.prPinned||[]} fixedKeys={[...fixedPrKeys]} references={prReferences} records={data.personalRecords||[]} modalities={data.exerciseModalities||[]} onChanged={refresh}/></>}
       {view==='workout'&&detail&&<>
         <button className="back-link" onClick={()=>{setDetail(null);setView('history');void refresh();}}><ArrowLeft size={17}/> Voltar ao histórico</button>
-        <div className="workout-heading"><div><p className="overline">{/^[A-Z]$/.test(detail.session.template_id)?`FICHA ${detail.session.template_id}`:'FICHA PERSONALIZADA'} · {detail.session.status==='finished'?'TREINO FINALIZADO':'TREINO EM ANDAMENTO'}</p><h1>{detail.session.template_name}</h1><p>{findVisibleTemplate(detail.session.template_id)?.description}</p></div><div className="workout-head-right"><label className="date-label">DATA<input type="date" value={detail.session.performed_on} disabled /></label></div></div>
+        <div className="workout-heading"><div><p className="overline">{/^[A-Z]$/.test(detail.session.template_id)?`FICHA ${detail.session.template_id}`:'FICHA PERSONALIZADA'} · {detail.session.status==='finished'?'TREINO FINALIZADO':'TREINO EM ANDAMENTO'}</p><h1>{detail.session.template_name}</h1><p>{findVisibleTemplate(detail.session.template_id)?.description}</p></div><div className="workout-head-right">
+          <div className="workout-timer" aria-label="Duração transcorrida do treino">
+            <Clock3 size={17} aria-hidden="true"/>
+            <span><small>{detail.session.status==='active'?'TEMPO DE TREINO':'DURAÇÃO DO TREINO'}</small>
+              <strong>{sessionDuration(detail.session.started_at,detail.session.finished_at,clockNow)}</strong>
+            </span>
+          </div>
+          <label className="date-label">DATA<input type="date" value={detail.session.performed_on} disabled /></label>
+        </div></div>
         <div className="completion-card"><div><strong>{detail.sets.filter(s=>s.completed).length} de {detail.sets.length} séries</strong><span>concluídas nesta sessão</span></div><span className="completion-pct">{Math.round(100*detail.sets.filter(s=>s.completed).length/Math.max(detail.sets.length,1))}%</span><div className="progress-track"><div style={{width:`${100*detail.sets.filter(s=>s.completed).length/Math.max(detail.sets.length,1)}%`}}/></div></div>
         {mode!=='showcase'&&detail.session.template_name==='HYROX adaptado'&&detail.sets.some(s=>s.load_unit==='km/h')&&<div className="hyrox-info"><Footprints size={18}/><div><strong>6 blocos de 500 m</strong><span>Velocidade-alvo de 10 km/h, com pausas conforme necessário. Faça cada estação após sua corrida.</span></div></div>}
         <WorkoutSets detail={detail} template={findVisibleTemplate(detail.session.template_id)} saving={saving} patchSet={patchSet} updateLocalWeight={updateLocalWeight} saveEditedWeight={saveEditedWeight}/>
