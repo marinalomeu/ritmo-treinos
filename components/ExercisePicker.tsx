@@ -17,11 +17,28 @@ type Props={
   onCreate:(name:string,modality:Modality)=>Promise<void>;
 };
 
+const muscleAliases:Record<string,string>={
+  peito:'Peitoral',peitoral:'Peitoral',peitorais:'Peitoral',
+  costas:'Costas',dorsal:'Costas',dorsais:'Costas',
+  quadriceps:'Quadríceps',posterior:'Posteriores',posteriores:'Posteriores',
+  gluteo:'Glúteos',gluteos:'Glúteos',panturrilha:'Panturrilhas',panturrilhas:'Panturrilhas',
+  ombro:'Ombros',ombros:'Ombros',biceps:'Bíceps',triceps:'Tríceps',
+  abdomen:'Abdômen e core',abdominal:'Abdômen e core',core:'Abdômen e core',
+  cardio:'Cardiorrespiratório',mobilidade:'Mobilidade'
+};
+const muscleGroupForQuery=(query:string)=>muscleAliases[normalizeExerciseName(query)]||null;
+
 // Prioriza começo do nome, depois começo de palavra, por último trecho interno.
 // Usa o mesmo catálogo e as mesmas chaves, sem criar exercícios duplicados.
 export function rankExerciseMatches(items:CatalogExercise[],search:string){
   const query=normalizeExerciseName(search);
   if(query.length<2)return [];
+  const muscleGroup=muscleGroupForQuery(query);
+  if(muscleGroup){
+    // Consulta por grupo muscular mostra TODAS as opções, com rolagem no menu.
+    return items.filter(item=>item.muscleGroup===muscleGroup)
+      .sort((a,b)=>a.name.localeCompare(b.name,'pt-BR'));
+  }
   const rank=(name:string)=>{
     const normalized=normalizeExerciseName(name);
     if(normalized===query)return 0;
@@ -53,7 +70,7 @@ export default function ExercisePicker({value,selectedKey,items,usedKeys,busy=fa
   const matches=useMemo(()=>rankExerciseMatches(items,value),[items,value]);
   const exact=items.some(item=>normalizeExerciseName(item.name)===query);
   const selected=items.some(item=>item.key===selectedKey&&normalizeExerciseName(item.name)===query);
-  const canCreate=query.length>=3&&!exact&&!selected&&!creating&&!busy;
+  const canCreate=query.length>=3&&!muscleGroupForQuery(query)&&!exact&&!selected&&!creating&&!busy;
   const open=focused&&query.length>=2&&!selected;
 
   const choose=(item:CatalogExercise)=>{
@@ -125,7 +142,7 @@ export default function ExercisePicker({value,selectedKey,items,usedKeys,busy=fa
     {open&&<div className="exercise-picker-dropdown">
       <div className="exercise-picker-dropdown-heading">
         <span>{matches.length?'EXERCÍCIOS ENCONTRADOS':'SEM RESULTADOS'}</span>
-        {matches.length>0&&<span>{matches.length} sugestões</span>}
+        {matches.length>0&&<span>{matches.length} {muscleGroupForQuery(query)?'exercícios':'sugestões'}</span>}
       </div>
       {matches.length>0?<div className="exercise-picker-options" role="listbox" id={resultsId} aria-label="Exercícios encontrados">
         {matches.map((item,index)=>{
