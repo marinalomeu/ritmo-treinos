@@ -274,17 +274,24 @@
 
 /* Configurações granulares do card: controle real de cada informação publicada. */
 .workout-share-modal{overflow-y:auto}
-.share-options-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
-.share-option{display:flex;align-items:center;gap:9px;min-width:0;border:1px solid #e8dce3;border-radius:9px;background:#fffdfa;padding:10px 11px;color:var(--ink);font-size:11px;font-weight:700;line-height:1.4;cursor:pointer}
-.share-option:has(input:checked){border-color:#ae93a5;background:#f6edf3;color:var(--plum)}
-.share-option input{width:15px;height:15px;flex-shrink:0;accent-color:var(--plum);margin:0}
-.share-suboption{margin-top:6px;font-weight:600}
-.share-suboption small{display:block;font-size:10px;color:#988593;font-weight:500;margin-top:3px}
-.share-volume-editor{display:grid;gap:9px;background:#fbf7f9;border:1px solid #eadde5;border-radius:11px;padding:12px}
-.share-volume-editor>p{font-size:10px;color:var(--muted);line-height:1.6}
-.share-volume-editor>label{display:grid;gap:6px;color:var(--plum2);font-size:10px;font-weight:800}
-.share-volume-editor input{height:39px;border:1px solid #dbccd6;border-radius:8px;background:white;padding:9px 11px;color:var(--ink);font-size:12px}
-.share-volume-editor small{font-size:10px;color:#80677a;line-height:1.5}
+.share-select-header{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.share-selected-counter{font-size:10px;font-weight:800;color:#806579;background:#f1e7ed;border-radius:999px;padding:5px 10px}
+.share-options-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.share-info-card{display:flex;align-items:center;gap:9px;width:100%;min-width:0;min-height:55px;text-align:left;border:1px solid #e8dce3;border-radius:12px;background:#fffdfa;padding:11px 10px;color:#746572;font-size:11px;font-weight:700;line-height:1.35;cursor:pointer;transition:border-color .15s ease,background .15s ease,box-shadow .15s ease}
+.share-info-card.is-active{border-color:#ad879f;background:#f4eaf0;color:#66465f;box-shadow:inset 0 0 0 .5px #c2a3b5}
+.share-info-card:hover{border-color:#bb9aad;background:#faf4f8}
+.share-info-card:focus-visible,.share-target-option:focus-visible{outline:3px solid #9d7994;outline-offset:2px}
+.share-info-icon{display:grid;place-items:center;width:31px;height:31px;flex-shrink:0;border-radius:9px;background:#f5eff3;color:#91788a}
+.share-info-card.is-active .share-info-icon{background:#e7d8e2;color:#6b4e66}
+.share-info-label{min-width:0;flex:1;overflow-wrap:anywhere}
+.share-info-indicator{width:19px;height:19px;flex-shrink:0;border:1.5px solid #cab9c4;border-radius:50%;background:#fff;display:grid;place-items:center;color:#fff}
+.share-info-card.is-active .share-info-indicator,.share-target-option.is-active .share-info-indicator{background:#684a64;border-color:#684a64}
+.share-minimum-help{font-size:10px;color:#998695;line-height:1.4;margin-top:-3px}
+.share-minimum-help.is-visible{color:#7d5a70;font-weight:800}
+.share-target-option{display:flex;align-items:center;gap:10px;text-align:left;border:1px solid #e8dce3;background:#fffdfa;border-radius:11px;padding:11px;color:#7d6d7a;font-size:11px;font-weight:700;cursor:pointer}
+.share-target-option.is-active{background:#f7eef4;border-color:#bea0b2;color:#694d62}
+.share-target-option>span:last-child{display:grid;gap:4px}
+.share-target-option small{display:block;font-size:10px;font-weight:500;color:#998694;line-height:1.4}
 .share-poster-metrics{row-gap:12px}
 .share-poster-metrics strong{overflow-wrap:anywhere}
 .share-poster-metrics small{line-height:1.3}
@@ -296,4 +303,4 @@
 .share-poster-feed .share-poster-exercises span{font-size:9px}
 .share-poster-feed .share-poster-footer{font-size:8px}
 @media(max-width:760px){.share-options-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.share-poster-feed .share-poster-metrics strong{font-size:15px}}
-@media(max-width:400px){.share-option{font-size:10px;padding:8px}.share-options-grid{gap:5px}}
+@media(max-width:400px){.share-info-card{font-size:10px;padding:8px;gap:6px;min-height:51px}.share-info-icon{width:27px;height:27px}.share-options-grid{gap:7px}}
