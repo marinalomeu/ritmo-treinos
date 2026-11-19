@@ -23,7 +23,7 @@ export async function GET(_request:Request,context:Ctx){
     if(!rows.length)return NextResponse.json({error:'Treino não encontrado.'},{status:404});
     const sets=await sql`
       SELECT ss.id::text AS id,ss.exercise_key,ss.exercise_name,ss.sort_order,
-        ss.block_number,ss.set_number,ss.target_reps,ss.load_unit,ss.weight_kg::float8 AS weight_kg,
+        ss.block_number,ss.set_number,ss.target_reps,ss.actual_reps,ss.load_unit,ss.weight_kg::float8 AS weight_kg,
         ss.completed,ss.completed_at::text AS completed_at
       FROM public.session_sets ss JOIN public.workout_sessions ws ON ws.id=ss.session_id
       WHERE ss.session_id=${id}::uuid AND ws.user_id=${user.id}::uuid
