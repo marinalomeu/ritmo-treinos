@@ -132,3 +132,23 @@
 .exercise-picker-linked{display:flex;align-items:center;gap:6px;color:#647e70;font-size:11px;line-height:1.55;padding-top:7px;letter-spacing:0}
 .exercise-picker-linked svg{flex-shrink:0}
 @media(max-width:600px){.exercise-picker-dropdown{border-radius:11px}.exercise-picker-option{padding:11px 9px}.exercise-picker-option-name{font-size:12px}.exercise-picker-origin{font-size:9px;padding:4px 7px}.exercise-picker-options{max-height:240px}}
+
+
+/* PRs: ação Adicionar e seleção explícita no catálogo */
+.prs-add-button{height:37px;align-self:end;padding:8px 15px}
+.prs-add-dialog{max-width:530px}
+.prs-add-intro{font-size:12px;color:var(--muted);line-height:1.65;margin-bottom:15px}
+.prs-add-search{border:1px solid #d9cdd5;border-radius:10px;display:flex;align-items:center;gap:9px;padding:0 12px;color:var(--plum2);background:white}
+.prs-add-search:focus-within{border-color:var(--plum2);box-shadow:0 0 0 3px #ebdae5}
+.prs-add-search input{border:0;background:transparent;width:100%;min-width:0;min-height:44px;outline:0;font-size:13px;color:var(--ink)}
+.prs-add-hint{padding:20px 6px;font-size:12px;color:var(--muted)}
+.prs-add-results{margin-top:12px;border:1px solid var(--border);border-radius:12px;max-height:340px;overflow-y:auto;background:white;overscroll-behavior:contain}
+.prs-add-result{border:0;border-bottom:1px solid #f1ebef;display:flex;align-items:center;justify-content:space-between;gap:12px;text-align:left;background:white;width:100%;padding:13px 14px;color:var(--ink)}
+.prs-add-result:last-child{border-bottom:0}
+.prs-add-result:hover:not(:disabled){background:#f8f3f7}
+.prs-add-result:disabled{opacity:.62}
+.prs-add-result>span:first-child{min-width:0;flex:1}
+.prs-add-result strong{display:block;font-size:12px;line-height:1.45}
+.prs-add-result small{display:block;font-size:11px;margin-top:4px;color:var(--muted)}
+.prs-add-tag{display:flex;align-items:center;gap:5px;color:var(--plum2);white-space:nowrap;font-size:11px;font-weight:800}
+@media(max-width:600px){.prs-add-button{width:100%}.prs-add-result{padding:12px}.prs-add-dialog{max-width:100%}}
