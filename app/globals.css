@@ -170,3 +170,27 @@
 .reps-field input::-webkit-inner-spin-button,.reps-field input::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
 .reps-field span{font-size:10px;color:#9f939d;white-space:nowrap}
 @media(max-width:760px){.set-line{flex-wrap:wrap;padding:8px 0}.set-target{flex-basis:100%;padding-left:32px}.reps-field{margin-left:32px}.reps-field span{font-size:9px}}
+
+
+/* Treino do dia: sequência editável sem criar ficha fixa. */
+.hero-actions{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+.btn-wod{border:1px solid #e3cfdf;color:white;background:rgba(255,255,255,.12)}
+.btn-wod:hover:not(:disabled){background:rgba(255,255,255,.22)}
+.history-actions{display:flex;flex-wrap:wrap;align-items:center;gap:9px}
+.wod-dialog{max-width:690px}
+.wod-intro{font-size:12px;color:var(--muted);line-height:1.7;padding:0 0 12px}
+.wod-order-actions{display:flex;align-items:center;gap:4px}
+.wod-order-actions button{border:1px solid #e8dae3;border-radius:8px;background:#fffdfa;color:var(--plum2);padding:6px;display:grid;place-items:center}
+.wod-order-actions button:hover:not(:disabled){background:#f2eaf0}
+
+/* Ações explícitas após concluir a sessão; sem reescrever histórico. */
+.post-workout-panel{margin-top:22px;padding:20px 22px;background:#fffdfa;border:1px solid var(--border);border-radius:15px;display:grid;gap:13px}
+.post-workout-panel h3{font-size:17px;margin-top:5px}
+.post-workout-panel>p{font-size:12px;color:var(--muted);line-height:1.65}
+.post-workout-panel>label{display:grid;gap:7px;font-size:10px;color:var(--plum2);font-weight:800;letter-spacing:1px;max-width:400px}
+.post-workout-panel select{background:white;border:1px solid var(--border);border-radius:9px;padding:10px;color:var(--ink);font-size:12px;min-height:42px;letter-spacing:0}
+.post-workout-buttons{display:flex;flex-wrap:wrap;gap:9px}
+.post-workout-buttons .btn{flex:1;min-width:145px}
+.post-workout-confirmation{display:flex;align-items:start;gap:8px;background:#edf3ee;color:#547763!important;border-radius:9px;padding:10px 12px;font-size:12px!important}
+.post-workout-confirmation svg{flex-shrink:0}
+@media(max-width:760px){.hero-actions{align-items:stretch}.btn-wod{font-size:11px}.history-actions{justify-content:flex-end}.post-workout-panel{padding:15px}.post-workout-buttons{display:grid}.post-workout-buttons .btn{width:100%}}
