@@ -10,7 +10,7 @@ export async function PUT(request:Request){
   try{
     const b=await request.json() as Record<string,unknown>;
     if(typeof b.exercise_key!=='string'||!/^[A-Za-z0-9_-]{1,100}$/.test(b.exercise_key) ||
-       typeof b.modality!=='string'||!MODALITIES.some(m=>m===b.modality))
+       typeof b.modality!=='string'||(b.modality!==''&&!MODALITIES.some(m=>m===b.modality)))
       return NextResponse.json({error:'Exercício ou modalidade inválidos.'},{status:400});
     const sql=db();
     const existing=await sql`
@@ -22,6 +22,10 @@ export async function PUT(request:Request){
       LIMIT 1
     `;
     if(!existing.length)return NextResponse.json({error:'Exercício não pertence à conta.'},{status:404});
+    if(b.modality===''){
+      await sql`DELETE FROM public.user_exercise_modalities WHERE user_id=${user.id}::uuid AND exercise_key=${b.exercise_key}`;
+      return NextResponse.json({exercise_key:b.exercise_key,modality:null});
+    }
     const rows=await sql`
       INSERT INTO public.user_exercise_modalities(user_id,exercise_key,modality)
       VALUES (${user.id}::uuid,${b.exercise_key},${b.modality})
