@@ -256,13 +256,19 @@ test('aplicação pós-treino exige confirmação, ownership e PR que só melhor
   assert.ok(route.includes('AND user_id=${user.id}::uuid'),'verifica posse da sessão/ficha');
   assert.ok(route.includes("sessions[0].status!=='finished'"),'não aplicar sessão ativa');
   assert.ok(route.includes('actual_reps'),'não inventar reps');
-  assert.ok(route.includes('estimatedOneRM'),'seleciona melhor série');
+  assert.ok(route.includes('payload.pr_selections'),'exige seleção explícita por exercício');
+  assert.ok(route.includes('seenKeys.has(key)'),'não permite exercício duplicado');
+  assert.ok(route.includes('eligible.has(key)'),'só aceita exercícios presentes na sessão');
+  assert.ok(route.includes('ss.session_id=${id}::uuid'),'busca séries desta sessão');
+  assert.ok(!route.includes('ss.completed=true'),'PR permite registro parcial');
+  assert.ok(route.includes('const completedSets=sets.filter(s=>s.completed)'),'ficha ainda usa séries concluídas');
   assert.ok(route.includes('ON CONFLICT(user_id,exercise_key) DO UPDATE'),'promove PR existente');
   assert.ok(route.includes('EXCLUDED.repetitions::numeric/30'),'compara Epley antes de atualizar');
   assert.ok(route.includes('INSERT INTO public.user_pr_exercises'),'inclusão explícita por ação');
   assert.ok(route.includes('UPDATE public.user_workout_templates'),'alterar cargas da ficha futura');
   assert.ok(!route.includes('UPDATE public.session_sets'),'histórico nunca é reescrito');
-  assert.ok(app.includes('window.confirm(confirmation)'),'opt-in explícito');
+  assert.ok(app.includes("setPrUpdateMode('prs')"),'abre seleção de exercícios');
+  assert.ok(app.includes('choices:PrSelection[]'),'aplica só PRs confirmados');
   assert.ok(app.includes('Atualizar ficha e PRs'),'terceira opção de conclusão');
   assert.ok(migration.includes("source IN ('manual','workout')"),'origem dos PRs separada');
 });
@@ -287,4 +293,33 @@ test('migrações de WOD/PR são aditivas e preservam o histórico legado',()=>{
   const prs=source('app/api/data/route.ts');
   assert.ok(prs.includes('ss.actual_reps,ss.target_reps'),'última carga preserva reps realizadas ou alvo histórico');
   assert.ok(prs.includes('FROM public.user_pr_exercises'),'lista privada de PRs carregada');
+});
+
+
+test('PRs são escolhidos por exercício, mesmo em séries parciais',()=>{
+  const modal=source('components/PrUpdateDialog.tsx');
+  const app=source('components/WorkoutApp.tsx');
+  const api=source('app/api/sessions/[id]/apply/route.ts');
+  assert.ok(modal.includes('type="checkbox" checked={e.active}'),'escolha individual');
+  assert.ok(modal.includes('weight:e.weight'),'mantém valor selecionado');
+  assert.ok(modal.includes('Repetições feitas'),'repetições do resultado, não target');
+  assert.ok(modal.includes('partial:Boolean(best&&!best.completed)'),'séries parciais são consideradas');
+  assert.ok(api.includes('payload.pr_selections'),'back-end usa seleção explícita');
+  assert.ok(api.includes('const completedSets=sets.filter(s=>s.completed)'),'ficha só considera séries finalizadas');
+  assert.ok(app.includes('setPrUpdateMode(\'both\')'),'ação combinada abre seleção');
+  assert.ok(app.includes('saveEditedReps'),'reps parciais podem ser registradas');
+});
+
+test('histórico não exibe UUID de ficha e conclusão apresenta card compartilhável',()=>{
+  const app=source('components/WorkoutApp.tsx');
+  const share=source('components/WorkoutShareCard.tsx');
+  assert.ok(app.includes("'Ficha personalizada'"),'não mostrar identificador interno');
+  assert.ok(!app.includes('Ficha {s.template_id}'),'ocultar ID do cadastro no histórico');
+  assert.ok(app.includes('setShowShare(true)'),'tela de conquista após finalizar');
+  assert.ok(app.includes('setDetail(completed)'),'continuar com sessão concluída aberta');
+  assert.ok(share.includes("c.width=1080;c.height=story?1920:1080"),'exportar Story e Feed');
+  assert.ok(share.includes('navigator.share'),'usuário inicia compartilhamento');
+  assert.ok(share.includes('Baixar imagem PNG'),'download de arte disponível');
+  assert.ok(share.includes('includeExercises'),'exercícios são opt-in no card');
+  assert.ok(!share.includes('user.email'),'não expor e-mail no compartilhamento');
 });
