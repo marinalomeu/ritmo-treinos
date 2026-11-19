@@ -167,3 +167,18 @@ test('novo convidado recebe meta anual estável e convite sem texto redundante',
   assert.ok(!invite.includes('Seus treinos serão privados e independentes dos demais usuários.'));
   assert.ok(sql.includes('BETWEEN 1 AND 7'),'banco permite sete dias por semana');
 });
+
+
+test('busca de exercícios usa lista vertical e mantém criação pessoal separada',()=>{
+  const picker=source('components/ExercisePicker.tsx');
+  const css=source('app/globals.css');
+  assert.ok(picker.includes('rankExerciseMatches(items,value)'), 'busca classificada por relevância');
+  assert.ok(picker.includes('normalized.startsWith(query)'), 'correspondência inicial tem prioridade');
+  assert.ok(picker.includes('.slice(0,8)'), 'limita sugestões visíveis');
+  assert.ok(picker.includes('exercise-picker-dropdown'), 'menu próprio de sugestões');
+  assert.ok(picker.includes('exercise-picker-create-trigger'), 'criação separada da listagem');
+  assert.ok(picker.includes('usedKeys.includes(item.key)'), 'impede repetir exercício na mesma ficha');
+  assert.ok(picker.includes('onSelect(item)'), 'seleção mantém chave original do catálogo');
+  assert.ok(css.includes('.exercise-picker-options{max-height:270px;overflow-y:auto'), 'resultados com rolagem');
+  assert.ok(css.includes('.exercise-picker-option-name'), 'nome e origem apresentados separadamente');
+});
