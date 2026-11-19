@@ -23,5 +23,5 @@ export async function verifyNeonWebhook(rawBody: string, headers: Headers) {
   const signedInput=`${parts[0]}.${Buffer.from(signedPayload,'utf8').toString('base64url')}`;
   const valid=crypto.verify(null,Buffer.from(signedInput),crypto.createPublicKey({key:jwk,format:'jwk'}),Buffer.from(parts[2],'base64url'));
   if(!valid)throw new Error('Assinatura não verificada.');
-  return JSON.parse(rawBody) as {event_type?:string;user?:{id?:string;email?:string}};
+  return JSON.parse(rawBody) as {event_id?:string;event_type?:string;user?:{id?:string;email?:string}};
 }
