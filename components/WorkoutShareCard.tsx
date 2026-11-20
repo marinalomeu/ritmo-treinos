@@ -37,26 +37,6 @@ async function pngPoster(detail:SessionDetail,visual:ShareVisual,options:ShareOp
   const w=c.width,h=c.height;
   const metrics=shareMetricValues(summary,options);
   const exercises=visibleShareExercises(summary,metrics.length);
-  const [previewUrl,setPreviewUrl]=useState('');
-  const [previewBusy,setPreviewBusy]=useState(true);
-  // A prévia é gerada pelo MESMO Canvas usado para exportar o PNG.
-  useEffect(()=>{
-    let alive=true;
-    let url='';
-    if(isChallenge&&!eligibility){setPreviewBusy(false);return;}
-    setPreviewBusy(true);
-    const task=window.setTimeout(()=>{
-      (firstChallenge
-        ?specialChallengePoster(detail,challengeName,summary,showChallengeTime)
-        :pngPoster(detail,visual,options,summary,composition,eligibility,showBestBadge&&bestChallenge))
-      .then(file=>{
-        if(!alive)return;
-        url=URL.createObjectURL(file);
-        setPreviewUrl(url);setPreviewBusy(false);
-      }).catch(()=>{if(alive){setPreviewUrl('');setPreviewBusy(false);}});
-    },120);
-    return()=>{alive=false;window.clearTimeout(task);if(url)URL.revokeObjectURL(url);};
-  },[detail,summary,visual,options,composition,eligibility,firstChallenge,bestChallenge,showBestBadge,showChallengeTime,challengeName,isChallenge]);
   const colors=SHARE_THEMES[visual];
   const grad=ctx.createLinearGradient(0,0,w,h);
   grad.addColorStop(0,colors.gradient[0]);grad.addColorStop(.55,colors.gradient[1]);grad.addColorStop(1,colors.gradient[2]);
@@ -225,6 +205,27 @@ export default function WorkoutShareCard({detail,onClose}:{detail:SessionDetail;
   const selectedCount=shareSelectionCount(options);
   const [selectionHint,setSelectionHint]=useState(false);
   const exercises=visibleShareExercises(summary,metrics.length);
+  const [previewUrl,setPreviewUrl]=useState('');
+  const [previewBusy,setPreviewBusy]=useState(true);
+  // A prévia é gerada pelo MESMO Canvas usado para exportar o PNG.
+  useEffect(()=>{
+    let alive=true;
+    let url='';
+    if(isChallenge&&!eligibility){setPreviewBusy(false);return;}
+    setPreviewBusy(true);
+    const task=window.setTimeout(()=>{
+      (firstChallenge
+        ?specialChallengePoster(detail,challengeName,summary,showChallengeTime)
+        :pngPoster(detail,visual,options,summary,composition,eligibility,showBestBadge&&bestChallenge))
+      .then(file=>{
+        if(!alive)return;
+        url=URL.createObjectURL(file);
+        setPreviewUrl(url);setPreviewBusy(false);
+      }).catch(()=>{if(alive){setPreviewUrl('');setPreviewBusy(false);}});
+    },120);
+    return()=>{alive=false;window.clearTimeout(task);if(url)URL.revokeObjectURL(url);};
+  },[detail,summary,visual,options,composition,eligibility,firstChallenge,bestChallenge,showBestBadge,showChallengeTime,challengeName,isChallenge]);
+
   const metricColumns=metrics.length===4?2:Math.max(1,metrics.length);
   const updateShareOption=(key:'showWorkoutName'|'showGymName'|'showDate'|'showExercises'|ShareMetric)=>{
     const isMetric=key in options.metrics;
