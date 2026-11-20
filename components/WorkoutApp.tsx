@@ -165,18 +165,33 @@ export default function WorkoutApp({mode,isOwner=false}:{mode:Mode;isOwner?:bool
     }
     setBusy(true);setError('');setApplyNotice('');
     try{
-      const response=await fetch(`/api/sessions/${detail.session.id}/apply`,{
-        method:'POST',headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({update_prs:updatePRs,update_template:updateTemplate,
-          ...(updatePRs?{pr_selections:choices}:{}),
-          ...(updateTemplate?{target_template_id:target,template_selections:loads}:{})})
-      });
-      const result=await response.json().catch(()=>({}));
-      if(!response.ok)throw new Error(result.error||'Não foi possível aplicar o treino.');
+      const running=choices.filter((x):x is Extract<PrSelection,{distance_m:number}>=>'distance_m' in x);
+      const strength=choices.filter((x):x is Extract<PrSelection,{weight_kg:number}>=>'weight_kg' in x);
+      let results={prs_updated:0,template_loads_changed:0};
+      if(updateTemplate||(updatePRs&&strength.length>0)){
+        const response=await fetch('/api/sessions/'+detail.session.id+'/apply',{
+          method:'POST',headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({update_prs:updatePRs&&strength.length>0,update_template:updateTemplate,
+            ...(updatePRs&&strength.length>0?{pr_selections:strength}:{}),
+            ...(updateTemplate?{target_template_id:target,template_selections:loads}:{})})
+        });
+        const result=await response.json().catch(()=>({})) as {error?:string;prs_updated?:number;template_loads_changed?:number};
+        if(!response.ok)throw new Error(result.error||'Não foi possível aplicar o treino.');
+        results={prs_updated:result.prs_updated??0,template_loads_changed:result.template_loads_changed??0};
+      }
+      let improvedRunning=0;
+      for(const item of running){
+        const response=await fetch('/api/running-prs',{
+          method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(item)
+        });
+        const result=await response.json().catch(()=>({})) as {updated?:boolean;error?:string};
+        if(!response.ok)throw new Error(result.error||'Não foi possível atualizar o PR de corrida.');
+        if(result.updated)improvedRunning++;
+      }
       await refresh();
       const pieces=[];
-      if(updatePRs)pieces.push(`${result.prs_updated} PR(s) novos ou melhorados dentre ${choices.length} selecionados`);
-      if(updateTemplate)pieces.push(`${result.template_loads_changed} carga(s) de ficha atualizada(s)`);
+      if(updatePRs)pieces.push(String(results.prs_updated+improvedRunning)+' PR(s) novos ou melhorados dentre '+choices.length+' selecionados');
+      if(updateTemplate)pieces.push(String(results.template_loads_changed)+' carga(s) de ficha atualizada(s)');
       setApplyNotice(pieces.join(' · ')+'. Nenhuma série histórica foi alterada.');
       setPrUpdateMode(null);setTemplateUpdateMode(null);setPendingTemplateLoads([]);
     }catch(error){alertError(error);}finally{setBusy(false);}
