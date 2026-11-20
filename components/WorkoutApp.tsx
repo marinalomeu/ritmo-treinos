@@ -1,5 +1,5 @@
 'use client';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Activity, ArrowLeft, ArrowRight, BarChart3, CalendarDays, Check, CheckCircle2, ChevronRight, Circle, Clock3, Cloud, Dumbbell, Footprints, History, LoaderCircle, LogOut, Plus, RefreshCw, Sparkles, Trash2, TrendingUp, WifiOff, Settings2, Trophy } from 'lucide-react';
 import { TEMPLATES, type HistoryData, type SessionDetail, type StoredSet, type Template, type Unit, prescribedDistanceMeters, prescribedReps } from '../lib/templates';
 import { DEMO_TEMPLATES } from '../lib/demoTemplates';
@@ -31,6 +31,7 @@ const sessionDuration=(startedAt:string,finishedAt:string|null,now:number,paused
   return `${String(Math.floor(seconds/3600)).padStart(2,'0')}:${String(Math.floor((seconds%3600)/60)).padStart(2,'0')}:${String(seconds%60).padStart(2,'0')}`;
 };
 export default function WorkoutApp({mode,isOwner=false}:{mode:Mode;isOwner?:boolean}) {
+  const startingRef=useRef(false);
   const [view,setView]=useState<View>('home');const [data,setData]=useState<HistoryData>({sessions:[],progress:[]});
   const [clockNow,setClockNow]=useState(()=>Date.now());
   const [restState,setRestState]=useState<{setId:string;until:number;skipped:boolean}|null>(null);
@@ -53,15 +54,15 @@ export default function WorkoutApp({mode,isOwner=false}:{mode:Mode;isOwner?:bool
   const [sessionGymOverride,setSessionGymOverride]=useState('');
   const inspectedTemplate=visibleTemplates.find(t=>t.id===inspectedTemplateId)||null;
   const openStartFor=async(id:string)=>{
-    if(busy)return;
+    if(busy||startingRef.current)return;
     const template=visibleTemplates.find(t=>t.id===id);
     if(!template){setError('Ficha não encontrada.');return;}
     setInspectedTemplateId(null);setShowNew(false);
-    setBusy(true);setError('');
+    startingRef.current=true;setBusy(true);setError('');
     try{
       const sessionId=await createSession(mode,id,todayLocal(),template.gym_name??'');
       await openWorkout(sessionId);await refresh();
-    }catch(e){alertError(e);}finally{setBusy(false);}
+    }catch(e){alertError(e);}finally{startingRef.current=false;setBusy(false);}
   };
   const ensureStart=()=>{
     if(!visibleTemplates.length){setCreatingTemplate(true);return;}
@@ -101,7 +102,7 @@ export default function WorkoutApp({mode,isOwner=false}:{mode:Mode;isOwner?:bool
   const openWorkout=async(id:string)=>{setBusy(true);setError('');setApplyNotice('');setApplyTarget('');setPrUpdateMode(null);setTemplateUpdateMode(null);setPendingTemplateLoads([]);setShowShare(false);try{const r=await getSession(mode,id);setDetail(r);setSessionGymDraft(r.session.gym_name??'');
       try{const saved=sessionStorage.getItem(`ritmo-rest:${id}`);setRestState(saved?JSON.parse(saved):null);}catch{setRestState(null);}
       setView('workout');setShowNew(false);}catch(e){alertError(e);}finally{setBusy(false);}};
-  const startWorkout=async()=>{setBusy(true);setError('');try{const id=await createSession(mode,activeTemplate,date,sessionGymOverride);await openWorkout(id);await refresh();}catch(e){alertError(e);}finally{setBusy(false);}};
+  const startWorkout=async()=>{if(startingRef.current)return;startingRef.current=true;setBusy(true);setError('');try{const id=await createSession(mode,activeTemplate,date,sessionGymOverride);await openWorkout(id);await refresh();}catch(e){alertError(e);}finally{startingRef.current=false;setBusy(false);}};
   const patchSet=async(id:string,changes:Partial<StoredSet>)=>{
     if(!detail)return;const before=detail.sets.find(s=>s.id===id);if(!before)return;
     const next={...before,...changes};
