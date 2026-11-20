@@ -460,3 +460,14 @@ test('Em Outro Ritmo starts only a server-owned challenge and isolates the creat
   assert.ok(challenge.includes('makeSets')===false,'biblioteca de desafios apenas prescreve, nao escreve no banco');
   assert.ok(ui.includes('Em Outro Ritmo'),'aba visivel no aplicativo');
 });
+
+test('webhook so consome convite quando id Neon Auth corresponde ao email assinado',()=>{
+  const hook=source('app/api/webhooks/neon/route.ts');
+  const created=hook.split("if(payload.event_type==='user.created')")[1]||'';
+  assert.ok(created.includes('WITH valid_user AS ('),'validacao de identidade antes do UPDATE');
+  assert.ok(created.includes('FROM neon_auth."user"'),'usuario deve existir no Neon Auth');
+  assert.ok(created.includes('WHERE id=${id}::uuid AND lower(email)=${email}'),'UUID e e-mail sao a mesma identidade');
+  assert.ok(created.includes('FROM valid_user u'),'convite depende de usuario confirmado no provider');
+  assert.ok(created.includes('i.email=lower(u.email)'),'nao consumir convite de email diferente');
+  assert.ok(created.includes('p.id=u.id AND p.email<>i.email'),'nao consumir convite se perfil preexistente discorda');
+});

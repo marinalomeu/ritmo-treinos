@@ -27,12 +27,21 @@ export async function POST(request:Request){
       if(!idPattern.test(id)||!email)return NextResponse.json({error:'Identidade inválida.'},{status:400});
       // Retira o convite da fila e cria a associação de perfil numa única operação.
       await sql`
-        WITH claimed AS (
-          UPDATE public.app_invitations
+        WITH valid_user AS (
+          SELECT id,email FROM neon_auth."user"
+          WHERE id=${id}::uuid AND lower(email)=${email}
+        ), claimed AS (
+          UPDATE public.app_invitations i
           SET status='accepted',accepted_at=NOW()
-          WHERE email=${email} AND status='pending' AND expires_at>NOW()
-            AND activated_at>NOW()-INTERVAL '30 minutes'
-          RETURNING email
+          FROM valid_user u
+          WHERE i.email=lower(u.email) AND i.status='pending'
+            AND i.expires_at>NOW()
+            AND i.activated_at>NOW()-INTERVAL '30 minutes'
+            AND NOT EXISTS (
+              SELECT 1 FROM public.app_profiles p
+              WHERE p.id=u.id AND p.email<>i.email
+            )
+          RETURNING i.email
         )
         INSERT INTO public.app_profiles(id,email,role)
         SELECT ${id}::uuid,email,'member' FROM claimed
