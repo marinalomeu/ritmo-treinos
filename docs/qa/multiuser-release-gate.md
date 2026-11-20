@@ -84,3 +84,24 @@ A correção de código associa `accepted_by` **somente depois** da criação de
 - A usuária confirmou em seguida: **"consegui"**, referindo-se ao login no preview após a correção.
 - **Resultado parcial MU-09:** LOGIN VALIDADO para esta conta/preview após a correção de origem. Continuam pendentes os testes de expiração de sessão, revogação de sessão e comprovação separada de reset de senha ponta a ponta. Não marcar MU-09 completa.
 - Nenhuma senha foi consultada ou modificada pela equipe, e nenhuma alteração foi aplicada ao banco de produção.
+
+
+## Nova auditoria somente leitura — 20/11/2026 (retomada da homologação)
+
+**Objetivo:** atualizar evidência de staging antes de executar os testes dinâmicos restantes. **Sem escrita no banco, credenciais ou deploy.**
+
+- Neon project `small-moon-69587175`, branch staging `br-flat-feather-b699t3wq` (não é produção): **5 perfis, 1 owner, 14 sessões e 11 fichas**. A contagem de sessões evoluiu em relação às 10 anotadas anteriormente; não constitui perda de dados, mas exige reconciliar quais sessões são de teste antes do cutover.
+- Integridade: **0 sessões sem `user_id`, 0 séries órfãs, 0 convites pendentes vencidos**.
+- Rastreabilidade: **2 convites aceitos continuam com `accepted_by IS NULL`**. Não foram alterados. Backfill só com identidade inequívoca, backup e aprovação.
+- PostgreSQL: RLS continua **desligado** nas tabelas `app_invitations`, `app_profiles`, `session_sets`, `user_custom_exercises`, `user_personal_records`, `user_training_goals`, `user_workout_templates` e `workout_sessions`. Como o banco é usado em rotas server-side, verificar permissões SQL e **IDOR dinâmico por API**; não tratar a existência de filtros como isolamento comprovado.
+- Inspeção estática das rotas `admin/invitations`, `admin/members`, `sessions/[id]`, `sets/[id]`, `prs`, `goal`, `templates`, `sessions/[id]/apply`: há `currentProfile()` e referências ao ID do usuário; rotas administrativas exigem `role==='owner'`. Essa inspeção **não** substitui os testes completos com dois usuários.
+- Segurança: `Security contract checks` do commit mais recente `4ad22b6c022ae76af58fbe8d4fd6e2d7703f6219` aparece como **completed/success** no GitHub Actions. Ainda falta `npm run typecheck` e `npm run build` verificados no candidato congelado.
+- Vercel: preview da branch de desenvolvimento, commit `4ad22b6`, aparece como **READY**. Este status é de build/infraestrutura e não comprova que convites, autenticação e isolamento foram homologados.
+
+### Execução ainda necessária, por prioridade
+1. **MU-05/MU-06/MU-07:** E2E com duas sessões reais independentes e múltiplos recursos (incluindo PR/metas), bloqueio com cookie existente, revogação administrativa.
+2. **MU-02/03/04/08/09/13:** convite de outro e-mail, expirado, revogado e replay; e-mail não verificado; reset, expiração e webhook adulterado, tudo em ambientes/contas de teste.
+3. **MU-10/14:** snapshot e inventário atual de produção, plano/ensaio de migração e rollback **apenas em branch isolada**, após autorização para qualquer escrita.
+4. **MU-11/12/15:** regressões de treino/ficha/meta/PR/histórico, compatibilidade de pacote, typecheck/build do commit congelado, testes mobile/PWA.
+
+**Gate permanece BLOQUEADO.** Não mudar status MU individual com base nessas verificações passivas.
