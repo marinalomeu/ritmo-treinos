@@ -1,0 +1,18 @@
+name: Security contract checks
+on:
+  pull_request:
+  push:
+    branches:
+      - feat/multiusuario-convites
+jobs:
+  security-contract:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Testar invariantes de isolamento e convites
+        run: node --experimental-strip-types --test tests/security-contract.test.mjs tests/goal.test.mjs tests/workout-share.test.mjs

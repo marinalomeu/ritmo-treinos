@@ -11,6 +11,7 @@ export const normalizeTemplate=(input:unknown,id:string):Template | null=>{
   const description=text(raw.description,400);
   const days=text(raw.days,100);
   const category=text(raw.category,70)||'Personalizado';
+  const gym_name=text(raw.gym_name,100);
   if(!name||!Array.isArray(raw.exercises)||raw.exercises.length<1||raw.exercises.length>40)return null;
   const keys=new Set<string>();
   const exercises:Exercise[]=[];
@@ -29,5 +30,5 @@ export const normalizeTemplate=(input:unknown,id:string):Template | null=>{
       ...(typeof x.block==='number'?{block:x.block}:{})
     });
   }
-  return {id,name,description,days,category,exercises};
+  return {id,name,description,days,category,gym_name,exercises};
 };
