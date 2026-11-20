@@ -20,7 +20,7 @@ export async function GET(request:NextRequest){
   const current=sessionRows[0] as Session;
   const [sessions,goals,prRows]=await Promise.all([
    sql`SELECT ws.id::text,ws.performed_on::text,ws.status,ws.started_at::text,ws.finished_at::text,
-      ws.challenge_id,ws.challenge_division,COUNT(ss.id) FILTER(WHERE ss.completed)::int AS completed_sets,
+      ws.challenge_id,ws.challenge_division,ws.paused_ms,COUNT(ss.id) FILTER(WHERE ss.completed)::int AS completed_sets,
       COUNT(ss.id)::int AS total_sets
       FROM public.workout_sessions ws LEFT JOIN public.session_sets ss ON ss.session_id=ws.id
       WHERE ws.user_id=${user.id}::uuid AND ws.performed_on<=${current.performed_on}::date
@@ -65,7 +65,7 @@ export async function GET(request:NextRequest){
   const comparable=completed.filter(s=>s.challenge_id&&s.challenge_id===current.challenge_id&&s.challenge_division===current.challenge_division&&s.completed_sets===s.total_sets);
   const currentComparable=comparable.find(s=>s.id===id);
   const previous=comparable.filter(s=>s.id!==id&&s.finished_at&&current.finished_at&&s.finished_at<current.finished_at);
-  const elapsed=(s:Session)=>s.finished_at?Date.parse(s.finished_at)-Date.parse(s.started_at):Infinity;
+  const elapsed=(s:Session)=>s.finished_at?Date.parse(s.finished_at)-Date.parse(s.started_at)-(s.paused_ms??0):Infinity;
   const challengeFirst=Boolean(currentComparable&&previous.length===0);
   const challengeBest=Boolean(currentComparable&&previous.length>0&&previous.every(s=>elapsed(current)<elapsed(s)));
   return NextResponse.json({pr:prs.length>0,prCount:prs.length,week,month,weekCount,weekTarget,monthCount,monthTarget,
