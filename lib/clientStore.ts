@@ -86,15 +86,15 @@ export async function createCustomExercise(mode:Mode,name:string,unit:Unit,modal
   localStorage.setItem(customKey(mode),JSON.stringify([...readCustom(mode),created]));
   return created;
 }
-export async function createSession(mode:Mode,templateId:string,date:string):Promise<string> {
-  if (mode==='cloud') { const r=await parseResponse<{id:string}>(await fetch('/api/sessions',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({template_id:templateId,performed_on:date})})); return r.id; }
+export async function createSession(mode:Mode,templateId:string,date:string,gymName?:string):Promise<string> {
+  if (mode==='cloud') { const r=await parseResponse<{id:string}>(await fetch('/api/sessions',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({template_id:templateId,performed_on:date,...(gymName!==undefined?{gym_name:gymName}:{})})})); return r.id; }
   const template=localTemplates(mode).find(t=>t.id===templateId); if (!template) throw new Error('Ficha desconhecida.');
   const now = new Date().toISOString(); const id=crypto.randomUUID();
   const past:Record<string,number> = {};
   const old=read(mode).sort((a,b)=>b.session.started_at.localeCompare(a.session.started_at));
   old.forEach(d=> d.sets.filter(s=>s.completed&&s.weight_kg!==null).forEach(s=>{if (past[s.exercise_key]===undefined) past[s.exercise_key]=s.weight_kg!;}));
   const sets = makeSets(template,past).map(s=>({...s,id:`${id}__${s.id}`}));
-  const session:WorkoutSession={id,template_id:templateId,template_name:template.name,performed_on:date,started_at:now,finished_at:null,status:'active',completed_sets:0,total_sets:sets.length};
+  const session:WorkoutSession={id,template_id:templateId,template_name:template.name,performed_on:date,gym_name:gymName??template.gym_name??null,started_at:now,finished_at:null,status:'active',completed_sets:0,total_sets:sets.length};
   write(mode,[{session,sets},...old]); return id;
 }
 export async function getSession(mode:Mode,id:string):Promise<SessionDetail> {
@@ -104,6 +104,18 @@ export async function getSession(mode:Mode,id:string):Promise<SessionDetail> {
 export async function saveSet(mode:Mode,setId:string,completed:boolean,weight_kg:number|null,actual_reps:number|null=null):Promise<void> {
   if (mode==='cloud') { await parseResponse(await fetch(`/api/sets/${encodeURIComponent(setId)}`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({completed,weight_kg,actual_reps})})); return; }
   const list=read(mode); for (const d of list) {const s=d.sets.find(x=>x.id===setId); if (!s) continue; s.completed=completed;s.weight_kg=weight_kg;s.actual_reps=actual_reps;s.completed_at=completed?(s.completed_at || new Date().toISOString()):null;break;}write(mode,list);
+}
+export async function saveSessionGym(mode:Mode,id:string,gymName:string):Promise<string|null>{
+  const name=gymName.trim().slice(0,100);
+  if(mode==='cloud'){
+    const result=await parseResponse<{gym_name:string|null}>(await fetch(`/api/sessions/${encodeURIComponent(id)}`,{
+      method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({gym_name:name})
+    }));
+    return result.gym_name;
+  }
+  const list=read(mode);const detail=list.find(x=>x.session.id===id);
+  if(!detail)throw new Error('Treino não encontrado.');
+  detail.session.gym_name=name||null;write(mode,list);return detail.session.gym_name;
 }
 export async function finishSession(mode:Mode,id:string):Promise<void> {
   if(mode==='cloud') {await parseResponse(await fetch(`/api/sessions/${encodeURIComponent(id)}/finish`,{method:'POST'}));return;}

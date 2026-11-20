@@ -13,7 +13,7 @@ const newExercise=():Exercise=>({
   key:`ex-${crypto.randomUUID()}`,name:'',sets:3,target:'10 repetições',defaultLoad:null,unit:'kg'
 });
 const newTemplate=():Template=>({
-  id:'draft',name:'',description:'',days:'',category:'Personalizado',exercises:[newExercise()]
+  id:'draft',name:'',description:'',days:'',category:'Personalizado',gym_name:'',exercises:[newExercise()]
 });
 const copyTemplate=(t:Template):Template=>JSON.parse(JSON.stringify(t)) as Template;
 const fmtLoad=(e:Exercise)=>e.unit==='none'?'Peso corporal':
@@ -66,6 +66,7 @@ export default function TemplateDialog({template,mode,onClose,onChanged,onStart,
       {!editing&&template?<>
         <p className="template-dialog-description">{template.description||'Consulte os exercícios antes de iniciar o treino.'}</p>
         {template.days&&<p className="template-dialog-days">{template.days}</p>}
+        {template.gym_name&&<p className="template-dialog-days">Academia/local padrão: {template.gym_name}</p>}
         <div className="template-exercises-list">
           {template.exercises.map((e,i)=><div className="template-exercise-item" key={e.key}>
             <span className="template-exercise-count">{String(i+1).padStart(2,'0')}</span>
@@ -82,6 +83,7 @@ export default function TemplateDialog({template,mode,onClose,onChanged,onStart,
         <div className="template-editor-fields">
           <label>NOME DA FICHA<input maxLength={70} value={draft.name} onChange={e=>setDraft(d=>({...d,name:e.target.value}))} placeholder="Ex.: Treino de segunda"/></label>
           <label>DESCRIÇÃO<input maxLength={400} value={draft.description} onChange={e=>setDraft(d=>({...d,description:e.target.value}))} placeholder="Descrição opcional"/></label>
+          <label>ACADEMIA / LOCAL PADRÃO (OPCIONAL)<input maxLength={100} value={draft.gym_name??''} onChange={e=>setDraft(d=>({...d,gym_name:e.target.value}))} placeholder="Ex.: Academia do bairro"/></label>
           <div className="template-input-grid">
             <label>DIAS<input maxLength={100} value={draft.days} onChange={e=>setDraft(d=>({...d,days:e.target.value}))} placeholder="Ex.: Segunda e sexta"/></label>
             <label>CATEGORIA<input maxLength={70} value={draft.category} onChange={e=>setDraft(d=>({...d,category:e.target.value}))} placeholder="Ex.: Força"/></label>

@@ -1,6 +1,6 @@
 'use client';
 import { useMemo, useState } from 'react';
-import { CalendarDays, Check, Clock3, Download, Dumbbell, Layers3, ListChecks, Moon, Share2, Sun, TrendingUp, Type, X } from 'lucide-react';
+import { CalendarDays, Check, Clock3, Download, Dumbbell, Layers3, ListChecks, Moon, Share2, Sun, TrendingUp, Type, MapPin, X } from 'lucide-react';
 import type { SessionDetail } from '../lib/templates';
 import { DEFAULT_SHARE_OPTIONS, numericShareTarget, shareMetricValues, shareSelectionCount, visibleShareExercises, SHARE_THEMES,
   workoutShareSummary, type ShareMetric, type ShareOptions, type ShareSummary, type ShareVisual } from '../lib/workoutShare';
@@ -30,6 +30,7 @@ async function pngPoster(detail:SessionDetail,visual:ShareVisual,options:ShareOp
   summary:ShareSummary){
   const c=document.createElement('canvas');
   c.width=1080;c.height=1920;
+  if(document.fonts?.ready)await document.fonts.ready;
   const ctx=c.getContext('2d');
   if(!ctx)throw new Error('Não foi possível criar imagem neste navegador.');
   const w=c.width,h=c.height;
@@ -41,19 +42,29 @@ async function pngPoster(detail:SessionDetail,visual:ShareVisual,options:ShareOp
   ctx.fillStyle=grad;ctx.fillRect(0,0,w,h);
   ctx.strokeStyle=colors.ring;ctx.lineWidth=3;
   for(const r of [360,490,650]){ctx.beginPath();ctx.arc(w+100,h*.19,r,0,Math.PI*2);ctx.stroke();}
-  ctx.fillStyle=colors.logo;ctx.font='800 57px Manrope, sans-serif';ctx.fillText('ritmo.',75,115);
+  ctx.fillStyle=colors.logo;ctx.font='800 57px Manrope, sans-serif';ctx.fillText('ritmo.',75,275);
   ctx.fillStyle=colors.subtitle;ctx.font='700 22px DM Sans, sans-serif';
-  ctx.fillText('SEU DIÁRIO DE TREINOS',78,155);
+  ctx.fillText('SEU DIÁRIO DE TREINOS',78,315);
+  // Mesma composição da prévia: conteúdo agrupado na faixa inferior, sem vazio abaixo.
+  // Com mais exercícios/métricas, deslocar os blocos superiores para preservar a margem do rodapé.
+  const extraRows=options.showExercises?Math.min(exercises.entries.length+Number(exercises.extra>0),8):0;
+  const rows=metrics.length===4?2:1;
+  const top=Math.max(740,1580-(rows-1)*158-extraRows*65-(options.showGymName?44:0));
+  const hero=top-(options.showWorkoutName?260:175)-(options.showGymName?45:0);
   ctx.fillStyle=colors.kicker;ctx.font='800 24px DM Sans, sans-serif';
-  ctx.fillText('TREINO REGISTRADO'+(options.showDate?'  ·  '+formatDate(detail.session.performed_on):''),76,470);
-  const hero=650;
+  ctx.fillText('TREINO REGISTRADO'+(options.showDate?'  ·  '+formatDate(detail.session.performed_on):''),76,hero-185);
   ctx.fillStyle=colors.headline;ctx.font='800 106px Manrope, sans-serif';
-  ctx.fillText('FEITO NO',72,hero);ctx.fillText('MEU RITMO.',72,hero+112);
+  ctx.fillText('FEITO NO',72,hero-92);ctx.fillText('MEU RITMO.',72,hero+20);
+  let labelY=hero+98;
   if(options.showWorkoutName){
     ctx.fillStyle=colors.secondary;ctx.font='600 32px DM Sans, sans-serif';
-    drawWrapped(ctx,cap(detail.session.template_name),78,hero+190,w-150,42,2);
+    drawWrapped(ctx,cap(detail.session.template_name),78,labelY,w-150,42,2);
+    labelY+=84;
   }
-  const top=939;
+  if(options.showGymName&&detail.session.gym_name){
+    ctx.fillStyle=colors.secondary;ctx.font='600 28px DM Sans, sans-serif';
+    drawWrapped(ctx,detail.session.gym_name,78,labelY,w-150,38,1);
+  }
   let metricBottom=top;
   if(metrics.length){
     const cols=metrics.length===4?2:metrics.length;
@@ -76,7 +87,7 @@ async function pngPoster(detail:SessionDetail,visual:ShareVisual,options:ShareOp
     });
   }
   if(options.showExercises){
-    const y=metrics.length?metricBottom+78:1005;
+    const y=metrics.length?metricBottom+68:top+68;
     const lineHeight=46;
     ctx.fillStyle=colors.exerciseHeading;ctx.font='700 22px DM Sans, sans-serif';
     ctx.fillText('NESTE TREINO',76,y-32);
@@ -112,10 +123,10 @@ export default function WorkoutShareCard({detail,onClose}:{detail:SessionDetail;
   const [selectionHint,setSelectionHint]=useState(false);
   const exercises=visibleShareExercises(summary,metrics.length);
   const metricColumns=metrics.length===4?2:Math.max(1,metrics.length);
-  const updateShareOption=(key:'showWorkoutName'|'showDate'|'showExercises'|ShareMetric)=>{
+  const updateShareOption=(key:'showWorkoutName'|'showGymName'|'showDate'|'showExercises'|ShareMetric)=>{
     const isMetric=key in options.metrics;
     const current=isMetric?options.metrics[key as ShareMetric]:
-      options[key as 'showWorkoutName'|'showDate'|'showExercises'];
+      options[key as 'showWorkoutName'|'showGymName'|'showDate'|'showExercises'];
     if(current&&shareSelectionCount(options)<=2){
       setSelectionHint(true);
       return;
@@ -124,7 +135,7 @@ export default function WorkoutShareCard({detail,onClose}:{detail:SessionDetail;
     if(isMetric){
       setOptions(previous=>({...previous,metrics:{...previous.metrics,[key]:!previous.metrics[key as ShareMetric]}}));
     }else{
-      const field=key as 'showWorkoutName'|'showDate'|'showExercises';
+      const field=key as 'showWorkoutName'|'showGymName'|'showDate'|'showExercises';
       setOptions(previous=>({...previous,[field]:!previous[field]}));
     }
   };
@@ -137,6 +148,7 @@ export default function WorkoutShareCard({detail,onClose}:{detail:SessionDetail;
     {key:'showExercises',label:'Lista de exercícios',Icon:ListChecks,active:options.showExercises},
     {key:'showWorkoutName',label:'Nome do treino',Icon:Type,active:options.showWorkoutName},
     {key:'showDate',label:'Data do treino',Icon:CalendarDays,active:options.showDate},
+    ...(detail.session.gym_name?[{key:'showGymName' as const,label:'Academia / local',Icon:MapPin,active:options.showGymName}]:[]),
   ] as const;
   const exportCard=async(share:boolean)=>{
     setBusy(true);setError('');
@@ -168,6 +180,7 @@ export default function WorkoutShareCard({detail,onClose}:{detail:SessionDetail;
             <span className="share-poster-kicker">TREINO REGISTRADO{options.showDate&&<> · {formatDate(detail.session.performed_on)}</>}</span>
             <strong>FEITO NO<br/>MEU RITMO<span>.</span></strong>
             {options.showWorkoutName&&<p>{cap(detail.session.template_name)}</p>}
+            {options.showGymName&&detail.session.gym_name&&<p className="share-poster-gym">{detail.session.gym_name}</p>}
           </div>
           {metrics.length>0&&<div className="share-poster-metrics"
             style={{gridTemplateColumns:`repeat(${metricColumns},minmax(0,1fr))`}}>

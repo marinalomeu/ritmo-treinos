@@ -16,9 +16,9 @@ export async function POST(request:Request){
     const sql=db();
     await sql`
       INSERT INTO public.user_workout_templates
-        (user_id,id,name,description,days,category,exercises,position)
+        (user_id,id,name,description,days,category,gym_name,exercises,position)
       VALUES (${user.id}::uuid,${template.id},${template.name},${template.description},
-        ${template.days},${template.category},${JSON.stringify(template.exercises)}::jsonb,100)
+        ${template.days},${template.category},${template.gym_name||null},${JSON.stringify(template.exercises)}::jsonb,100)
     `;
     return NextResponse.json(template,{status:201});
   }catch(error){return serverError(error);}

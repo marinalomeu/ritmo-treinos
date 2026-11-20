@@ -368,3 +368,19 @@ test('seletor visual alterna claro/escuro sem voltar ao quadrado de feed',()=>{
   assert.ok(!ui.includes('setFormat('),'seletor não muda proporção');
   assert.ok(!css.includes('.share-poster-feed'),'estilos quadrados removidos');
 });
+
+test('academia opcional é salva com ownership e não é publicada automaticamente',()=>{
+  const migration=source('db/migrations/2026-11-20-workout-location.sql');
+  const session=source('app/api/sessions/[id]/route.ts');
+  const share=source('components/WorkoutShareCard.tsx');
+  const defaults=source('lib/workoutShare.ts');
+  const app=source('components/WorkoutApp.tsx');
+  assert.ok(migration.includes('ADD COLUMN IF NOT EXISTS gym_name'));
+  assert.ok(!/TRUNCATE|DROP TABLE|DELETE FROM/i.test(migration));
+  assert.ok(session.includes('export async function PATCH'));
+  assert.ok(session.includes('AND user_id=${user.id}::uuid RETURNING gym_name'));
+  assert.ok(defaults.includes('showGymName:false'));
+  assert.ok(share.includes('options.showGymName&&detail.session.gym_name'));
+  assert.ok(app.includes('saveSessionGym'));
+  assert.ok(app.includes('ACADEMIA / LOCAL'));
+});

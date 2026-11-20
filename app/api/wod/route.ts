@@ -14,6 +14,8 @@ export async function POST(request:Request){
   try{
     const body=await request.json() as Record<string,unknown>;
     const performed_on=typeof body.performed_on==='string'?body.performed_on:'';
+    const gym_name=typeof body.gym_name==='string'?body.gym_name.trim():'';
+    if(gym_name.length>100)return NextResponse.json({error:'Local deve ter até 100 caracteres.'},{status:400});
     const validDate=/^\d{4}-\d{2}-\d{2}$/.test(performed_on)&&
       !Number.isNaN(Date.parse(`${performed_on}T12:00:00Z`));
     const source={id:'wod',name:typeof body.name==='string'?body.name:'Treino do dia / WOD',
@@ -41,8 +43,8 @@ export async function POST(request:Request){
         return NextResponse.json({error:'Selecione exercícios existentes no catálogo do Ritmo.'},{status:400});
     }
     const created=await sql`
-      INSERT INTO public.workout_sessions(user_id,template_id,template_name,performed_on)
-      VALUES (${user.id}::uuid,'wod',${template.name},${performed_on}::date)
+      INSERT INTO public.workout_sessions(user_id,template_id,template_name,performed_on,gym_name)
+      VALUES (${user.id}::uuid,'wod',${template.name},${performed_on}::date,${gym_name||null})
       RETURNING id::text AS id
     `;
     const id=created[0].id as string;

@@ -14,7 +14,7 @@ export async function GET(_request:Request,context:Ctx){
   try{
     const sql=db();
     const rows=await sql`
-      SELECT ws.id::text AS id,ws.template_id,ws.template_name,ws.performed_on::text AS performed_on,
+      SELECT ws.id::text AS id,ws.template_id,ws.template_name,ws.gym_name,ws.performed_on::text AS performed_on,
         ws.started_at::text AS started_at,ws.finished_at::text AS finished_at,ws.status,
         COUNT(ss.id)::int AS total_sets,COUNT(ss.id) FILTER(WHERE ss.completed)::int AS completed_sets
       FROM public.workout_sessions ws LEFT JOIN public.session_sets ss ON ws.id=ss.session_id
@@ -45,5 +45,25 @@ export async function DELETE(request:Request,context:Ctx){
     const deleted=await sql`DELETE FROM public.workout_sessions
       WHERE id=${id}::uuid AND user_id=${user.id}::uuid RETURNING id`;
     return NextResponse.json({ok:deleted.length>0});
+  }catch(error){return serverError(error);}
+}
+
+// Atualização opcional do local, inclusive após finalizar. Nunca altera a ficha nem outros treinos.
+export async function PATCH(request:Request,context:Ctx){
+  if(!multiuserConfigured())return NextResponse.json({error:'Ambiente não configurado.'},{status:503});
+  const user=await currentProfile();if(!user)return unauthorized();
+  if(!sameOrigin(request))return forbiddenOrigin();
+  const {id}=await context.params;
+  if(!uuid(id))return NextResponse.json({error:'ID inválido.'},{status:400});
+  try{
+    const body=await request.json() as {gym_name?:unknown};
+    if(typeof body.gym_name!=='string'||body.gym_name.trim().length>100)
+      return NextResponse.json({error:'Informe um local com até 100 caracteres.'},{status:400});
+    const gym=body.gym_name.trim();
+    const sql=db();
+    const updated=await sql`UPDATE public.workout_sessions SET gym_name=${gym||null}
+      WHERE id=${id}::uuid AND user_id=${user.id}::uuid RETURNING gym_name`;
+    if(!updated.length)return NextResponse.json({error:'Treino não encontrado.'},{status:404});
+    return NextResponse.json({gym_name:updated[0].gym_name});
   }catch(error){return serverError(error);}
 }

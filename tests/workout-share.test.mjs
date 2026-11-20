@@ -67,7 +67,7 @@ test('exercícios preservam sequência do WOD e cabem no único card vertical 9:
 
 test('padrão tem exatamente tempo e volume, e exige no mínimo duas informações',()=>{
   assert.deepEqual(DEFAULT_SHARE_OPTIONS,{
-    showWorkoutName:false,showDate:false,showExercises:false,showExerciseTargets:false,
+    showWorkoutName:false,showGymName:false,showDate:false,showExercises:false,showExerciseTargets:false,
     metrics:{time:true,exerciseCount:false,sets:false,volume:true}
   });
   assert.equal(shareSelectionCount(DEFAULT_SHARE_OPTIONS),2);

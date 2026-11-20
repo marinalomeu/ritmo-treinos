@@ -19,6 +19,7 @@ export type Template = {
   description: string;
   days: string;
   category: string;
+  gym_name?: string | null;
   exercises: Exercise[];
 };
 // Dados fictícios como fallback local; as fichas reais ficam apenas no Neon.
@@ -43,6 +44,7 @@ export type WorkoutSession = {
   template_id: string;
   template_name: string;
   performed_on: string;
+  gym_name?: string | null;
   started_at: string;
   finished_at: string | null;
   status: 'active' | 'finished';

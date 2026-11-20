@@ -229,7 +229,7 @@
 .share-poster{--poster-scale:1;position:relative;display:flex;flex-direction:column;justify-content:space-between;isolation:isolate;overflow:hidden;color:#fff7fc;border-radius:19px;background:linear-gradient(145deg,#443043 0%,#684c62 54%,#93758b 100%);box-shadow:0 14px 38px #3723392a;min-width:0;padding:26px;aspect-ratio:9/16}
 .share-poster:before,.share-poster:after{content:"";position:absolute;pointer-events:none;z-index:-1;border-radius:50%;border:1px solid rgba(255,255,255,.11);width:100%;aspect-ratio:1;right:-55%;top:8%;transform:scale(1.5)}
 .share-poster:after{transform:scale(1.18);right:-50%;top:12%}
-.share-poster-art{display:grid;gap:1px}
+.share-poster-art{display:grid;gap:1px;padding-top:12%}
 .share-poster-logo{font:800 26px/1 'Manrope',sans-serif;letter-spacing:-1.2px}
 .share-poster-logo span{color:#e6bfd1}
 .share-poster-art small{font-size:8px;letter-spacing:1.6px;font-weight:800;color:#e7cddd}
@@ -313,3 +313,12 @@
 .share-poster-more{color:#f1d5e6;font-weight:800}
 @media(max-width:760px){.share-options-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:400px){.share-info-card{font-size:10px;padding:8px;gap:6px;min-height:51px}.share-info-icon{width:27px;height:27px}.share-options-grid{gap:7px}}
+
+/* Instagram Stories safe area: manter a marca abaixo do nome e dos controles superiores. */
+.share-poster-gym{font-size:12px!important;opacity:.9}
+.workout-gym-field{display:grid;gap:8px;margin:14px 0 20px;padding:16px;border:1px solid #eadde6;border-radius:14px;background:#fffdfb}
+.workout-gym-field>label{font-size:10px;font-weight:800;letter-spacing:1px;color:#72536d}
+.workout-gym-field>div{display:flex;gap:10px;align-items:center}
+.workout-gym-field input{min-width:0;flex:1;border:1px solid #e0cfd9;border-radius:10px;padding:11px;font:inherit}
+.workout-gym-field small{color:#806b7a}
+@media(max-width:620px){.workout-gym-field>div{flex-direction:column;align-items:stretch}}

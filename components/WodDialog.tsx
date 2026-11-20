@@ -18,6 +18,7 @@ export default function WodDialog({mode,catalog,onChanged,onClose,onStarted,init
 }){
   const [name,setName]=useState('Treino do dia / WOD');
   const [date,setDate]=useState(initialDate);
+  const [gymName,setGymName]=useState('');
   const [exercises,setExercises]=useState<Exercise[]>(()=>[blank()]);
   const [busy,setBusy]=useState(false);
   const [error,setError]=useState('');
@@ -39,7 +40,7 @@ export default function WodDialog({mode,catalog,onChanged,onClose,onStarted,init
     try{
       const response=await fetch('/api/wod',{method:'POST',
         headers:{'Content-Type':'application/json'},body:JSON.stringify({
-          name:template.name,performed_on:date,exercises:template.exercises
+          name:template.name,performed_on:date,gym_name:gymName.trim(),exercises:template.exercises
         })});
       const body=await response.json().catch(()=>({}));
       if(!response.ok)throw new Error(body.error||'Falha ao criar treino do dia.');
@@ -58,6 +59,7 @@ export default function WodDialog({mode,catalog,onChanged,onClose,onStarted,init
       <div className="template-editor-fields">
         <label>NOME DO TREINO<input value={name} maxLength={70} onChange={event=>setName(event.target.value)}/></label>
         <label>DATA<input type="date" value={date} onChange={event=>setDate(event.target.value)}/></label>
+        <label>ACADEMIA / LOCAL (OPCIONAL)<input maxLength={100} value={gymName} onChange={event=>setGymName(event.target.value)} placeholder="Onde você vai treinar?"/></label>
       </div>
       <div className="template-editor-heading"><strong>Sequência de exercícios</strong>
         <button className="text-btn" type="button" disabled={busy||exercises.length>=40}

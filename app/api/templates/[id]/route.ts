@@ -19,7 +19,7 @@ export async function PUT(request:Request,context:Ctx){
     const rows=await sql`
       UPDATE public.user_workout_templates
       SET name=${template.name},description=${template.description},days=${template.days},
-        category=${template.category},exercises=${JSON.stringify(template.exercises)}::jsonb,updated_at=now()
+        category=${template.category},gym_name=${template.gym_name||null},exercises=${JSON.stringify(template.exercises)}::jsonb,updated_at=now()
       WHERE user_id=${user.id}::uuid AND id=${id} RETURNING id
     `;
     if(!rows.length)return NextResponse.json({error:'Ficha não encontrada.'},{status:404});

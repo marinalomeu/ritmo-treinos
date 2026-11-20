@@ -3,6 +3,7 @@ import type { SessionDetail } from './templates';
 export type ShareMetric='time'|'exerciseCount'|'sets'|'volume';
 export type ShareOptions={
   showWorkoutName:boolean;
+  showGymName:boolean;
   showDate:boolean;
   showExercises:boolean;
   showExerciseTargets:boolean;
@@ -18,7 +19,7 @@ export type ShareSummary={
   exercises:ExerciseSummary[];
 };
 export const DEFAULT_SHARE_OPTIONS:ShareOptions={
-  showWorkoutName:false,showDate:false,showExercises:false,showExerciseTargets:false,
+  showWorkoutName:false,showGymName:false,showDate:false,showExercises:false,showExerciseTargets:false,
   metrics:{time:true,exerciseCount:false,sets:false,volume:true}
 };
 export const formatVolume=(value:number)=>new Intl.NumberFormat('pt-BR',{maximumFractionDigits:1}).format(value)+' kg';
@@ -99,7 +100,7 @@ export function visibleShareExercises(summary:ShareSummary,metricsCount:number){
 
 /** Contagem de informações públicas independentes; meta é detalhe da lista, não conta à parte. */
 export function shareSelectionCount(options:ShareOptions):number{
-  return Number(options.showWorkoutName)+Number(options.showDate)+Number(options.showExercises)+
+  return Number(options.showWorkoutName)+Number(options.showGymName)+Number(options.showDate)+Number(options.showExercises)+
     Object.values(options.metrics).filter(Boolean).length;
 }
 /** Só os números das metas planejadas, preservando protocolos como 21-15-9 ou 3x10. */

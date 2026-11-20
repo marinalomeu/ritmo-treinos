@@ -3,7 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Activity, ArrowLeft, ArrowRight, BarChart3, CalendarDays, Check, CheckCircle2, ChevronRight, Circle, Clock3, Cloud, Dumbbell, Footprints, History, LoaderCircle, LogOut, Plus, RefreshCw, Sparkles, Trash2, TrendingUp, WifiOff, Settings2, Trophy } from 'lucide-react';
 import { TEMPLATES, type HistoryData, type SessionDetail, type StoredSet, type Template, type Unit } from '../lib/templates';
 import { DEMO_TEMPLATES } from '../lib/demoTemplates';
-import { createSession, deleteSession, finishSession, getSession, listData, saveSet, saveGoal, type Mode } from '../lib/clientStore';
+import { createSession, deleteSession, finishSession, getSession, listData, saveSet, saveSessionGym, saveGoal, type Mode } from '../lib/clientStore';
 import { DEFAULT_GOAL, SHOWCASE_GOAL, defaultMemberGoal, goalProgress, isValidGoal, type TrainingGoal } from '../lib/goal';
 import TemplateDialog from './TemplateDialog';
 import WodDialog from './WodDialog';
@@ -40,14 +40,17 @@ export default function WorkoutApp({mode,isOwner=false}:{mode:Mode;isOwner?:bool
   const [applyNotice,setApplyNotice]=useState('');
   const [prUpdateMode,setPrUpdateMode]=useState<'prs'|'both'|null>(null);
   const [showShare,setShowShare]=useState(false);
+  const [sessionGymDraft,setSessionGymDraft]=useState('');
+  const [gymSaving,setGymSaving]=useState(false);
+  const [sessionGymOverride,setSessionGymOverride]=useState('');
   const inspectedTemplate=visibleTemplates.find(t=>t.id===inspectedTemplateId)||null;
   const openStartFor=(id:string)=>{
-    setActiveTemplate(id);setInspectedTemplateId(null);setShowNew(true);
+    setActiveTemplate(id);setSessionGymOverride(visibleTemplates.find(t=>t.id===id)?.gym_name??'');setInspectedTemplateId(null);setShowNew(true);
   };
   const ensureStart=()=>{
     if(!visibleTemplates.length){setCreatingTemplate(true);return;}
     if(!visibleTemplates.some(t=>t.id===activeTemplate))setActiveTemplate(visibleTemplates[0].id);
-    setShowNew(true);
+    setSessionGymOverride(visibleTemplates.find(t=>t.id===activeTemplate)?.gym_name??'');setShowNew(true);
   };
   const findVisibleTemplate = (id:string) => visibleTemplates.find(t=>t.id===id);
   // Convidados sem meta salva começam até 31/12, sete dias por semana.
@@ -79,8 +82,8 @@ export default function WorkoutApp({mode,isOwner=false}:{mode:Mode;isOwner?:bool
     return ()=>window.clearInterval(interval);
   },[view,detail?.session.id,detail?.session.status]);
   const alertError=(e:unknown)=>setError(e instanceof Error?e.message:'Ocorreu um erro.');
-  const openWorkout=async(id:string)=>{setBusy(true);setError('');setApplyNotice('');setApplyTarget('');setPrUpdateMode(null);setShowShare(false);try{const r=await getSession(mode,id);setDetail(r);setView('workout');setShowNew(false);}catch(e){alertError(e);}finally{setBusy(false);}};
-  const startWorkout=async()=>{setBusy(true);setError('');try{const id=await createSession(mode,activeTemplate,date);await openWorkout(id);await refresh();}catch(e){alertError(e);}finally{setBusy(false);}};
+  const openWorkout=async(id:string)=>{setBusy(true);setError('');setApplyNotice('');setApplyTarget('');setPrUpdateMode(null);setShowShare(false);try{const r=await getSession(mode,id);setDetail(r);setSessionGymDraft(r.session.gym_name??'');setView('workout');setShowNew(false);}catch(e){alertError(e);}finally{setBusy(false);}};
+  const startWorkout=async()=>{setBusy(true);setError('');try{const id=await createSession(mode,activeTemplate,date,sessionGymOverride);await openWorkout(id);await refresh();}catch(e){alertError(e);}finally{setBusy(false);}};
   const patchSet=async(id:string,changes:Partial<StoredSet>)=>{
     if(!detail)return;const before=detail.sets.find(s=>s.id===id);if(!before)return;
     const next={...before,...changes};const finalWeight=next.weight_kg;
@@ -95,14 +98,25 @@ export default function WorkoutApp({mode,isOwner=false}:{mode:Mode;isOwner?:bool
   const saveEditedWeight=(id:string)=>{const s=detail?.sets.find(s=>s.id===id);if(s)void patchSet(id,{weight_kg:s.weight_kg});};
   const updateLocalReps=(id:string,value:string)=>setDetail(d=>d?{...d,sets:d.sets.map(s=>s.id===id?{...s,actual_reps:value===''?null:Number(value)}:s)}:d);
   const saveEditedReps=(id:string)=>{const s=detail?.sets.find(s=>s.id===id);if(s)void patchSet(id,{actual_reps:s.actual_reps});};
+  const saveGym=async()=>{
+    if(!detail)return;
+    setGymSaving(true);setError('');
+    try{
+      const gym=await saveSessionGym(mode,detail.session.id,sessionGymDraft);
+      setDetail(d=>d?{...d,session:{...d.session,gym_name:gym}}:d);
+      await refresh();
+    }catch(e){alertError(e);}finally{setGymSaving(false);}
+  };
   const finish=async()=>{
     if(!detail)return;
     const incomplete=detail.sets.filter(s=>!s.completed).length;
     if(incomplete&&!window.confirm(`Ainda faltam ${incomplete} séries. Deseja finalizar mesmo assim?`))return;
     setBusy(true);try{
+      await saveSessionGym(mode,detail.session.id,sessionGymDraft);
       await finishSession(mode,detail.session.id);
       const completed=await getSession(mode,detail.session.id);
       setDetail(completed);
+      setSessionGymDraft(completed.session.gym_name??'');
       setView('workout');
       setShowShare(true);
       await refresh();
@@ -224,6 +238,12 @@ export default function WorkoutApp({mode,isOwner=false}:{mode:Mode;isOwner?:bool
           </div>
           <label className="date-label">DATA<input type="date" value={detail.session.performed_on} disabled /></label>
         </div></div>
+        <div className="workout-gym-field"><label htmlFor="workout-gym">ACADEMIA / LOCAL DO TREINO (OPCIONAL)</label>
+          <div><input id="workout-gym" maxLength={100} value={sessionGymDraft} onChange={e=>setSessionGymDraft(e.target.value)} placeholder="Onde você treinou?"/>
+            <button type="button" className="btn btn-outline-template" disabled={gymSaving||busy||sessionGymDraft.trim()===(detail.session.gym_name??'')}
+              onClick={()=>void saveGym()}>{gymSaving?'Salvando…':'Salvar local'}</button></div>
+          <small>Local registrado somente nesta sessão. Você escolhe se aparece no card.</small>
+        </div>
         <div className="completion-card"><div><strong>{detail.sets.filter(s=>s.completed).length} de {detail.sets.length} séries</strong><span>concluídas nesta sessão</span></div><span className="completion-pct">{Math.round(100*detail.sets.filter(s=>s.completed).length/Math.max(detail.sets.length,1))}%</span><div className="progress-track"><div style={{width:`${100*detail.sets.filter(s=>s.completed).length/Math.max(detail.sets.length,1)}%`}}/></div></div>
         {mode!=='showcase'&&detail.session.template_name==='HYROX adaptado'&&detail.sets.some(s=>s.load_unit==='km/h')&&<div className="hyrox-info"><Footprints size={18}/><div><strong>6 blocos de 500 m</strong><span>Velocidade-alvo de 10 km/h, com pausas conforme necessário. Faça cada estação após sua corrida.</span></div></div>}
         <WorkoutSets detail={detail} template={findVisibleTemplate(detail.session.template_id)} saving={saving} patchSet={patchSet} updateLocalWeight={updateLocalWeight} saveEditedWeight={saveEditedWeight} updateLocalReps={updateLocalReps} saveEditedReps={saveEditedReps}/>
@@ -231,7 +251,7 @@ export default function WorkoutApp({mode,isOwner=false}:{mode:Mode;isOwner?:bool
         {detail.session.status==='finished'&&<div className="post-workout-share-invite">
           <div><p className="overline">COMPARTILHE SUA CONQUISTA</p>
             <h3>Mais um treino no seu ritmo.</h3>
-            <p>Crie uma arte para Stories ou feed. Nada é publicado sem você escolher.</p>
+            <p>Crie uma arte para Stories. Nada é publicado sem você escolher.</p>
           </div>
           <button type="button" className="btn btn-primary" onClick={()=>setShowShare(true)}>Criar card do treino</button>
         </div>}
@@ -280,7 +300,7 @@ export default function WorkoutApp({mode,isOwner=false}:{mode:Mode;isOwner?:bool
     {(creatingTemplate||inspectedTemplate)&&<TemplateDialog key={creatingTemplate?'new-template':inspectedTemplate!.id} template={creatingTemplate?null:inspectedTemplate} mode={mode}
       onClose={()=>{setCreatingTemplate(false);setInspectedTemplateId(null);}}
       onChanged={refresh} onStart={openStartFor} catalog={catalogExercises}/>}
-    {showNew&&<div className="modal-backdrop" onMouseDown={e=>{if(e.target===e.currentTarget)setShowNew(false);}}><div className="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title"><div className="modal-head"><div><p className="overline">NOVA SESSÃO</p><h2 id="modal-title">Qual treino vamos fazer?</h2></div><button className="close-btn" onClick={()=>setShowNew(false)} aria-label="Fechar">×</button></div><div className="modal-templates">{visibleTemplates.map(t=><button key={t.id} className={`modal-option ${activeTemplate===t.id?'selected':''}`} onClick={()=>setActiveTemplate(t.id)}><span className="template-letter">{/^[A-Z]$/.test(t.id)?t.id:t.name.slice(0,1).toUpperCase()}</span><span><strong>{t.name}</strong><small>{t.days}</small></span>{activeTemplate===t.id?<CheckCircle2 size={20}/>:<Circle size={20}/>}</button>)}</div><label className="input-label" htmlFor="new-date">DATA DO TREINO</label><input className="date-input" id="new-date" type="date" value={date} onChange={e=>setDate(e.target.value)}/><button className="btn btn-primary full" disabled={busy||!date||visibleTemplates.length===0} onClick={()=>void startWorkout()}>{busy?<LoaderCircle className="spin" size={17}/>:<ArrowRight size={17}/>} Começar treino</button></div></div>}
+    {showNew&&<div className="modal-backdrop" onMouseDown={e=>{if(e.target===e.currentTarget)setShowNew(false);}}><div className="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title"><div className="modal-head"><div><p className="overline">NOVA SESSÃO</p><h2 id="modal-title">Qual treino vamos fazer?</h2></div><button className="close-btn" onClick={()=>setShowNew(false)} aria-label="Fechar">×</button></div><div className="modal-templates">{visibleTemplates.map(t=><button key={t.id} className={`modal-option ${activeTemplate===t.id?'selected':''}`} onClick={()=>{setActiveTemplate(t.id);setSessionGymOverride(t.gym_name??'');}}><span className="template-letter">{/^[A-Z]$/.test(t.id)?t.id:t.name.slice(0,1).toUpperCase()}</span><span><strong>{t.name}</strong><small>{t.days}</small></span>{activeTemplate===t.id?<CheckCircle2 size={20}/>:<Circle size={20}/>}</button>)}</div><label className="input-label" htmlFor="new-date">DATA DO TREINO</label><input className="date-input" id="new-date" type="date" value={date} onChange={e=>setDate(e.target.value)}/><label className="input-label" htmlFor="new-gym">ACADEMIA / LOCAL (OPCIONAL)</label><input className="date-input" id="new-gym" maxLength={100} value={sessionGymOverride} placeholder="Ex.: Minha academia" onChange={e=>setSessionGymOverride(e.target.value)}/><button className="btn btn-primary full" disabled={busy||!date||visibleTemplates.length===0} onClick={()=>void startWorkout()}>{busy?<LoaderCircle className="spin" size={17}/>:<ArrowRight size={17}/>} Começar treino</button></div></div>}
   </div>;
 }
 function TemplateCard({t,onClick}:{t:Template;onClick:()=>void}){return <button className="template-card" onClick={onClick}><div className="template-top"><span className={`template-letter ${t.id==='D'?'lilac':''}`}>{/^[A-Z]$/.test(t.id)?t.id:t.name.slice(0,1).toUpperCase()}</span><span className="template-type">{t.category}</span></div><h3>{t.name}</h3><p>{t.days}</p><div className="template-footer"><span>{t.exercises.length} exercícios · Ver ficha</span><ArrowRight size={17}/></div></button>;}

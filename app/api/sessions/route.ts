@@ -11,13 +11,15 @@ export async function POST(request: Request) {
   try {
     const body=await request.json();
     const date=body.performed_on;
+    const gymOverride=typeof body.gym_name==='string'?body.gym_name.trim():null;
+    if(gymOverride!==null&&gymOverride.length>100)return NextResponse.json({error:'Local deve ter até 100 caracteres.'},{status:400});
     if(typeof body.template_id!=='string'||typeof date!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(date)
       ||Number.isNaN(Date.parse(`${date}T12:00:00Z`))) {
       return NextResponse.json({error:'Ficha ou data inválida.'},{status:400});
     }
     const sql=db();
     const rows=await sql`
-      SELECT id,name,description,days,category,exercises FROM public.user_workout_templates
+      SELECT id,name,description,days,category,gym_name,exercises FROM public.user_workout_templates
       WHERE user_id=${user.id}::uuid AND id=${body.template_id} LIMIT 1
     `;
     if(!rows.length)return NextResponse.json({error:'Ficha não encontrada.'},{status:404});
@@ -31,8 +33,8 @@ export async function POST(request: Request) {
     const past=Object.fromEntries(latest.map(r=>[r.exercise_key,r.weight_kg]));
     const sets=makeSets(template,past);
     const created=await sql`
-      INSERT INTO public.workout_sessions(user_id,template_id,template_name,performed_on)
-      VALUES (${user.id}::uuid,${template.id},${template.name},${date}::date)
+      INSERT INTO public.workout_sessions(user_id,template_id,template_name,performed_on,gym_name)
+      VALUES (${user.id}::uuid,${template.id},${template.name},${date}::date,${gymOverride??template.gym_name??null})
       RETURNING id::text AS id
     `;
     const id=created[0].id as string;
