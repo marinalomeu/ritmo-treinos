@@ -38,6 +38,14 @@ export async function POST(request:Request){
         SELECT ${id}::uuid,email,'member' FROM claimed
         ON CONFLICT(id) DO NOTHING
       `;
+      // A FK accepted_by referencia app_profiles: preencher somente depois do INSERT.
+      // Reexecuções do webhook são idempotentes e não transferem o aceite entre usuários.
+      await sql`UPDATE public.app_invitations i
+        SET accepted_by=${id}::uuid
+        WHERE i.email=${email} AND i.status='accepted'
+          AND i.accepted_by IS NULL
+          AND EXISTS (SELECT 1 FROM public.app_profiles p
+            WHERE p.id=${id}::uuid AND p.email=${email})`;
       return NextResponse.json({success:true});
     }
     return NextResponse.json({success:true});
