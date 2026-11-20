@@ -6,6 +6,8 @@ import { DEMO_TEMPLATES } from '../lib/demoTemplates';
 import { createSession, deleteSession, finishSession, getSession, listData, saveSet, saveGoal, type Mode } from '../lib/clientStore';
 import { DEFAULT_GOAL, SHOWCASE_GOAL, goalProgress, isValidGoal, type TrainingGoal } from '../lib/goal';
 import TemplateDialog from './TemplateDialog';
+import ExerciseMultiSelect from './ExerciseMultiSelect';
+import MultiProgressGraph from './MultiProgressGraph';
 
 type View = 'home' | 'history' | 'progress' | 'workout';
 const todayLocal = () => {const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;};
@@ -17,7 +19,7 @@ export default function WorkoutApp({mode}:{mode:Mode}) {
   const [view,setView]=useState<View>('home');const [data,setData]=useState<HistoryData>({sessions:[],progress:[]});
   const [detail,setDetail]=useState<SessionDetail|null>(null);const [loading,setLoading]=useState(true);const [busy,setBusy]=useState(false);const [error,setError]=useState('');
   const [date,setDate]=useState(todayLocal());const [currentDate,setCurrentDate]=useState(todayLocal());const [activeTemplate,setActiveTemplate]=useState('A');const [showNew,setShowNew]=useState(false);
-  const [selectedExercise,setSelectedExercise]=useState(mode==='showcase'?'a1':'elevacao-pelvica');const [saving,setSaving]=useState<string[]>([]);
+  const [selectedExercises,setSelectedExercises]=useState<string[]>([mode==='showcase'?'a1':'elevacao-pelvica']);const [saving,setSaving]=useState<string[]>([]);
   const visibleTemplates=data.templates??(mode==='showcase'?DEMO_TEMPLATES:TEMPLATES);
   const [inspectedTemplateId,setInspectedTemplateId]=useState<string|null>(null);
   const [creatingTemplate,setCreatingTemplate]=useState(false);
@@ -82,8 +84,7 @@ export default function WorkoutApp({mode}:{mode:Mode}) {
     });
     return [...keys.values()];
   },[visibleTemplates,data.historicalExercises,data.progress]);
-  const points=useMemo(()=>data.progress.filter(x=>x.exercise_key===selectedExercise).slice().reverse(),[data.progress,selectedExercise]);
-  const chosen=allProgress.find(x=>x.key===selectedExercise);
+  const activeComparison=allProgress.filter(x=>selectedExercises.includes(x.key));
   return <div className="app-shell">
     <aside className="sidebar">
       <div className="brand"><span className="brand-icon"><Dumbbell size={20}/></span><span className="logo-word">ritmo<span>.</span></span></div>
@@ -108,7 +109,7 @@ export default function WorkoutApp({mode}:{mode:Mode}) {
         <div className="recent-list">{data.sessions.length?data.sessions.slice(0,4).map(s=><SessionRow key={s.id} s={s} showcase={mode==='showcase'} onClick={()=>openWorkout(s.id)}/>):<EmptyState title="Seu histórico começa aqui" text="Escolha uma ficha e registre seu primeiro treino."/>}</div>
       </>}
       {view==='history'&&<><PageHeading label="SEU REGISTRO" title="Histórico de treinos" description="Cada sessão fica salva com data, séries realizadas e cargas utilizadas."/><div className="history-toolbar"><span>{data.sessions.length} {data.sessions.length===1?'sessão registrada':'sessões registradas'}</span><button className="btn btn-primary" onClick={ensureStart}><Plus size={16}/> Novo treino</button></div><div className="recent-list">{data.sessions.length?data.sessions.map(s=><SessionRow key={s.id} s={s} showcase={mode==='showcase'} onClick={()=>openWorkout(s.id)}/>):<EmptyState title="Nenhum treino registrado" text="Quando você concluir suas séries, elas aparecerão aqui."/>}</div></>}
-      {view==='progress'&&<><PageHeading label="EVOLUÇÃO DE CARGAS" title="Sua força, em perspectiva" description="Selecione um exercício para comparar as cargas registradas nas sessões anteriores."/><div className="progress-card"><label className="input-label" htmlFor="exercise-choice">EXERCÍCIO</label><select id="exercise-choice" className="select-input" value={selectedExercise} onChange={e=>setSelectedExercise(e.target.value)}>{allProgress.map(e=><option key={e.key} value={e.key}>{e.name}</option>)}</select><ProgressGraph points={points} unit={chosen?.unit||'kg'}/></div><div className="progress-note"><TrendingUp size={18}/><span>{chosen?.unit==='assist_kg'?'Na barra assistida, menos quilos de assistência significam mais trabalho realizado por você.':'Os valores mostram a maior carga concluída em cada sessão. Só séries marcadas como feitas entram no gráfico.'}</span></div></>}
+      {view==='progress'&&<><PageHeading label="EVOLUÇÃO DE CARGAS" title="Sua força, em perspectiva" description="Selecione quantos exercícios quiser para comparar sua evolução."/><div className="progress-card"><label className="input-label">EXERCÍCIOS PARA COMPARAR</label><ExerciseMultiSelect options={allProgress} selected={activeComparison.map(x=>x.key)} onChange={setSelectedExercises} label="Escolher exercícios" max={allProgress.length}/><MultiProgressGraph items={activeComparison} progress={data.progress}/></div><div className="progress-note"><TrendingUp size={18}/><span>O gráfico usa a maior carga concluída de cada exercício por sessão. Em exercícios assistidos, menos assistência significa maior esforço; compare a tendência considerando essa diferença.</span></div></>}
       {view==='workout'&&detail&&<>
         <button className="back-link" onClick={()=>{setDetail(null);setView('history');void refresh();}}><ArrowLeft size={17}/> Voltar ao histórico</button>
         <div className="workout-heading"><div><p className="overline">{/^[A-Z]$/.test(detail.session.template_id)?`FICHA ${detail.session.template_id}`:'FICHA PERSONALIZADA'} · {detail.session.status==='finished'?'TREINO FINALIZADO':'TREINO EM ANDAMENTO'}</p><h1>{detail.session.template_name}</h1><p>{findVisibleTemplate(detail.session.template_id)?.description}</p></div><div className="workout-head-right"><label className="date-label">DATA<input type="date" value={detail.session.performed_on} disabled /></label></div></div>
