@@ -431,3 +431,6 @@
 .challenge-best-badge small{font-size:9px}
 .share-best-option{display:flex;align-items:center;gap:10px;color:#436e51;font-size:12px;font-weight:700}
 @media(max-width:760px){.challenge-special-medal span{font-size:31px}.challenge-special-main strong{font-size:32px}.challenge-special-main em{font-size:15px}.challenge-special-results{font-size:10px}}
+
+.share-rendered-preview{display:block;width:100%;height:auto;aspect-ratio:1170/2058;object-fit:contain;border-radius:20px;max-width:100%;align-self:flex-start;box-shadow:0 10px 35px rgba(40,24,39,.1)}
+.share-preview-pending{min-height:360px;display:grid;place-items:center;padding:25px;text-align:center;color:#6d546d;font-weight:700;border:1px solid #e7dbe4;border-radius:18px}
