@@ -89,16 +89,16 @@ export function shareAwardLabels(composition:ShareComposition,eligibility:ShareE
 
 export const SHARE_THEMES={
   'dark-green':{
-    gradient:['#21443b','#326455','#538778'],ring:'rgba(242,250,241,.12)',logo:'#fafcf7',subtitle:'#d9e9dc',kicker:'#d9ecda',headline:'#fffdf7',secondary:'#e6f2e7',metricsBackground:'rgba(255,255,248,.14)',metricLabel:'#daecdf',metricValue:'#fffdf7',exerciseHeading:'#d4eadc',exerciseText:'#f8fff9',extra:'#deecdf',footer:'#ddf0e1'
+    gradient:['#063524','#06432e','#063b2a'],ring:'rgba(242,250,241,.12)',logo:'#fafcf7',subtitle:'#d9e9dc',kicker:'#d9ecda',headline:'#fffdf7',secondary:'#e6f2e7',metricsBackground:'rgba(255,255,248,.14)',metricLabel:'#daecdf',metricValue:'#fffdf7',exerciseHeading:'#d4eadc',exerciseText:'#f8fff9',extra:'#deecdf',footer:'#ddf0e1'
   },
   'light-green':{
-    gradient:['#f6f9ed','#ebf2dd','#d5e8cd'],ring:'rgba(68,105,85,.15)',logo:'#315245',subtitle:'#648271',kicker:'#507764',headline:'#2d5442',secondary:'#476958',metricsBackground:'rgba(85,130,96,.10)',metricLabel:'#57785b',metricValue:'#315244',exerciseHeading:'#406e52',exerciseText:'#284934',extra:'#52785c',footer:'#587661'
+    gradient:['#e4f8e3','#e1f4e0','#dcf2dc'],ring:'rgba(68,105,85,.15)',logo:'#315245',subtitle:'#648271',kicker:'#507764',headline:'#2d5442',secondary:'#476958',metricsBackground:'rgba(85,130,96,.10)',metricLabel:'#57785b',metricValue:'#315244',exerciseHeading:'#406e52',exerciseText:'#284934',extra:'#52785c',footer:'#587661'
   },
   mauve:{
-    gradient:['#f0e7ee','#e4d4e0','#c9b0c4'],ring:'rgba(81,47,80,.11)',logo:'#5d3e59',subtitle:'#765a72',kicker:'#6b4868',headline:'#51384c',secondary:'#6a5264',metricsBackground:'rgba(98,63,99,.12)',metricLabel:'#775c73',metricValue:'#4f354b',exerciseHeading:'#61435b',exerciseText:'#4d3b4d',extra:'#6c4c66',footer:'#684d62'
+    gradient:['#775269','#785169','#745066'],ring:'rgba(255,237,247,.14)',logo:'#fff8fd',subtitle:'#f5e5f0',kicker:'#f4e0ee',headline:'#fff9fd',secondary:'#f9e8f5',metricsBackground:'rgba(255,240,250,.13)',metricLabel:'#f9eaf4',metricValue:'#fff9fd',exerciseHeading:'#f3e6ee',exerciseText:'#fff8fd',extra:'#f5d5e8',footer:'#f7e8f2'
   },
   dark:{
-    gradient:['#463047','#684b62','#93738a'],
+    gradient:['#42273c','#46283f','#462a40'],
     ring:'rgba(255,255,255,.09)',logo:'#f9eff5',subtitle:'#d9bfd0',
     kicker:'#efdae7',headline:'#fffafc',secondary:'#e5d1dd',
     metricsBackground:'rgba(255,250,252,.10)',metricLabel:'#f1dce7',
@@ -106,7 +106,7 @@ export const SHARE_THEMES={
     exerciseText:'#fffafc',extra:'#ebd5e2',footer:'#ead3e1'
   },
   light:{
-    gradient:['#fffdfa','#f6f0f3','#eaddE6'],
+    gradient:['#f9eeee','#f8eded','#f8eeee'],
     ring:'rgba(98,70,93,.12)',logo:'#4b3547',subtitle:'#76586f',
     kicker:'#74556d',headline:'#28242d',secondary:'#664a60',
     metricsBackground:'rgba(103,76,98,.09)',metricLabel:'#74566f',
