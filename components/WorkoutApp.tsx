@@ -7,6 +7,8 @@ import { createSession, deleteSession, finishSession, getSession, listData, save
 import { DEFAULT_GOAL, SHOWCASE_GOAL, defaultMemberGoal, goalProgress, isValidGoal, type TrainingGoal } from '../lib/goal';
 import TemplateDialog from './TemplateDialog';
 import WodDialog from './WodDialog';
+import ChallengesView from './ChallengesView';
+import type { ChallengeDefinition } from '../lib/challengeTemplates';
 import MultiExerciseSelect from './MultiExerciseSelect';
 import PrUpdateDialog, { type PrSelection } from './PrUpdateDialog';
 import TemplateLoadDialog, {type TemplateLoadSelection} from './TemplateLoadDialog';
@@ -15,7 +17,7 @@ import PersonalRecords from './PersonalRecords';
 import { MODALITIES } from '../lib/personalRecords';
 import { BASE_EXERCISES, mergedExerciseCatalog, type CatalogExercise } from '../lib/exerciseCatalog';
 
-type View = 'home' | 'history' | 'progress' | 'prs' | 'workout';
+type View = 'home' | 'history' | 'progress' | 'prs' | 'challenges' | 'workout';
 const todayLocal = () => {const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;};
 const humanDate = (value:string) => {const [y,m,d]=value.slice(0,10).split('-');return `${d}/${m}/${y}`;};
 const formatLong = (s:string) => new Intl.DateTimeFormat('pt-BR',{weekday:'long',day:'numeric',month:'long'}).format(new Date(s+'T12:00:00'));
@@ -155,7 +157,19 @@ export default function WorkoutApp({mode,isOwner=false}:{mode:Mode;isOwner?:bool
   const remove=async(id:string)=>{if(!window.confirm('Excluir esta sessão e todas as séries registradas? Esta ação não pode ser desfeita.'))return;setBusy(true);try{await deleteSession(mode,id);if(detail?.session.id===id){setDetail(null);setView('history');}await refresh();}catch(e){alertError(e);}finally{setBusy(false);}};
   const selectView=(next:View)=>{setView(next);setError('');setShowNew(false);setShowShare(false);setPrUpdateMode(null);setTemplateUpdateMode(null);setPendingTemplateLoads([]);if(next!=='workout')setDetail(null);};
   const progress=mode==='showcase'?{daysLeft:48,checkins:5,planned:40}:goalProgress(goal,data.sessions,currentDate);
-  const nav=[{id:'home' as View,label:'Visão geral',Icon:Activity},{id:'history' as View,label:'Histórico',Icon:History},{id:'progress' as View,label:'Evolução',Icon:BarChart3},{id:'prs' as View,label:'PRs',Icon:Trophy}];
+
+  const startChallenge=async(challenge:ChallengeDefinition,division:string)=>{
+    if(mode!=='cloud')throw new Error('Desafios estão disponíveis somente para contas conectadas.');
+    setBusy(true);setError('');
+    try{
+      const response=await fetch('/api/challenges/start',{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({challenge_id:challenge.id,division,performed_on:todayLocal()})});
+      const payload=await response.json().catch(()=>({})) as {id?:string;error?:string};
+      if(!response.ok||!payload.id)throw new Error(payload.error||'Não foi possível iniciar o desafio.');
+      await openWorkout(payload.id);await refresh();
+    }catch(e){alertError(e);throw e;}finally{setBusy(false);}
+  };
+  const nav=[{id:'home' as View,label:'Visão geral',Icon:Activity},{id:'history' as View,label:'Histórico',Icon:History},{id:'progress' as View,label:'Evolução',Icon:BarChart3},{id:'prs' as View,label:'PRs',Icon:Trophy},{id:'challenges' as View,label:'Em Outro Ritmo',Icon:Footprints}];
   const allProgress=useMemo(()=>{
     const keys=new Map<string,{key:string;name:string;unit:Unit}>();
     visibleTemplates.forEach(t=>t.exercises.filter(e=>e.unit!=='none').forEach(e=>{if(!keys.has(e.key))keys.set(e.key,{key:e.key,name:e.name,unit:e.unit});}));
@@ -213,7 +227,7 @@ export default function WorkoutApp({mode,isOwner=false}:{mode:Mode;isOwner?:bool
       <nav className="side-links" aria-label="Navegação principal">{nav.map(n=><button key={n.id} className={`nav-item ${view===n.id?'active':''}`} onClick={()=>selectView(n.id)}><n.Icon size={18}/>{n.label}{view===n.id&&<ChevronRight size={15} className="chev"/>}</button>)}</nav>
       <div className="sidebar-bottom"><div className="side-daily"><Sparkles size={18}/><div><strong>{goal.name}</strong><span>Constância, um treino por vez.</span></div></div><div className="mode-tag">{mode==='cloud'?<Cloud size={14}/>:<WifiOff size={14}/>} {mode==='cloud'?'Salvando no Neon':mode==='showcase'?'Dados fictícios e isolados':'Modo demonstração'}</div>{mode==='cloud'&&isOwner&&<a className="logout-link" href="/admin/convites">Gerenciar convites</a>}{mode==='cloud'&&<button className="logout-link" onClick={async()=>{await fetch('/api/logout',{method:'POST'});window.location.reload();}}><LogOut size={15}/> Sair</button>}</div>
     </aside>
-    <main className="main-area"><header className="topbar"><div className="breadcrumbs"><span>Meu espaço</span><ChevronRight size={13}/><strong>{view==='home'?'Visão geral':view==='history'?'Histórico':view==='progress'?'Evolução':view==='prs'?'Recordes pessoais':'Treino em andamento'}</strong></div><div className="header-date"><CalendarDays size={15}/>{humanDate(todayLocal())}</div></header>
+    <main className="main-area"><header className="topbar"><div className="breadcrumbs"><span>Meu espaço</span><ChevronRight size={13}/><strong>{view==='home'?'Visão geral':view==='history'?'Histórico':view==='progress'?'Evolução':view==='prs'?'Recordes pessoais':view==='challenges'?'Em Outro Ritmo':'Treino em andamento'}</strong></div><div className="header-date"><CalendarDays size={15}/>{humanDate(todayLocal())}</div></header>
       <div className="page-content">
       {mode==='showcase'&&<div className="demo-banner"><WifiOff size={17}/><span><strong>Perfil de demonstração:</strong> cinco treinos fictícios. Alterações feitas aqui ficam apenas neste navegador, sem acesso ao banco real.</span></div>}
       {mode==='demo'&&<div className="demo-banner"><WifiOff size={17}/><span><strong>Modo demonstração:</strong> os registros ficam neste navegador. Para sincronizar com o Neon, configure o banco e as variáveis de ambiente.</span></div>}
@@ -230,6 +244,7 @@ export default function WorkoutApp({mode,isOwner=false}:{mode:Mode;isOwner?:bool
         <div className="recent-list">{data.sessions.length?data.sessions.slice(0,4).map(s=><SessionRow key={s.id} s={s} showcase={mode==='showcase'} onClick={()=>openWorkout(s.id)}/>):<EmptyState title="Seu histórico começa aqui" text="Escolha uma ficha e registre seu primeiro treino."/>}</div>
       </>}
       {view==='history'&&<><PageHeading label="SEU REGISTRO" title="Histórico de treinos" description="Cada sessão fica salva com data, séries realizadas e cargas utilizadas."/><div className="history-toolbar"><span>{data.sessions.length} {data.sessions.length===1?'sessão registrada':'sessões registradas'}</span><div className="history-actions"><button className="btn btn-primary" onClick={ensureStart}><Plus size={16}/> Novo treino</button>{mode==='cloud'&&<button className="btn btn-outline-template" onClick={()=>setShowWod(true)}>Treino do dia / WOD</button>}</div></div><div className="recent-list">{data.sessions.length?data.sessions.map(s=><SessionRow key={s.id} s={s} showcase={mode==='showcase'} onClick={()=>openWorkout(s.id)}/>):<EmptyState title="Nenhum treino registrado" text="Quando você concluir suas séries, elas aparecerão aqui."/>}</div></>}
+      {view==='challenges'&&<ChallengesView onStart={startChallenge} disabled={busy||mode!=='cloud'}/>}
       {view==='progress'&&<><PageHeading label="EVOLUÇÃO DE CARGAS" title="Sua força, em perspectiva" description="Escolha até oito exercícios e compare a progressão de cada um no mesmo gráfico."/><div className="progress-card"><div className="progress-filters"><label className="input-label" htmlFor="exercise-modality">MODALIDADE<select id="exercise-modality" className="select-input" value={modalityFilter} onChange={e=>setModalityFilter(e.target.value)}><option>Todas</option><option>Sem categoria</option>{MODALITIES.map(m=><option key={m}>{m}</option>)}</select></label><MultiExerciseSelect label="EXERCÍCIOS PARA COMPARAR" options={filteredProgress} selectedKeys={effectiveSelected}
  onToggle={key=>setSelectedExercises(old=>old.includes(key)?old.filter(x=>x!==key):old.length>=8?old:[...old,key])}
  max={8} placeholder="Pesquisar exercícios para o gráfico"/></div><ProgressComparisonGraph series={comparisonSeries}/></div><div className="progress-note"><TrendingUp size={18}/><span>O gráfico composto compara a variação percentual desde a primeira carga registrada de cada exercício. Somente séries concluídas aparecem; cargas de assistência menores indicam evolução.</span></div></>}

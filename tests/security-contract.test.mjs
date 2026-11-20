@@ -445,3 +445,18 @@ test('testes reais de staging sao exigidos para liberar multiusuario',()=>{
   assert.ok(checklist.includes('Migração de dados da proprietária'));
   assert.ok(checklist.includes('Rollback'));
 });
+
+test('Em Outro Ritmo starts only a server-owned challenge and isolates the created session',()=>{
+  const api=source('app/api/challenges/start/route.ts');
+  const challenge=source('lib/challengeTemplates.ts');
+  const ui=source('components/WorkoutApp.tsx');
+  assert.ok(api.includes('currentProfile()'),'challenge exige perfil autenticado');
+  assert.ok(api.includes('sameOrigin(request)'),'challenge rejeita origem externa');
+  assert.ok(api.includes('CHALLENGES.find(c=>c.id===id)'),'IDs de desafio precisam vir do catalogo oficial');
+  assert.ok(api.includes('allowedDivisions.includes(division)'),'divisoes precisam ser validadas');
+  assert.ok(api.includes('user_id,template_id,template_name'),'sessao deve ter owner');
+  assert.ok(api.includes('${user.id}::uuid'),'owner deve ser usuario autenticado');
+  assert.ok(!api.includes('INSERT INTO public.user_workout_templates'),'desafio nao cria ficha permanente');
+  assert.ok(challenge.includes('makeSets')===false,'biblioteca de desafios apenas prescreve, nao escreve no banco');
+  assert.ok(ui.includes('Em Outro Ritmo'),'aba visivel no aplicativo');
+});
