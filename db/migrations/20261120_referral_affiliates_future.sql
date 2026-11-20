@@ -36,7 +36,7 @@ CREATE TABLE IF NOT EXISTS referral_conversion_events (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   referral_claim_id UUID NOT NULL REFERENCES referral_claims(id),
   external_subscription_reference TEXT NOT NULL,
-  external_payment_reference TEXT NOT NULL UNIQUE,
+  external_payment_reference TEXT NOT NULL,
   event_type TEXT NOT NULL CHECK (event_type IN ('paid','refunded','chargeback')),
   occurred_at TIMESTAMPTZ NOT NULL,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
