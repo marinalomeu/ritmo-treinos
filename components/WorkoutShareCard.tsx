@@ -28,7 +28,7 @@ function drawWrapped(ctx:CanvasRenderingContext2D,text:string,x:number,y:number,
 }
 
 async function pngPoster(detail:SessionDetail,visual:ShareVisual,options:ShareOptions,
-  summary:ShareSummary,composition:ShareComposition,eligibility:ShareEligibility|null){
+  summary:ShareSummary,composition:ShareComposition,eligibility:ShareEligibility|null,showBestBadge=false){
   const c=document.createElement('canvas');
   c.width=1170;c.height=2058;
   if(document.fonts?.ready)await document.fonts.ready;
@@ -66,6 +66,11 @@ async function pngPoster(detail:SessionDetail,visual:ShareVisual,options:ShareOp
   if(options.showGymName&&detail.session.gym_name){
     ctx.fillStyle=colors.secondary;ctx.font='600 28px DM Sans, sans-serif';
     drawWrapped(ctx,detail.session.gym_name,78,labelY,w-150,38,1);
+  }
+  if(showBestBadge){
+    ctx.fillStyle=colors.headline;ctx.font='800 44px Manrope, sans-serif';
+    ctx.fillText('DESAFIO CONCLUÍDO · EM UM NOVO RITMO.',76,top-215,1020);
+    ctx.font='600 24px DM Sans, sans-serif';ctx.fillText('Novo recorde pessoal neste desafio',77,top-165,1020);
   }
   if(badges.length){
     const badgeTop=top-(badges.length===3?148:94);
@@ -121,8 +126,58 @@ async function pngPoster(detail:SessionDetail,visual:ShareVisual,options:ShareOp
   return new File([blob],`ritmo-treino-${detail.session.performed_on}-${visual}-${composition}.png`,{type:'image/png'});
 }
 
+
+/**
+ * Story especial da primeira conclusão: dados somente do servidor e composição fixa.
+ * A arte não aceita edição de tempo, distância ou data.
+ */
+async function specialChallengePoster(detail:SessionDetail,name:string,summary:ShareSummary,showTime:boolean):Promise<File>{
+  const canvas=document.createElement('canvas');canvas.width=1170;canvas.height=2058;
+  if(document.fonts?.ready)await document.fonts.ready;
+  const ctx=canvas.getContext('2d');if(!ctx)throw new Error('Canvas indisponível.');
+  const w=canvas.width,h=canvas.height,ink='#304c38',pale='#eef4e5';
+  const background=ctx.createLinearGradient(0,0,w,h);
+  background.addColorStop(0,'#f1f5e8');background.addColorStop(.55,'#e5eed9');background.addColorStop(1,'#d6e6cb');
+  ctx.fillStyle=background;ctx.fillRect(0,0,w,h);
+  ctx.fillStyle='rgba(142,183,136,.12)';
+  ctx.beginPath();ctx.ellipse(-130,-120,650,440,-.3,0,Math.PI*2);ctx.fill();
+  ctx.beginPath();ctx.ellipse(1270,1960,500,420,-.3,0,Math.PI*2);ctx.fill();
+  ctx.textAlign='center';ctx.fillStyle=ink;ctx.font='800 105px Manrope, sans-serif';ctx.fillText('ritmo.',w/2,205);
+  const ribbon=ctx.createLinearGradient(0,390,0,980);ribbon.addColorStop(0,'#a7bea2');ribbon.addColorStop(1,'#5b8c69');
+  ctx.fillStyle=ribbon;ctx.beginPath();ctx.moveTo(445,390);ctx.lineTo(570,675);ctx.lineTo(470,745);ctx.lineTo(310,450);ctx.closePath();ctx.fill();
+  ctx.beginPath();ctx.moveTo(710,390);ctx.lineTo(600,675);ctx.lineTo(700,745);ctx.lineTo(855,450);ctx.closePath();ctx.fill();
+  const gold=ctx.createRadialGradient(500,900,40,585,915,285);
+  gold.addColorStop(0,'#f9e9ab');gold.addColorStop(.52,'#d8ba6a');gold.addColorStop(.82,'#b28c42');gold.addColorStop(1,'#f4da91');
+  ctx.shadowColor='rgba(35,53,30,.24)';ctx.shadowBlur=35;ctx.shadowOffsetY=15;
+  ctx.fillStyle=gold;ctx.beginPath();ctx.arc(w/2,930,260,0,Math.PI*2);ctx.fill();
+  ctx.shadowBlur=0;ctx.shadowOffsetY=0;ctx.strokeStyle='#fff0c2';ctx.lineWidth=8;ctx.beginPath();ctx.arc(w/2,930,245,0,Math.PI*2);ctx.stroke();
+  ctx.strokeStyle='#977432';ctx.lineWidth=3;ctx.beginPath();ctx.arc(w/2,930,225,0,Math.PI*2);ctx.stroke();
+  const short=name.replace(/^.*?(\d+\s*(?:km|k|milhas)).*$/i,'$1');
+  const medalText=short===name?(detail.session.challenge_id?.includes('triathlon')?'TRI':detail.session.challenge_id?.includes('hyrox')?'HYROX':detail.session.challenge_id?.includes('murph')?'MURPH':'★'):short.toUpperCase();
+  ctx.fillStyle='#735c2a';ctx.font='800 93px Manrope, sans-serif';
+  ctx.fillText(medalText.slice(0,8),w/2,967,450);
+  ctx.fillStyle=ink;ctx.font='800 120px Manrope, sans-serif';ctx.fillText(name.toUpperCase().slice(0,24),w/2,1398,1080);
+  ctx.font='italic 58px DM Sans, sans-serif';ctx.fillText('Conquistei no meu ritmo',w/2,1505);
+  ctx.fillStyle='#f5f8f0';roundedRect(ctx,75,1610,1020,170,37);ctx.fill();
+  ctx.fillStyle=ink;ctx.font='700 40px DM Sans, sans-serif';
+  const dt=detail.session.performed_on.split('-').reverse().join('/');
+  if(showTime){ctx.fillText('TEMPO · '+summary.elapsed,347,1708,510);ctx.fillText('DATA · '+dt,828,1708,510);}
+  else ctx.fillText('DATA · '+dt,w/2,1708,950);
+  ctx.fillStyle='#cedfc0';roundedRect(ctx,260,1867,650,88,44);ctx.fill();
+  ctx.fillStyle=ink;ctx.font='700 39px DM Sans, sans-serif';ctx.fillText('☆  1ª vez nesse desafio',w/2,1926,600);
+  const blob=await new Promise<Blob|null>(resolve=>canvas.toBlob(resolve,'image/png'));
+  if(!blob)throw new Error('Não foi possível gerar a imagem.');
+  return new File([blob],'ritmo-primeira-conquista-'+detail.session.performed_on+'.png',{type:'image/png'});
+}
+
 export default function WorkoutShareCard({detail,onClose}:{detail:SessionDetail;onClose:()=>void}){
   const [visual,setVisual]=useState<ShareVisual>('dark-green');
+  const [showChallengeTime,setShowChallengeTime]=useState(true);
+  const [showBestBadge,setShowBestBadge]=useState(false);
+  const isChallenge=Boolean(detail.session.challenge_id);
+  const firstChallenge=Boolean(isChallenge&&eligibility?.challengeFirst);
+  const bestChallenge=Boolean(isChallenge&&eligibility?.challengeBest&&!eligibility?.challengeFirst);
+  const challengeName=detail.session.template_name.replace(/^(Desafio|Prova)\s*[:·-]\s*/i,'').trim();
   const [composition,setComposition]=useState<ShareComposition>('training');
   const [eligibility,setEligibility]=useState<ShareEligibility|null>(null);
   const [eligibilityError,setEligibilityError]=useState(false);
@@ -181,13 +236,15 @@ export default function WorkoutShareCard({detail,onClose}:{detail:SessionDetail;
     setBusy(true);setError('');
     try{
       let verified=eligibility;
-      if(composition!=='training'){
+      if(isChallenge||composition!=='training'){
         const r=await fetch('/api/share/eligibility?session_id='+encodeURIComponent(detail.session.id),{cache:'no-store'});
         if(!r.ok)throw new Error('Não foi possível confirmar sua conquista.');
         verified=await r.json() as ShareEligibility;
-        if(!isAllowed(composition,verified))throw new Error('Esta conquista ainda não está disponível para seu treino.');
+        if(!verified?.challengeFirst&&!isAllowed(composition,verified))throw new Error('Esta conquista ainda não está disponível para seu treino.');
       }
-      const file=await pngPoster(detail,visual,options,summary,composition,verified);
+      const file=isChallenge&&verified?.challengeFirst
+        ?await specialChallengePoster(detail,challengeName,summary,showChallengeTime)
+        :await pngPoster(detail,visual,options,summary,composition,verified,showBestBadge&&Boolean(verified?.challengeBest));
       if(share&&typeof navigator.share==='function'&&navigator.canShare?.({files:[file]})){
         try{await navigator.share({files:[file],title:'Meu treino no Ritmo'});return;}
         catch(e){if((e as Error).name==='AbortError')return;}
@@ -207,7 +264,13 @@ export default function WorkoutShareCard({detail,onClose}:{detail:SessionDetail;
         <button className="close-btn" type="button" onClick={onClose} aria-label="Fechar"><X size={18}/></button>
       </div>
       <div className="share-layout">
-        <div className={`share-poster share-poster-${visual}`} aria-label={`Prévia vertical do Story, paleta ${SHARE_PALETTES.find(p=>p.value===visual)?.label}`}>
+        {firstChallenge?<div className="challenge-special-poster" aria-label="Story da primeira conclusão do desafio">
+          <strong className="challenge-special-logo">ritmo.</strong>
+          <div className="challenge-special-medal"><span>{detail.session.challenge_id?.includes('triathlon')?'TRI':detail.session.challenge_id?.includes('hyrox')?'HYROX':detail.session.challenge_id?.includes('murph')?'MURPH':challengeName.match(/\d+\s*(?:km|k|milhas)/i)?.[0]||'★'}</span></div>
+          <div className="challenge-special-main"><strong>{challengeName}</strong><em>Conquistei no meu ritmo</em></div>
+          <div className="challenge-special-results">{showChallengeTime&&<span>Tempo · {summary.elapsed}</span>}<span>Data · {formatDate(detail.session.performed_on)}</span></div>
+          <div className="challenge-special-first">☆ 1ª vez nesse desafio</div>
+        </div>:<div className={`share-poster share-poster-${visual}`} aria-label={`Prévia vertical do Story, paleta ${SHARE_PALETTES.find(p=>p.value===visual)?.label}`}>
           <div className="share-poster-art"><span className="share-poster-logo">ritmo<span>.</span></span>
             <small>SEU DIÁRIO DE TREINOS</small></div>
           <div className="share-poster-main">
@@ -216,6 +279,7 @@ export default function WorkoutShareCard({detail,onClose}:{detail:SessionDetail;
             {options.showWorkoutName&&<p>{cap(detail.session.template_name)}</p>}
             {options.showGymName&&detail.session.gym_name&&<p className="share-poster-gym">{detail.session.gym_name}</p>}
           </div>
+          {showBestBadge&&bestChallenge&&<div className="challenge-best-badge"><strong>DESAFIO CONCLUÍDO · Em um novo ritmo.</strong><small>Novo recorde pessoal neste desafio</small></div>}
           {awards.length>0&&<div className={'share-poster-awards '+(awards.length===3?'is-combined':'')}>
             {awards.map((award,i)=><span key={award} className={'share-poster-award award-'+i}>{award}</span>)}
           </div>}
@@ -233,9 +297,9 @@ export default function WorkoutShareCard({detail,onClose}:{detail:SessionDetail;
             {exercises.extra>0&&<span className="share-poster-more">+ {exercises.extra} outros exercícios</span>}
           </div>}
           <div className="share-poster-footer">Um treino de cada vez. Uma evolução de cada vez.</div>
-        </div>
+        </div>}
         <div className="share-editor">
-          <div className="share-editor-section"><span className="overline">VISUAL</span>
+          {firstChallenge?<div className="share-editor-section"><strong>Primeira conquista deste desafio</strong><p>Story especial verde-claro. Distância, tempo e data são calculados a partir do treino registrado.</p><label><input type="checkbox" checked={showChallengeTime} onChange={e=>setShowChallengeTime(e.target.checked)}/> Mostrar tempo realizado</label></div>:<><div className="share-editor-section"><span className="overline">VISUAL</span>
             <div className="share-visual-options share-five-palettes" role="group" aria-label="Paletas oficiais">
               {SHARE_PALETTES.map(p=><button type="button" key={p.value} className={visual===p.value?'selected':''}
                 aria-pressed={visual===p.value} onClick={()=>setVisual(p.value)}>{p.label}</button>)}
@@ -280,6 +344,8 @@ export default function WorkoutShareCard({detail,onClose}:{detail:SessionDetail;
               </span>
             </button>}
           </div>
+          {bestChallenge&&<label className="share-best-option"><input type="checkbox" checked={showBestBadge} onChange={e=>setShowBestBadge(e.target.checked)}/> Exibir selo “Em um novo ritmo.” — novo recorde comprovado</label>}
+          </>}
           <p className="share-privacy">A prévia muda conforme suas escolhas. Nenhuma informação pessoal é incluída, e nada será publicado automaticamente.</p>
           {error&&<p className="template-alert" role="alert">{error}</p>}
           <button className="btn btn-primary" disabled={busy} type="button" onClick={()=>void exportCard(true)}>
