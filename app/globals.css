@@ -54,3 +54,25 @@
 .template-exercise-input-grid{display:grid;grid-template-columns:80px minmax(0,1.3fr) minmax(0,1fr) minmax(0,1fr);gap:9px}
 @media(max-width:600px){.template-toolbar{gap:7px}.template-toolbar .small-muted{display:none}.template-add-btn{padding:9px 10px;font-size:11px}.template-dialog{max-width:100%}.template-exercise-input-grid{grid-template-columns:1fr 1fr}.template-input-grid{grid-template-columns:1fr 1fr}.template-dialog-actions .btn{flex:1;justify-content:center}}
 @media(max-width:370px){.template-input-grid{grid-template-columns:1fr}}
+
+
+/* Seleção múltipla de exercícios — Ritmo */
+.multi-exercise{position:relative;margin:9px 0 17px}
+.multi-exercise-trigger{width:100%;display:flex;align-items:center;justify-content:space-between;gap:14px;min-height:48px;padding:12px 15px;border:1px solid #d9cad3;border-radius:12px;background:#fff;color:var(--plum);font-size:13px;font-weight:700;text-align:left;cursor:pointer;box-shadow:0 2px 10px #49304708}
+.multi-exercise-trigger:focus-visible,.multi-exercise-option:focus-visible,.multi-exercise-actions button:focus-visible{outline:2px solid var(--plum2);outline-offset:2px}
+.multi-exercise-chips{display:flex;gap:7px;flex-wrap:wrap;margin:11px 0}
+.multi-exercise-chip{display:inline-flex;align-items:center;gap:7px;background:#f3eaf0;border:1px solid #e6d7e1;border-radius:99px;color:var(--plum);padding:6px 7px 6px 12px;font-size:11px;font-weight:700}
+.multi-exercise-chip button{display:grid;place-items:center;border:0;background:#e6d6e1;border-radius:50%;color:var(--plum);padding:3px;cursor:pointer}
+.multi-exercise-panel{border:1px solid #dfd0db;border-radius:13px;background:#fff;box-shadow:0 12px 28px #38283d12;overflow:hidden;margin-top:8px}
+.multi-exercise-search{display:flex;align-items:center;gap:9px;margin:12px;border:1px solid var(--border);border-radius:9px;padding:0 11px;color:var(--plum2)}
+.multi-exercise-search input{width:100%;min-width:0;height:39px;border:0!important;outline:0;background:transparent!important;font-size:13px!important;padding:0!important}
+.multi-exercise-options{max-height:240px;overflow-y:auto;padding:3px 8px}
+.multi-exercise-option{width:100%;display:flex;gap:11px;align-items:center;text-align:left;border:0;background:#fff;border-radius:9px;padding:10px 11px;color:var(--ink);cursor:pointer}
+.multi-exercise-option:hover{background:#faf5f9}.multi-exercise-option:disabled{opacity:.45;cursor:not-allowed}
+.multi-exercise-option>span:last-child{display:grid;gap:3px}.multi-exercise-option strong{font-size:12px;font-weight:700}.multi-exercise-option small{font-size:10px;color:var(--muted)}
+.multi-exercise-check{width:19px;height:19px;border:1.5px solid #cbb8c6;border-radius:6px;display:grid;place-items:center;flex-shrink:0}.multi-exercise-check.checked{background:var(--plum);border-color:var(--plum);color:#fff}
+.multi-exercise-empty{font-size:12px;color:var(--muted);padding:15px}
+.multi-exercise-actions{display:flex;align-items:center;justify-content:space-between;padding:11px 15px;border-top:1px solid var(--border)}.multi-exercise-actions small{color:var(--muted);font-size:11px}.multi-exercise-actions button{border:0;background:var(--plum);color:#fff;border-radius:8px;padding:8px 15px;font-size:11px;font-weight:800;cursor:pointer}
+.template-bulk-picker{padding:15px;border:1px solid #e4d5de;background:#fdf9fc;border-radius:13px;margin-bottom:16px}.template-bulk-picker>strong{font-size:13px;color:var(--plum)}.template-bulk-picker>p{font-size:11px;color:var(--muted);line-height:1.6;margin-top:6px}.template-bulk-picker>.btn{padding:9px 13px;font-size:11px}
+.comparison-caption{color:var(--muted);font-size:11px;line-height:1.55;margin:12px 0}.comparison-legend{display:flex;gap:8px;flex-wrap:wrap;margin:13px 0 5px}.comparison-legend>div{display:flex;align-items:center;gap:6px;padding:8px 11px;background:#faf6f8;border:1px solid var(--border);border-radius:9px}.comparison-legend>div>span{width:9px;height:9px;border-radius:50%;flex-shrink:0}.comparison-legend strong{font-size:11px;color:var(--ink)}.comparison-legend small{font-size:10px;color:var(--muted)}
+@media(max-width:600px){.comparison-legend>div{flex-wrap:wrap}.multi-exercise-panel{max-width:100%}}
