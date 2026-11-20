@@ -1,9 +1,10 @@
 'use client';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { CalendarDays, Check, Clock3, Download, Dumbbell, Layers3, ListChecks, Moon, Share2, Sun, TrendingUp, Type, MapPin, X } from 'lucide-react';
 import type { SessionDetail } from '../lib/templates';
 import { DEFAULT_SHARE_OPTIONS, numericShareTarget, shareMetricValues, shareSelectionCount, visibleShareExercises, SHARE_THEMES,
-  workoutShareSummary, type ShareMetric, type ShareOptions, type ShareSummary, type ShareVisual } from '../lib/workoutShare';
+  workoutShareSummary, SHARE_PALETTES, SHARE_COMPOSITIONS, shareAwardLabels,
+  type ShareComposition, type ShareEligibility, type ShareMetric, type ShareOptions, type ShareSummary, type ShareVisual } from '../lib/workoutShare';
 
 const cap=(value:string)=>value.charAt(0).toLocaleUpperCase('pt-BR')+value.slice(1);
 const formatDate=(day:string)=>{
@@ -27,9 +28,9 @@ function drawWrapped(ctx:CanvasRenderingContext2D,text:string,x:number,y:number,
 }
 
 async function pngPoster(detail:SessionDetail,visual:ShareVisual,options:ShareOptions,
-  summary:ShareSummary){
+  summary:ShareSummary,composition:ShareComposition,eligibility:ShareEligibility|null){
   const c=document.createElement('canvas');
-  c.width=1080;c.height=1920;
+  c.width=1170;c.height=2058;
   if(document.fonts?.ready)await document.fonts.ready;
   const ctx=c.getContext('2d');
   if(!ctx)throw new Error('Não foi possível criar imagem neste navegador.');
@@ -49,7 +50,8 @@ async function pngPoster(detail:SessionDetail,visual:ShareVisual,options:ShareOp
   // Com mais exercícios/métricas, deslocar os blocos superiores para preservar a margem do rodapé.
   const extraRows=options.showExercises?Math.min(exercises.entries.length+Number(exercises.extra>0),8):0;
   const rows=metrics.length===4?2:1;
-  const top=Math.max(740,1580-(rows-1)*158-extraRows*65-(options.showGymName?44:0));
+  const badges=shareAwardLabels(composition,eligibility);
+  const top=Math.max(780,1705-(rows-1)*158-extraRows*65-(options.showGymName?44:0)-(badges.length?50:0));
   const hero=top-(options.showWorkoutName?260:175)-(options.showGymName?45:0);
   ctx.fillStyle=colors.kicker;ctx.font='800 24px DM Sans, sans-serif';
   ctx.fillText('TREINO REGISTRADO'+(options.showDate?'  ·  '+formatDate(detail.session.performed_on):''),76,hero-185);
@@ -64,6 +66,15 @@ async function pngPoster(detail:SessionDetail,visual:ShareVisual,options:ShareOp
   if(options.showGymName&&detail.session.gym_name){
     ctx.fillStyle=colors.secondary;ctx.font='600 28px DM Sans, sans-serif';
     drawWrapped(ctx,detail.session.gym_name,78,labelY,w-150,38,1);
+  }
+  if(badges.length){
+    const badgeTop=top-(badges.length===3?148:94);
+    const blocks=badges.length===3?[[badges[0],76,badgeTop,440,104],[badges[1],534,badgeTop,518,45],[badges[2],534,badgeTop+59,518,45]] as const:badges.map(value=>[value,76,badgeTop,850,63] as const);
+    for(const [label,bx,by,bw,bh] of blocks){
+      ctx.fillStyle=colors.metricsBackground;roundedRect(ctx,bx,by,bw,bh,21);ctx.fill();
+      ctx.strokeStyle=colors.ring;ctx.stroke();
+      ctx.fillStyle=colors.headline;ctx.font='800 27px Manrope, sans-serif';ctx.fillText(label,bx+23,by+bh/2+9,bw-40);
+    }
   }
   let metricBottom=top;
   if(metrics.length){
@@ -107,11 +118,27 @@ async function pngPoster(detail:SessionDetail,visual:ShareVisual,options:ShareOp
   ctx.fillText('Um treino de cada vez. Uma evolução de cada vez.',76,foot);
   const blob=await new Promise<Blob|null>(resolve=>c.toBlob(resolve,'image/png'));
   if(!blob)throw new Error('Não foi possível exportar a arte.');
-  return new File([blob],`ritmo-treino-${detail.session.performed_on}-${visual}.png`,{type:'image/png'});
+  return new File([blob],`ritmo-treino-${detail.session.performed_on}-${visual}-${composition}.png`,{type:'image/png'});
 }
 
 export default function WorkoutShareCard({detail,onClose}:{detail:SessionDetail;onClose:()=>void}){
-  const [visual,setVisual]=useState<ShareVisual>('dark');
+  const [visual,setVisual]=useState<ShareVisual>('dark-green');
+  const [composition,setComposition]=useState<ShareComposition>('training');
+  const [eligibility,setEligibility]=useState<ShareEligibility|null>(null);
+  const [eligibilityError,setEligibilityError]=useState(false);
+  useEffect(()=>{
+    let alive=true;
+    fetch('/api/share/eligibility?session_id='+encodeURIComponent(detail.session.id),{cache:'no-store'})
+      .then(async r=>{if(!r.ok)throw new Error('Sem resultados de conquistas.');return r.json() as Promise<ShareEligibility>;})
+      .then(result=>{if(alive)setEligibility(result);})
+      .catch(()=>{if(alive)setEligibilityError(true);});
+    return()=>{alive=false;};
+  },[detail.session.id]);
+  const awards=shareAwardLabels(composition,eligibility);
+  const isAllowed=(type:ShareComposition,available=eligibility)=>{
+    const option=SHARE_COMPOSITIONS.find(x=>x.value===type);
+    return type==='training'||Boolean(available&&option?.requires.every(key=>Boolean(available[key])));
+  };
   const [options,setOptions]=useState<ShareOptions>(()=>({
     ...DEFAULT_SHARE_OPTIONS,metrics:{...DEFAULT_SHARE_OPTIONS.metrics}
   }));
@@ -153,7 +180,14 @@ export default function WorkoutShareCard({detail,onClose}:{detail:SessionDetail;
   const exportCard=async(share:boolean)=>{
     setBusy(true);setError('');
     try{
-      const file=await pngPoster(detail,visual,options,summary);
+      let verified=eligibility;
+      if(composition!=='training'){
+        const r=await fetch('/api/share/eligibility?session_id='+encodeURIComponent(detail.session.id),{cache:'no-store'});
+        if(!r.ok)throw new Error('Não foi possível confirmar sua conquista.');
+        verified=await r.json() as ShareEligibility;
+        if(!isAllowed(composition,verified))throw new Error('Esta conquista ainda não está disponível para seu treino.');
+      }
+      const file=await pngPoster(detail,visual,options,summary,composition,verified);
       if(share&&typeof navigator.share==='function'&&navigator.canShare?.({files:[file]})){
         try{await navigator.share({files:[file],title:'Meu treino no Ritmo'});return;}
         catch(e){if((e as Error).name==='AbortError')return;}
@@ -173,7 +207,7 @@ export default function WorkoutShareCard({detail,onClose}:{detail:SessionDetail;
         <button className="close-btn" type="button" onClick={onClose} aria-label="Fechar"><X size={18}/></button>
       </div>
       <div className="share-layout">
-        <div className={`share-poster share-poster-${visual}`} aria-label={`Prévia vertical 9:16 do seu card de treino, visual ${visual==='dark'?'escuro':'claro'}`}>
+        <div className={`share-poster share-poster-${visual}`} aria-label={`Prévia vertical do Story, paleta ${SHARE_PALETTES.find(p=>p.value===visual)?.label}`}>
           <div className="share-poster-art"><span className="share-poster-logo">ritmo<span>.</span></span>
             <small>SEU DIÁRIO DE TREINOS</small></div>
           <div className="share-poster-main">
@@ -182,6 +216,9 @@ export default function WorkoutShareCard({detail,onClose}:{detail:SessionDetail;
             {options.showWorkoutName&&<p>{cap(detail.session.template_name)}</p>}
             {options.showGymName&&detail.session.gym_name&&<p className="share-poster-gym">{detail.session.gym_name}</p>}
           </div>
+          {awards.length>0&&<div className={'share-poster-awards '+(awards.length===3?'is-combined':'')}>
+            {awards.map((award,i)=><span key={award} className={'share-poster-award award-'+i}>{award}</span>)}
+          </div>}
           {metrics.length>0&&<div className="share-poster-metrics"
             style={{gridTemplateColumns:`repeat(${metricColumns},minmax(0,1fr))`}}>
             {metrics.map(metric=><div key={metric.key}>
@@ -199,13 +236,20 @@ export default function WorkoutShareCard({detail,onClose}:{detail:SessionDetail;
         </div>
         <div className="share-editor">
           <div className="share-editor-section"><span className="overline">VISUAL</span>
-            <div className="share-visual-options" role="group" aria-label="Aparência do card">
-              <button type="button" className={visual==='dark'?'selected':''} aria-pressed={visual==='dark'}
-                onClick={()=>setVisual('dark')}><Moon size={17}/> Escuro</button>
-              <button type="button" className={visual==='light'?'selected':''} aria-pressed={visual==='light'}
-                onClick={()=>setVisual('light')}><Sun size={17}/> Claro</button>
+            <div className="share-visual-options share-five-palettes" role="group" aria-label="Paletas oficiais">
+              {SHARE_PALETTES.map(p=><button type="button" key={p.value} className={visual===p.value?'selected':''}
+                aria-pressed={visual===p.value} onClick={()=>setVisual(p.value)}>{p.label}</button>)}
             </div>
-            <small className="share-visual-caption">Card vertical · 9:16</small>
+            <small className="share-visual-caption">Story vertical · 1170 × 2058</small>
+            <div className="share-composition-options" role="group" aria-label="Versão do Story">
+              {SHARE_COMPOSITIONS.map(c=>{
+                const allowed=isAllowed(c.value);
+                return <button type="button" key={c.value} disabled={!allowed}
+                  aria-pressed={composition===c.value} className={composition===c.value?'selected':''}
+                  title={allowed?'':eligibilityError?'Não foi possível confirmar suas conquistas.':'Disponível quando esta conquista for atingida.'}
+                  onClick={()=>setComposition(c.value)}>{c.label}{!allowed&&<small> Ainda não conquistado</small>}</button>;
+              })}
+            </div>
           </div>
           <div className="share-editor-section">
             <div className="share-select-header">
