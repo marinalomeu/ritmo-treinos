@@ -7,6 +7,7 @@ import { createCustomExercise, persistTemplate, removeTemplate } from '../lib/cl
 import type { CatalogExercise } from '../lib/exerciseCatalog';
 import type { Modality } from '../lib/personalRecords';
 import ExercisePicker from './ExercisePicker';
+import MultiExerciseSelect from './MultiExerciseSelect';
 import { normalizeTemplate } from '../lib/templateEditor';
 
 const newExercise=():Exercise=>({
@@ -89,6 +90,18 @@ export default function TemplateDialog({template,mode,onClose,onChanged,onStart,
             <label>CATEGORIA<input maxLength={70} value={draft.category} onChange={e=>setDraft(d=>({...d,category:e.target.value}))} placeholder="Ex.: Força"/></label>
           </div>
         </div>
+        <MultiExerciseSelect label="SELECIONAR VÁRIOS EXERCÍCIOS" options={catalog}
+          selectedKeys={draft.exercises.filter(e=>catalog.some(c=>c.key===e.key&&c.name===e.name)).map(e=>e.key)}
+          disabled={busy} max={40} placeholder="Pesquise e marque os exercícios da ficha"
+          onToggle={key=>setDraft(d=>{
+            if(d.exercises.some(e=>e.key===key))return {...d,exercises:d.exercises.filter(e=>e.key!==key)};
+            const item=catalog.find(e=>e.key===key);
+            if(!item||d.exercises.length>=40)return d;
+            const next:Exercise={key:item.key,name:item.name,unit:item.unit,sets:3,target:'10 repetições',defaultLoad:null};
+            // Substituir linha inicial vazia, preservando a sequência escolhida.
+            return {...d,exercises:[...d.exercises.filter(e=>e.name.trim()),next]};
+          })}/>
+        <p className="multi-builder-hint">Primeiro marque os exercícios. Depois ajuste as séries, repetições, cargas e a ordem abaixo, antes de salvar.</p>
         <div className="template-editor-heading"><strong>Exercícios</strong><button type="button" className="text-btn" onClick={()=>setDraft(d=>({...d,exercises:[...d.exercises,newExercise()]}))} disabled={draft.exercises.length>=40||busy}><Plus size={15}/> Adicionar exercício</button></div>
         <div className="template-edit-exercises">{draft.exercises.map((e,i)=><div className="template-edit-exercise" key={e.key}>
           <div className="template-edit-head"><strong>Exercício {i+1}</strong><button type="button" className="template-remove-exercise" disabled={draft.exercises.length<=1||busy} onClick={()=>setDraft(d=>({...d,exercises:d.exercises.filter(x=>x.key!==e.key)}))}><X size={14}/> Remover</button></div>

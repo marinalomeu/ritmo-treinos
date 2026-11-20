@@ -7,6 +7,7 @@ import { normalizeTemplate } from '../lib/templateEditor';
 import { createCustomExercise, type Mode } from '../lib/clientStore';
 import type { Modality } from '../lib/personalRecords';
 import ExercisePicker from './ExercisePicker';
+import MultiExerciseSelect from './MultiExerciseSelect';
 
 const blank=():Exercise=>({
   key:`ex-${crypto.randomUUID()}`,name:'',sets:3,target:'10 repetições',defaultLoad:null,unit:'kg'
@@ -61,6 +62,16 @@ export default function WodDialog({mode,catalog,onChanged,onClose,onStarted,init
         <label>DATA<input type="date" value={date} onChange={event=>setDate(event.target.value)}/></label>
         <label>ACADEMIA / LOCAL (OPCIONAL)<input maxLength={100} value={gymName} onChange={event=>setGymName(event.target.value)} placeholder="Onde você vai treinar?"/></label>
       </div>
+      <MultiExerciseSelect label="SELECIONAR VÁRIOS EXERCÍCIOS" options={catalog}
+        selectedKeys={exercises.filter(e=>catalog.some(c=>c.key===e.key&&c.name===e.name)).map(e=>e.key)}
+        max={40} disabled={busy} placeholder="Pesquise e marque os exercícios do WOD"
+        onToggle={key=>setExercises(old=>{
+          if(old.some(e=>e.key===key))return old.filter(e=>e.key!==key);
+          const item=catalog.find(e=>e.key===key);
+          if(!item||old.length>=40)return old;
+          return [...old.filter(e=>e.name.trim()),{key:item.key,name:item.name,unit:item.unit,sets:3,target:'10 repetições',defaultLoad:null}];
+        })}/>
+      <p className="multi-builder-hint">Selecione vários exercícios de uma vez, depois configure os detalhes de cada um e reorganize a sequência.</p>
       <div className="template-editor-heading"><strong>Sequência de exercícios</strong>
         <button className="text-btn" type="button" disabled={busy||exercises.length>=40}
           onClick={()=>setExercises(x=>[...x,blank()])}><Plus size={15}/> Adicionar exercício</button>

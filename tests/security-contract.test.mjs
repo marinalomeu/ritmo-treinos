@@ -403,3 +403,25 @@ test('atualizar ficha exige escolha individual de exercícios e cargas, incluind
   assert.ok(api.includes('const completedSets=sets.filter(s=>s.completed)'),'não aceita cargas de séries incompletas');
   assert.ok(!api.includes('UPDATE public.session_sets'),'histórico continua imutável');
 });
+
+test('seletor multiplo para grafico e montagem de treinos mantem identidade e escolhas',()=>{
+  const component=source('components/MultiExerciseSelect.tsx');
+  const app=source('components/WorkoutApp.tsx');
+  const template=source('components/TemplateDialog.tsx');
+  const wod=source('components/WodDialog.tsx');
+  const css=source('app/globals.css');
+  assert.ok(component.includes('aria-multiselectable="true"'));
+  assert.ok(component.includes('selectedKeys.includes'));
+  assert.ok(component.includes('role="option"'));
+  assert.ok(component.includes('normalizeExerciseName'));
+  assert.ok(component.includes('Concluir seleção'));
+  assert.ok(app.includes('selectedExercises'));
+  assert.ok(app.includes('comparisonSeries'));
+  assert.ok(app.includes('ProgressComparisonGraph'));
+  assert.ok(app.includes('p.weight_kg/baseline-1'),'comparacao percentual normalizada entre diferentes exercicios');
+  assert.ok(template.includes('<MultiExerciseSelect'),'adicionar varios exercicios antes de configurar ficha');
+  assert.ok(wod.includes('<MultiExerciseSelect'),'adicionar varios exercicios antes de configurar WOD');
+  assert.ok(template.includes('defaultLoad:null'),'carga editada individualmente apos escolha');
+  assert.ok(wod.includes('defaultLoad:null'),'carga editada individualmente apos escolha');
+  assert.ok(css.includes('.multi-exercise-menu'),'menu customizado nao nativo');
+});

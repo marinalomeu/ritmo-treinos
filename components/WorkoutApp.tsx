@@ -7,6 +7,7 @@ import { createSession, deleteSession, finishSession, getSession, listData, save
 import { DEFAULT_GOAL, SHOWCASE_GOAL, defaultMemberGoal, goalProgress, isValidGoal, type TrainingGoal } from '../lib/goal';
 import TemplateDialog from './TemplateDialog';
 import WodDialog from './WodDialog';
+import MultiExerciseSelect from './MultiExerciseSelect';
 import PrUpdateDialog, { type PrSelection } from './PrUpdateDialog';
 import TemplateLoadDialog, {type TemplateLoadSelection} from './TemplateLoadDialog';
 import WorkoutShareCard from './WorkoutShareCard';
@@ -31,7 +32,7 @@ export default function WorkoutApp({mode,isOwner=false}:{mode:Mode;isOwner?:bool
   const [clockNow,setClockNow]=useState(()=>Date.now());
   const [detail,setDetail]=useState<SessionDetail|null>(null);const [loading,setLoading]=useState(true);const [busy,setBusy]=useState(false);const [error,setError]=useState('');
   const [date,setDate]=useState(todayLocal());const [currentDate,setCurrentDate]=useState(todayLocal());const [activeTemplate,setActiveTemplate]=useState('A');const [showNew,setShowNew]=useState(false);
-  const [selectedExercise,setSelectedExercise]=useState(mode==='showcase'?'a1':'');
+  const [selectedExercises,setSelectedExercises]=useState<string[]>(mode==='showcase'?['a1']:[]);
   const [modalityFilter,setModalityFilter]=useState('Todas');const [saving,setSaving]=useState<string[]>([]);
   const visibleTemplates=data.templates??(mode==='showcase'?DEMO_TEMPLATES:TEMPLATES);
   const [inspectedTemplateId,setInspectedTemplateId]=useState<string|null>(null);
@@ -198,11 +199,12 @@ export default function WorkoutApp({mode,isOwner=false}:{mode:Mode;isOwner?:bool
   },[data.prReferences,visibleTemplates]);
   const exerciseCategories=useMemo(()=>new Map((data.exerciseModalities||[]).map(m=>[m.exercise_key,m.modality])),[data.exerciseModalities]);
   const filteredProgress=useMemo(()=>allProgress.filter(e=>modalityFilter==='Todas'||(exerciseCategories.get(e.key)||'Sem categoria')===modalityFilter),[allProgress,modalityFilter,exerciseCategories]);
-  const effectiveSelected=filteredProgress.some(e=>e.key===selectedExercise)
-    ? selectedExercise
-    : (filteredProgress.find(e=>data.progress.some(p=>p.exercise_key===e.key))?.key||filteredProgress[0]?.key||'');
-  const points=useMemo(()=>data.progress.filter(x=>x.exercise_key===effectiveSelected).slice().reverse(),[data.progress,effectiveSelected]);
-  const chosen=allProgress.find(x=>x.key===effectiveSelected);
+  const effectiveSelected=selectedExercises.filter(key=>allProgress.some(e=>e.key===key));
+  const comparisonSeries=useMemo(()=>effectiveSelected.map(key=>{
+    const exercise=allProgress.find(e=>e.key===key)!;
+    return {key,name:exercise.name,unit:exercise.unit,
+      points:data.progress.filter(p=>p.exercise_key===key).slice().reverse()};
+  }),[effectiveSelected.join('|'),allProgress,data.progress]);
   return <div className="app-shell">
     <aside className="sidebar">
       <div className="brand"><span className="brand-icon"><Dumbbell size={20}/></span><span className="logo-word">ritmo<span>.</span></span></div>
@@ -228,7 +230,9 @@ export default function WorkoutApp({mode,isOwner=false}:{mode:Mode;isOwner?:bool
         <div className="recent-list">{data.sessions.length?data.sessions.slice(0,4).map(s=><SessionRow key={s.id} s={s} showcase={mode==='showcase'} onClick={()=>openWorkout(s.id)}/>):<EmptyState title="Seu histórico começa aqui" text="Escolha uma ficha e registre seu primeiro treino."/>}</div>
       </>}
       {view==='history'&&<><PageHeading label="SEU REGISTRO" title="Histórico de treinos" description="Cada sessão fica salva com data, séries realizadas e cargas utilizadas."/><div className="history-toolbar"><span>{data.sessions.length} {data.sessions.length===1?'sessão registrada':'sessões registradas'}</span><div className="history-actions"><button className="btn btn-primary" onClick={ensureStart}><Plus size={16}/> Novo treino</button>{mode==='cloud'&&<button className="btn btn-outline-template" onClick={()=>setShowWod(true)}>Treino do dia / WOD</button>}</div></div><div className="recent-list">{data.sessions.length?data.sessions.map(s=><SessionRow key={s.id} s={s} showcase={mode==='showcase'} onClick={()=>openWorkout(s.id)}/>):<EmptyState title="Nenhum treino registrado" text="Quando você concluir suas séries, elas aparecerão aqui."/>}</div></>}
-      {view==='progress'&&<><PageHeading label="EVOLUÇÃO DE CARGAS" title="Sua força, em perspectiva" description="Selecione um exercício para comparar as cargas registradas nas sessões anteriores."/><div className="progress-card"><div className="progress-filters"><label className="input-label" htmlFor="exercise-modality">MODALIDADE<select id="exercise-modality" className="select-input" value={modalityFilter} onChange={e=>setModalityFilter(e.target.value)}><option>Todas</option><option>Sem categoria</option>{MODALITIES.map(m=><option key={m}>{m}</option>)}</select></label><label className="input-label" htmlFor="exercise-choice">EXERCÍCIO<select id="exercise-choice" className="select-input" value={effectiveSelected} onChange={e=>setSelectedExercise(e.target.value)}>{filteredProgress.length===0?<option value="">Nenhum exercício nesta modalidade</option>:filteredProgress.map(e=><option key={e.key} value={e.key}>{e.name}</option>)}</select></label></div><ProgressGraph points={points} unit={chosen?.unit||'kg'}/></div><div className="progress-note"><TrendingUp size={18}/><span>{chosen?.unit==='assist_kg'?'Na barra assistida, menos quilos de assistência significam mais trabalho realizado por você.':'Os valores mostram a maior carga concluída em cada sessão. Só séries marcadas como feitas entram no gráfico.'}</span></div></>}
+      {view==='progress'&&<><PageHeading label="EVOLUÇÃO DE CARGAS" title="Sua força, em perspectiva" description="Escolha até oito exercícios e compare a progressão de cada um no mesmo gráfico."/><div className="progress-card"><div className="progress-filters"><label className="input-label" htmlFor="exercise-modality">MODALIDADE<select id="exercise-modality" className="select-input" value={modalityFilter} onChange={e=>setModalityFilter(e.target.value)}><option>Todas</option><option>Sem categoria</option>{MODALITIES.map(m=><option key={m}>{m}</option>)}</select></label><MultiExerciseSelect label="EXERCÍCIOS PARA COMPARAR" options={filteredProgress} selectedKeys={effectiveSelected}
+ onToggle={key=>setSelectedExercises(old=>old.includes(key)?old.filter(x=>x!==key):old.length>=8?old:[...old,key])}
+ max={8} placeholder="Pesquisar exercícios para o gráfico"/></div><ProgressComparisonGraph series={comparisonSeries}/></div><div className="progress-note"><TrendingUp size={18}/><span>O gráfico composto compara a variação percentual desde a primeira carga registrada de cada exercício. Somente séries concluídas aparecem; cargas de assistência menores indicam evolução.</span></div></>}
       {view==='prs'&&<><PageHeading label="RECORDES PESSOAIS" title="Seus PRs" description="Registre sua melhor série, consulte o 1RM estimado e planeje a carga conforme as repetições. Classifique os exercícios e filtre por modalidade."/><PersonalRecords mode={mode} exercises={prExercises} catalog={catalogExercises} pinnedKeys={data.prPinned||[]} fixedKeys={[...fixedPrKeys]} references={prReferences} records={data.personalRecords||[]} modalities={data.exerciseModalities||[]} onChanged={refresh}/></>}
       {view==='workout'&&detail&&<>
         <button className="back-link" onClick={()=>{setDetail(null);setView('history');void refresh();}}><ArrowLeft size={17}/> Voltar ao histórico</button>
@@ -360,4 +364,52 @@ function ProgressGraph({points,unit}:{points:HistoryData['progress'];unit:Unit})
     {points.length>1&&<polyline points={poly} fill="none" stroke="#815f79" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>}
     {points.map((p,i)=><g key={p.session_id}><circle cx={scaleX(i)} cy={scaleY(p.weight_kg)} r="5" fill="#815f79" stroke="#fffdfa" strokeWidth="3"><title>{humanDate(p.performed_on)}: {fmt(p.weight_kg)} {unitName(unit)}</title></circle>{(points.length<=6||i===0||i===points.length-1||i%Math.ceil(points.length/6)===0)&&<text x={scaleX(i)} y={H-13} fontSize="12" textAnchor="middle" fill="#807681">{p.performed_on.slice(5).split('-').reverse().join('/')}</text>}</g>)}
   </svg></div></>;
+}
+
+// Comparação multi-exercício: evolução percentual por exercício, sem misturar kg e km/h na mesma escala.
+function ProgressComparisonGraph({series}:{series:{key:string;name:string;unit:Unit;points:HistoryData['progress']}[]}){
+  const active=series.filter(s=>s.points.length>0);
+  if(!series.length)return <div className="chart-empty"><BarChart3 size={29}/><strong>Escolha exercícios para comparar</strong><p>Abra o seletor acima e marque até oito exercícios.</p></div>;
+  if(!active.length)return <div className="chart-empty"><BarChart3 size={29}/><strong>Sem cargas registradas</strong><p>Escolha exercícios com séries concluídas para visualizar a progressão.</p></div>;
+  const colors=['#78506f','#4a7885','#b08252','#778a64','#a45b7e','#5f659f','#bc806e','#567d75'];
+  const times=active.flatMap(s=>s.points.map(p=>Date.parse(p.performed_on+'T12:00:00Z'))).filter(Number.isFinite);
+  const minTime=Math.min(...times),maxTime=Math.max(...times);
+  const withBase=active.map(s=>{
+    const baseline=s.points.find(p=>p.weight_kg>0)?.weight_kg||null;
+    return {...s,baseline,values:s.points.map(p=>({
+      ...p,change:baseline?(p.weight_kg/baseline-1)*100:0,
+      time:Date.parse(p.performed_on+'T12:00:00Z')
+    }))};
+  });
+  const vals=withBase.flatMap(s=>s.values.map(v=>v.change));
+  const low=Math.min(0,...vals),high=Math.max(0,...vals);
+  const range=Math.max(high-low,10),lo=low-range*.12,hi=high+range*.12;
+  const W=720,H=265,L=64,R=25,T=22,B=42;
+  const sx=(t:number)=>L+(maxTime===minTime?(W-L-R)/2:(t-minTime)/(maxTime-minTime)*(W-L-R));
+  const sy=(v:number)=>T+(hi-v)/(hi-lo)*(H-T-B);
+  const formatDate=(t:number)=>new Date(t).toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',timeZone:'UTC'});
+  return <div className="comparison-chart">
+    <div className="comparison-legend">
+      {series.map((s,i)=><div key={s.key} className="comparison-legend-item">
+        <span style={{background:colors[i%colors.length]}}/>
+        <strong>{s.name}</strong><small>{s.unit==='assist_kg'?'assistência (kg)':s.unit} · {s.points.length} registros</small>
+      </div>)}
+    </div>
+    <div className="svg-scroll"><svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label="Comparação da evolução percentual de cargas por exercício" className="progress-svg">
+      {[0,1,2,3,4].map(i=>{const y=T+i*(H-T-B)/4,value=hi-i*(hi-lo)/4;return <g key={i}>
+        <line x1={L} x2={W-R} y1={y} y2={y} stroke="#e8dfe5" strokeDasharray="4 5"/>
+        <text x={L-10} y={y+4} fontSize="12" textAnchor="end" fill="#8b808b">{fmt(value)}%</text>
+      </g>})}
+      {withBase.map((s,i)=><g key={s.key}>
+        {s.values.length>1&&<polyline fill="none" stroke={colors[i%colors.length]} strokeWidth="3" strokeLinejoin="round"
+          points={s.values.map(p=>`${sx(p.time)},${sy(p.change)}`).join(' ')}/>}
+        {s.values.map(p=><circle key={p.session_id} cx={sx(p.time)} cy={sy(p.change)} r="5" stroke="#fffdfa" strokeWidth="2" fill={colors[i%colors.length]}>
+          <title>{s.name}: {humanDate(p.performed_on)} · {fmt(p.weight_kg)} {unitName(s.unit)} · {p.change>=0?'+':''}{fmt(p.change)}%</title>
+        </circle>)}
+      </g>)}
+      <text x={L} y={H-10} fontSize="12" fill="#827681">{formatDate(minTime)}</text>
+      <text x={W-R} y={H-10} textAnchor="end" fontSize="12" fill="#827681">{formatDate(maxTime)}</text>
+    </svg></div>
+    <p className="comparison-footnote">Cada linha começa em 0% na primeira carga válida. O gráfico não soma cargas de exercícios diferentes.</p>
+  </div>;
 }
