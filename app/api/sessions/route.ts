@@ -32,7 +32,7 @@ export async function POST(request: Request) {
       ORDER BY exercise_key, completed_at DESC NULLS LAST, id DESC
     `;
     const past = Object.fromEntries(latest.map((r) => [r.exercise_key, r.weight_kg]));
-    const sets = makeSets(template,past);
+    const sets = makeSets(template,body.template && body.preserve_initial_loads===true?{}:past);
     const created = await sql`
       INSERT INTO workout_sessions(template_id,template_name,performed_on) VALUES (${template.id},${template.name},${date}::date)
       RETURNING id::text AS id
