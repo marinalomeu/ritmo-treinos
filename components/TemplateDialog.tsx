@@ -28,7 +28,7 @@ export default function TemplateDialog({template,mode,onClose,onChanged,onStart,
   const [busy,setBusy]=useState(false);
   const catalog=[...new Map([...EXERCISE_CATALOG.map(exerciseFromCatalog),...availableTemplates.flatMap(t=>t.exercises)].map(e=>[e.key,e] as const)).values()].map(e=>({...lookupExercise(e.key,e.name),...e}));
   const [queuedKeys,setQueuedKeys]=useState<string[]>([]);
-  const addSelected=()=>{const chosen=queuedKeys.map(key=>catalog.find(e=>e.key===key)).filter((e):e is Exercise=>Boolean(e)&&!draft.exercises.some(x=>x.key===e.key));setDraft(d=>({...d,exercises:[...d.exercises.filter(e=>e.name.trim()),...chosen.map(e=>({...e}))].slice(0,40)}));setQueuedKeys([]);};
+  const addSelected=()=>{const chosen=queuedKeys.map(key=>catalog.find(e=>e.key===key)).filter((e):e is Exercise=>e!==undefined).filter(e=>!draft.exercises.some(x=>x.key===e.key));setDraft(d=>({...d,exercises:[...d.exercises.filter(e=>e.name.trim()),...chosen.map(e=>({...e}))].slice(0,40)}));setQueuedKeys([]);};
   const updateExercise=(i:number,patch:Partial<Exercise>)=>{
     setDraft(d=>({...d,exercises:d.exercises.map((e,index)=>index===i?{...e,...patch}:e)}));
   };
