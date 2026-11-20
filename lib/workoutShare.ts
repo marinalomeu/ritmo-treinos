@@ -73,8 +73,30 @@ export const shareMetricValues=(summary:ShareSummary,options:ShareOptions)=>{
   }
   return entries;
 };
-export type ShareVisual='dark'|'light';
+export type ShareVisual='dark-green'|'light-green'|'mauve'|'light'|'dark';
+export type ShareComposition='training'|'pr'|'week'|'month'|'all';
+export type ShareEligibility={pr:boolean;prCount:number;week:boolean;month:boolean;weekCount:number;weekTarget:number;monthCount:number;monthTarget:number;challengeFirst?:boolean;challengeBest?:boolean;challengeId?:string|null};
+export const SHARE_PALETTES:{value:ShareVisual;label:string}[]=[{value:'dark-green',label:'Verde escura'},{value:'light-green',label:'Verde clara'},{value:'mauve',label:'Malva'},{value:'light',label:'Clara'},{value:'dark',label:'Escura'}];
+export const SHARE_COMPOSITIONS:{value:ShareComposition;label:string;requires:(keyof ShareEligibility)[]}[]=[{value:'training',label:'Só treino',requires:[]},{value:'pr',label:'PR batido',requires:['pr']},{value:'week',label:'Semana no ritmo',requires:['week']},{value:'month',label:'Mês no ritmo',requires:['month']},{value:'all',label:'PR + Semana + Mês',requires:['pr','week','month']}];
+export function shareAwardLabels(composition:ShareComposition,eligibility:ShareEligibility|null):string[]{
+  if(!eligibility)return [];
+  const badges:string[]=[];
+  if((composition==='pr'||composition==='all')&&eligibility.pr)badges.push('PR BATIDO');
+  if((composition==='week'||composition==='all')&&eligibility.week)badges.push('SEMANA NO RITMO · '+eligibility.weekCount+'/'+eligibility.weekTarget);
+  if((composition==='month'||composition==='all')&&eligibility.month)badges.push('MÊS NO RITMO · '+eligibility.monthCount+'/'+eligibility.monthTarget);
+  return badges;
+}
+
 export const SHARE_THEMES={
+  'dark-green':{
+    gradient:['#21443b','#326455','#538778'],ring:'rgba(242,250,241,.12)',logo:'#fafcf7',subtitle:'#d9e9dc',kicker:'#d9ecda',headline:'#fffdf7',secondary:'#e6f2e7',metricsBackground:'rgba(255,255,248,.14)',metricLabel:'#daecdf',metricValue:'#fffdf7',exerciseHeading:'#d4eadc',exerciseText:'#f8fff9',extra:'#deecdf',footer:'#ddf0e1'
+  },
+  'light-green':{
+    gradient:['#f6f9ed','#ebf2dd','#d5e8cd'],ring:'rgba(68,105,85,.15)',logo:'#315245',subtitle:'#648271',kicker:'#507764',headline:'#2d5442',secondary:'#476958',metricsBackground:'rgba(85,130,96,.10)',metricLabel:'#57785b',metricValue:'#315244',exerciseHeading:'#406e52',exerciseText:'#284934',extra:'#52785c',footer:'#587661'
+  },
+  mauve:{
+    gradient:['#f0e7ee','#e4d4e0','#c9b0c4'],ring:'rgba(81,47,80,.11)',logo:'#5d3e59',subtitle:'#765a72',kicker:'#6b4868',headline:'#51384c',secondary:'#6a5264',metricsBackground:'rgba(98,63,99,.12)',metricLabel:'#775c73',metricValue:'#4f354b',exerciseHeading:'#61435b',exerciseText:'#4d3b4d',extra:'#6c4c66',footer:'#684d62'
+  },
   dark:{
     gradient:['#463047','#684b62','#93738a'],
     ring:'rgba(255,255,255,.09)',logo:'#f9eff5',subtitle:'#d9bfd0',
