@@ -1,50 +1,57 @@
+import rawCatalog from '../data/exercises.json';
 import type { Exercise, Unit } from './templates';
 
 export type ExerciseCategory='Academia'|'CrossFit'|'HYROX'|'Funcional';
-export type MuscleGroup='Peitoral'|'Costas'|'Quadríceps'|'Posteriores'|'Glúteos'|'Panturrilhas'|'Ombros'|'Bíceps'|'Tríceps'|'Antebraço'|'Abdômen/Core'|'Corpo inteiro'|'Cardiorrespiratório';
-export type EquipmentType='Máquinas'|'Livres/Polias'|'Monoestrutural'|'Ginástico'|'Levantamento de peso'|'Estações'|'Funcional';
-export type CatalogExercise=Pick<Exercise,'key'|'name'|'unit'> & {category:ExerciseCategory;muscleGroup:MuscleGroup;equipmentType:EquipmentType};
-const item=(key:string,name:string,category:ExerciseCategory,muscleGroup:MuscleGroup,equipmentType:EquipmentType,unit:Unit='kg'):CatalogExercise=>({key,name,category,muscleGroup,equipmentType,unit});
+export type MuscleGroup='Peitoral'|'Costas'|'Quadríceps'|'Posteriores'|'Glúteos'|'Adutores'|'Panturrilhas'|'Ombros'|'Bíceps'|'Tríceps'|'Antebraço'|'Abdômen/Core'|'Corpo inteiro'|'Cardiorrespiratório';
+export type EquipmentType='Máquinas'|'Livres/Polias'|'Monoestrutural'|'Ginástico'|'Levantamento de peso'|'Estações'|'Funcional'|'Equipamentos';
+export type CatalogExercise=Pick<Exercise,'key'|'name'|'unit'> & {category:ExerciseCategory;muscleGroup:MuscleGroup;equipmentType:EquipmentType;section?:string};
 
-/** Lista central das entradas recuperadas das classificações enviadas. As variações mantêm chaves próprias. */
-export const EXERCISE_CATALOG:CatalogExercise[]=[
-  item('supino-reto-maquina','Supino reto na máquina','Academia','Peitoral','Máquinas'),
-  item('supino-reto','Supino reto','Academia','Peitoral','Livres/Polias'),
-  item('remada-frontal-baixa','Remada frontal baixa','Academia','Costas','Máquinas'),
-  item('remada-baixa','Remada baixa','Academia','Costas','Máquinas'),
-  item('barra-fixa-graviton-pronada','Barra fixa Graviton · pegada pronada','Academia','Costas','Máquinas','assist_kg'),
-  item('elevacao-pelvica','Elevação pélvica','Academia','Glúteos','Livres/Polias'),
-  item('coice-cabo','Coice no cabo','Academia','Glúteos','Livres/Polias'),
-  item('mesa-flexora','Mesa flexora','Academia','Posteriores','Máquinas'),
-  item('cadeira-abdutora','Cadeira abdutora','Academia','Glúteos','Máquinas'),
-  item('agachamento-smith','Agachamento Smith','Academia','Quadríceps','Máquinas'),
-  item('leg-press','Leg press','Academia','Quadríceps','Máquinas'),
-  item('leg-press-45','Leg Press 45°','Academia','Quadríceps','Máquinas'),
-  item('leg-press-horizontal','Leg Press horizontal','Academia','Quadríceps','Máquinas'),
-  item('leg-press-vertical','Leg Press vertical','Academia','Quadríceps','Máquinas'),
-  item('cadeira-extensora','Cadeira extensora','Academia','Quadríceps','Máquinas'),
-  item('abducao-cabo-cruzado','Abdução no cabo cruzado','Academia','Glúteos','Livres/Polias'),
-  item('gluteo-banco-romano','Glúteo no banco romano','Academia','Glúteos','Máquinas'),
-  item('elevacao-frontal','Elevação frontal','Academia','Ombros','Livres/Polias'),
-  item('desenvolvimento-maquina','Desenvolvimento na máquina','Academia','Ombros','Máquinas'),
-  item('rosca-martelo','Rosca martelo','Academia','Bíceps','Livres/Polias'),
-  item('abdominal-pernas-elevadas','Abdominal pernas elevadas','Academia','Abdômen/Core','Livres/Polias','none'),
-  item('abdominal-polia','Abdominal na polia','Academia','Abdômen/Core','Livres/Polias'),
-  item('burpees-sem-salto','Burpees sem salto','Funcional','Corpo inteiro','Funcional','none'),
-  item('prancha-frontal','Prancha frontal','Funcional','Abdômen/Core','Funcional','none'),
-  item('flexao-inclinada','Flexão inclinada','Funcional','Peitoral','Funcional','none'),
-  item('crunch-sem-peso','Crunch sem peso','Funcional','Abdômen/Core','Funcional','none'),
-  item('prancha-alta-toque-ombros','Prancha alta com toque nos ombros','Funcional','Abdômen/Core','Funcional','none'),
-  item('mountain-climbers-prancha','Mountain climbers + prancha','Funcional','Abdômen/Core','Funcional','none'),
-  item('corrida','Corrida','HYROX','Cardiorrespiratório','Monoestrutural','km/h')
-];
-
-export const CATEGORY_OPTIONS:ExerciseCategory[]=['Academia','CrossFit','HYROX','Funcional'];
-export const MUSCLE_GROUP_OPTIONS:MuscleGroup[]=['Peitoral','Costas','Quadríceps','Posteriores','Glúteos','Panturrilhas','Ombros','Bíceps','Tríceps','Antebraço','Abdômen/Core','Corpo inteiro','Cardiorrespiratório'];
-
+type RawEntry={id:string;name:string;category:string;section:string;kind:string;muscleGroup:string|null;equipmentType:string;variants?:string[];description?:string;stationOrder?:number;target?:string};
+const entries=rawCatalog.exercises as RawEntry[];
+const slug=(s:string)=>s.toLocaleLowerCase('pt-BR').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
 const canonical=(s:string)=>s.toLocaleLowerCase('pt-BR').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,' ').trim();
+const inferUnit=(e:RawEntry):Unit=>e.equipmentType==='Monoestrutural'?'km/h':e.name.includes('Graviton')?'assist_kg':e.equipmentType==='Ginástico'?'none':'kg';
+
+/** JSON is the source of truth. Equipment entries are intentionally excluded from exercise selection. */
+export const EXERCISE_CATALOG:CatalogExercise[]=entries.filter(e=>e.kind==='exercise'&&e.muscleGroup).flatMap(e=>{
+  const base:CatalogExercise={key:e.id,name:e.name,unit:inferUnit(e),category:e.category as ExerciseCategory,muscleGroup:e.muscleGroup as MuscleGroup,equipmentType:e.equipmentType as EquipmentType,section:e.section};
+  return [base,...(e.variants||[]).map(variant=>({...base,key:`${e.id}--${slug(variant)}`,name:`${e.name} — ${variant}`}))];
+});
+export const EQUIPMENT_CATALOG=entries.filter(e=>e.kind==='equipment');
+export const CATEGORY_OPTIONS:ExerciseCategory[]=['Academia','CrossFit','HYROX','Funcional'];
+export const MUSCLE_GROUP_OPTIONS:MuscleGroup[]=['Peitoral','Costas','Quadríceps','Posteriores','Glúteos','Adutores','Panturrilhas','Ombros','Bíceps','Tríceps','Antebraço','Abdômen/Core','Corpo inteiro','Cardiorrespiratório'];
+
+const legacyAliases:Record<string,string>={
+  'elevacao-pelvica':'Elevação pélvica livre',
+  'coice-cabo':'Glúteo na polia baixa',
+  'mesa-flexora':'Mesa flexora',
+  'cadeira-abdutora':'Cadeira abdutora',
+  'agachamento-smith':'Agachamento no Smith',
+  'leg-press':'Leg Press',
+  'leg-press-45':'Leg Press',
+  'leg-press-horizontal':'Leg Press',
+  'leg-press-vertical':'Leg Press',
+  'cadeira-extensora':'Cadeira extensora',
+  'abducao-cabo-cruzado':'Glúteo na polia baixa',
+  'gluteo-banco-romano':'Banco romano',
+  'elevacao-frontal':'Elevação frontal',
+  'desenvolvimento-maquina':'Desenvolvimento na máquina',
+  'rosca-martelo':'Rosca martelo',
+  'abdominal-pernas-elevadas':'Abdominal infra',
+  'abdominal-polia':'Abdominal na polia alta',
+  'supino-reto':'Supino reto',
+  'supino-reto-maquina':'Supino reto na máquina',
+  'remada-baixa':'Remada baixa no triângulo',
+  'remada-frontal-baixa':'Remada baixa no triângulo',
+  'barra-fixa-graviton-pronada':'Graviton'
+};
 export function lookupExercise(key:string,name:string):CatalogExercise|undefined{
-  return EXERCISE_CATALOG.find(e=>e.key===key) || EXERCISE_CATALOG.find(e=>canonical(e.name)===canonical(name));
+  const direct=EXERCISE_CATALOG.find(e=>e.key===key);
+  if(direct)return direct;
+  const sourceName=legacyAliases[key]||name;
+  return EXERCISE_CATALOG.find(e=>canonical(e.name)===canonical(sourceName))||
+    EXERCISE_CATALOG.find(e=>canonical(e.name).startsWith(canonical(sourceName)))||
+    EXERCISE_CATALOG.find(e=>canonical(e.name).includes(canonical(sourceName)));
 }
 export function exerciseFromCatalog(e:CatalogExercise):Exercise{
   return {key:e.key,name:e.name,sets:3,target:'10 repetições',defaultLoad:null,unit:e.unit,
