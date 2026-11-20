@@ -339,7 +339,7 @@ test('card possui seleção elegante de informações, volume imutável e mínim
   assert.ok(ui.includes("options.showDate?'  ·  '"),'PNG respeita data');
   assert.ok(ui.includes('numericShareTarget(entry.target)'),'metas sem texto extra');
   assert.ok(ui.includes('shareMetricValues(summary,options)'),'prévia e PNG usam mesmos dados');
-  assert.ok(ui.includes('pngPoster(detail,visual,options,summary,composition,verified)'),'exportação respeita estilo e seleção');
+  assert.ok(ui.includes('pngPoster(detail,visual,options,summary,composition,verified,showBestBadge&&Boolean(verified?.challengeBest))'),'exportação respeita estilo e seleção');
   assert.ok(calc.includes("set.load_unit!=='kg'"),'assistência e velocidade não contam como volume');
   assert.ok(calc.includes('set.actual_reps'),'volume não usa reps planejadas');
   assert.ok(calc.includes("summary.volumeKg===null?'—'"),'sem inventar volume antigo');
@@ -360,7 +360,7 @@ test('seletor visual alterna claro/escuro sem voltar ao quadrado de feed',()=>{
   assert.ok(ui.includes('share-poster-${visual}'),'prévia acompanha a aparência');
   assert.ok(ui.includes('c.width=1170;c.height=2058'),'PNG sempre vertical');
   assert.ok(ui.includes('SHARE_THEMES[visual]'),'Canvas usa cores por visual');
-  assert.ok(ui.includes('pngPoster(detail,visual,options,summary,composition,verified)'),'exporta visual selecionado');
+  assert.ok(ui.includes('pngPoster(detail,visual,options,summary,composition,verified,showBestBadge&&Boolean(verified?.challengeBest))'),'exporta visual selecionado');
   assert.ok(share.includes("light:{"),'paleta clara explícita');
   assert.ok(css.includes('.share-poster-light .share-poster-main>strong'),'título escuro no fundo claro');
   assert.ok(css.includes('.share-poster-light .share-poster-metrics'),'métricas legíveis no fundo claro');
