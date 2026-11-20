@@ -1,4 +1,5 @@
 import type { Template, Exercise, Unit } from './templates';
+import { lookupExercise, CATEGORY_OPTIONS, MUSCLE_GROUP_OPTIONS } from './exerciseCatalog';
 
 const units:Unit[]=['kg','assist_kg','km/h','none'];
 const text=(v:unknown,max:number)=>typeof v==='string'?v.trim().slice(0,max):'';
@@ -22,9 +23,14 @@ export const normalizeTemplate=(input:unknown,id:string):Template | null=>{
       ||!(x.defaultLoad===null || (typeof x.defaultLoad==='number' && Number.isFinite(x.defaultLoad) && x.defaultLoad>=0 && x.defaultLoad<=2000))
       ||!(x.block===undefined||x.block===null||(Number.isInteger(x.block)&&x.block>=1&&x.block<=20)))return null;
     keys.add(x.key as string);
+    const known=lookupExercise(x.key as string,x.name as string);
+    const category=CATEGORY_OPTIONS.includes(x.category as never)?x.category:known?.category;
+    const muscleGroup=MUSCLE_GROUP_OPTIONS.includes(x.muscleGroup as never)?x.muscleGroup:known?.muscleGroup;
+    const equipmentType=x.equipmentType||known?.equipmentType;
     exercises.push({
       key:x.key as string,name:text(x.name,100),sets:x.sets as number,target:text(x.target,100),
       defaultLoad:x.defaultLoad as number|null,unit:x.unit as Unit,
+      ...(category?{category}:{}),...(muscleGroup?{muscleGroup}:{}),...(equipmentType?{equipmentType}:{}),
       ...(text(x.tip,300)?{tip:text(x.tip,300)}:{}),
       ...(typeof x.block==='number'?{block:x.block}:{})
     });

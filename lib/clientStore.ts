@@ -84,6 +84,25 @@ export async function createSession(mode:Mode,templateId:string,date:string):Pro
   const session:WorkoutSession={id,template_id:templateId,template_name:template.name,performed_on:date,started_at:now,finished_at:null,status:'active',completed_sets:0,total_sets:sets.length};
   write(mode,[{session,sets},...old]); return id;
 }
+/** Creates a one-off workout, without saving a reusable template. */
+export async function createAdhocSession(mode:Mode,template:Template,date:string,preserveInitialLoads=false):Promise<string>{
+  if(mode==='cloud'){
+    const r=await parseResponse<{id:string}>(await fetch('/api/sessions',{method:'POST',
+      headers:{'Content-Type':'application/json'},body:JSON.stringify({template,performed_on:date,preserve_initial_loads:preserveInitialLoads})}));
+    return r.id;
+  }
+  const now=new Date().toISOString(),id=crypto.randomUUID();
+  const past:Record<string,number>={};
+  read(mode).sort((a,b)=>b.session.started_at.localeCompare(a.session.started_at))
+    .forEach(d=>d.sets.filter(s=>s.completed&&s.weight_kg!==null).forEach(s=>{
+      if(past[s.exercise_key]===undefined)past[s.exercise_key]=s.weight_kg!;
+    }));
+  const sets=makeSets(template,preserveInitialLoads?{}:past).map(s=>({...s,id:`${id}__${s.id}`}));
+  const session:WorkoutSession={id,template_id:'avulso',template_name:template.name,
+    performed_on:date,started_at:now,finished_at:null,status:'active',completed_sets:0,total_sets:sets.length};
+  write(mode,[{session,sets},...read(mode)]);
+  return id;
+}
 export async function getSession(mode:Mode,id:string):Promise<SessionDetail> {
   if (mode==='cloud') return parseResponse<SessionDetail>(await fetch(`/api/sessions/${encodeURIComponent(id)}`,{cache:'no-store'}));
   const session=read(mode).find(s=>s.session.id===id); if (!session) throw new Error('Sessão não encontrada.'); return recalc(session);

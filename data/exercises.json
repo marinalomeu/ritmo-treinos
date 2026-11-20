@@ -1,0 +1,1883 @@
+{
+  "schemaVersion": 1,
+  "source": "Lista enviada pela usuária em 20/11/2026",
+  "notes": [
+    "Categorias correspondem às modalidades, distintas da classificação por grupo muscular.",
+    "kind=equipment representa material de apoio e não deve ser selecionável como exercício sem movimento específico.",
+    "Variações são preservadas e poderão ser instanciadas com IDs estáveis para registrar progressão separadamente.",
+    "HYROX: 8 estações ordenadas, com corrida de 1 km antes de cada estação."
+  ],
+  "exercises": [
+    {
+      "id": "academia-supino-reto-na-maquina-vertical-chest-press",
+      "name": "Supino reto na máquina (Vertical Chest Press)",
+      "category": "Academia",
+      "section": "Peitoral — Máquinas",
+      "kind": "exercise",
+      "muscleGroup": "Peitoral",
+      "equipmentType": "Máquinas"
+    },
+    {
+      "id": "academia-supino-inclinado-na-maquina-incline-chest-press",
+      "name": "Supino inclinado na máquina (Incline Chest Press)",
+      "category": "Academia",
+      "section": "Peitoral — Máquinas",
+      "kind": "exercise",
+      "muscleGroup": "Peitoral",
+      "equipmentType": "Máquinas"
+    },
+    {
+      "id": "academia-supino-declinado-na-maquina",
+      "name": "Supino declinado na máquina",
+      "category": "Academia",
+      "section": "Peitoral — Máquinas",
+      "kind": "exercise",
+      "muscleGroup": "Peitoral",
+      "equipmentType": "Máquinas"
+    },
+    {
+      "id": "academia-peck-deck-voador-fly-machine",
+      "name": "Peck Deck / Voador (Fly Machine)",
+      "category": "Academia",
+      "section": "Peitoral — Máquinas",
+      "kind": "exercise",
+      "muscleGroup": "Peitoral",
+      "equipmentType": "Máquinas"
+    },
+    {
+      "id": "academia-crossover",
+      "name": "Crossover",
+      "category": "Academia",
+      "section": "Peitoral — Máquinas",
+      "kind": "exercise",
+      "muscleGroup": "Peitoral",
+      "equipmentType": "Máquinas",
+      "variants": [
+        "Polia alta",
+        "Polia média",
+        "Polia baixa"
+      ]
+    },
+    {
+      "id": "academia-supino-no-smith-barra-guiada",
+      "name": "Supino no Smith (Barra guiada)",
+      "category": "Academia",
+      "section": "Peitoral — Máquinas",
+      "kind": "exercise",
+      "muscleGroup": "Peitoral",
+      "equipmentType": "Máquinas"
+    },
+    {
+      "id": "academia-supino-reto",
+      "name": "Supino reto",
+      "category": "Academia",
+      "section": "Peitoral — Livres",
+      "kind": "exercise",
+      "muscleGroup": "Peitoral",
+      "equipmentType": "Livres/Polias",
+      "variants": [
+        "Barra",
+        "Halteres"
+      ]
+    },
+    {
+      "id": "academia-supino-inclinado",
+      "name": "Supino inclinado",
+      "category": "Academia",
+      "section": "Peitoral — Livres",
+      "kind": "exercise",
+      "muscleGroup": "Peitoral",
+      "equipmentType": "Livres/Polias",
+      "variants": [
+        "Barra",
+        "Halteres"
+      ]
+    },
+    {
+      "id": "academia-supino-declinado",
+      "name": "Supino declinado",
+      "category": "Academia",
+      "section": "Peitoral — Livres",
+      "kind": "exercise",
+      "muscleGroup": "Peitoral",
+      "equipmentType": "Livres/Polias",
+      "variants": [
+        "Barra",
+        "Halteres"
+      ]
+    },
+    {
+      "id": "academia-crucifixo",
+      "name": "Crucifixo",
+      "category": "Academia",
+      "section": "Peitoral — Livres",
+      "kind": "exercise",
+      "muscleGroup": "Peitoral",
+      "equipmentType": "Livres/Polias",
+      "variants": [
+        "Reto",
+        "Inclinado",
+        "Declinado"
+      ]
+    },
+    {
+      "id": "academia-pullover",
+      "name": "Pullover",
+      "category": "Academia",
+      "section": "Peitoral — Livres",
+      "kind": "exercise",
+      "muscleGroup": "Peitoral",
+      "equipmentType": "Livres/Polias",
+      "variants": [
+        "Halter",
+        "Barra"
+      ]
+    },
+    {
+      "id": "academia-flexao-de-braco-push-up",
+      "name": "Flexão de braço (Push-up)",
+      "category": "Academia",
+      "section": "Peitoral — Livres",
+      "kind": "exercise",
+      "muscleGroup": "Peitoral",
+      "equipmentType": "Livres/Polias",
+      "variants": [
+        "Tradicional",
+        "Inclinada",
+        "Declinada",
+        "Diamante"
+      ]
+    },
+    {
+      "id": "academia-paralelas-foco-em-peito",
+      "name": "Paralelas (foco em peito)",
+      "category": "Academia",
+      "section": "Peitoral — Livres",
+      "kind": "exercise",
+      "muscleGroup": "Peitoral",
+      "equipmentType": "Livres/Polias"
+    },
+    {
+      "id": "academia-puxada-frontal-pulley-frente-lat-pulldown",
+      "name": "Puxada frontal / Pulley frente (Lat Pulldown)",
+      "category": "Academia",
+      "section": "Costas — Máquinas",
+      "kind": "exercise",
+      "muscleGroup": "Costas",
+      "equipmentType": "Máquinas",
+      "variants": [
+        "Pegada aberta",
+        "Pegada fechada",
+        "Pegada supinada",
+        "Triângulo"
+      ]
+    },
+    {
+      "id": "academia-remada-baixa-no-triangulo-seated-cable-row",
+      "name": "Remada baixa no triângulo (Seated Cable Row)",
+      "category": "Academia",
+      "section": "Costas — Máquinas",
+      "kind": "exercise",
+      "muscleGroup": "Costas",
+      "equipmentType": "Máquinas"
+    },
+    {
+      "id": "academia-remada-articulada",
+      "name": "Remada articulada",
+      "category": "Academia",
+      "section": "Costas — Máquinas",
+      "kind": "exercise",
+      "muscleGroup": "Costas",
+      "equipmentType": "Máquinas"
+    },
+    {
+      "id": "academia-remada-cavalinho-na-maquina-t-bar-row-articulada",
+      "name": "Remada cavalinho na máquina (T-Bar Row articulada)",
+      "category": "Academia",
+      "section": "Costas — Máquinas",
+      "kind": "exercise",
+      "muscleGroup": "Costas",
+      "equipmentType": "Máquinas"
+    },
+    {
+      "id": "academia-graviton-barra-fixa-assistida",
+      "name": "Graviton (barra fixa assistida)",
+      "category": "Academia",
+      "section": "Costas — Máquinas",
+      "kind": "exercise",
+      "muscleGroup": "Costas",
+      "equipmentType": "Máquinas"
+    },
+    {
+      "id": "academia-pullover-na-polia-alta-pulldown",
+      "name": "Pullover na polia alta (Pulldown)",
+      "category": "Academia",
+      "section": "Costas — Máquinas",
+      "kind": "exercise",
+      "muscleGroup": "Costas",
+      "equipmentType": "Máquinas",
+      "variants": [
+        "Corda",
+        "Barra reta"
+      ]
+    },
+    {
+      "id": "academia-banco-romano-cadeira-extensora-lombar-hiperextensao",
+      "name": "Banco romano / Cadeira extensora lombar (Hiperextensão)",
+      "category": "Academia",
+      "section": "Costas — Máquinas",
+      "kind": "exercise",
+      "muscleGroup": "Costas",
+      "equipmentType": "Máquinas"
+    },
+    {
+      "id": "academia-barra-fixa-pull-up-chin-up",
+      "name": "Barra fixa (Pull-up / Chin-up)",
+      "category": "Academia",
+      "section": "Costas — Livres",
+      "kind": "exercise",
+      "muscleGroup": "Costas",
+      "equipmentType": "Livres/Polias",
+      "variants": [
+        "Pull-up",
+        "Chin-up"
+      ]
+    },
+    {
+      "id": "academia-remada-curvada",
+      "name": "Remada curvada",
+      "category": "Academia",
+      "section": "Costas — Livres",
+      "kind": "exercise",
+      "muscleGroup": "Costas",
+      "equipmentType": "Livres/Polias",
+      "variants": [
+        "Barra",
+        "Halteres"
+      ]
+    },
+    {
+      "id": "academia-remada-unilateral-com-halter-serrote",
+      "name": "Remada unilateral com halter (Serrote)",
+      "category": "Academia",
+      "section": "Costas — Livres",
+      "kind": "exercise",
+      "muscleGroup": "Costas",
+      "equipmentType": "Livres/Polias"
+    },
+    {
+      "id": "academia-remada-cavalinho-livre",
+      "name": "Remada cavalinho livre",
+      "category": "Academia",
+      "section": "Costas — Livres",
+      "kind": "exercise",
+      "muscleGroup": "Costas",
+      "equipmentType": "Livres/Polias"
+    },
+    {
+      "id": "academia-levantamento-terra-deadlift",
+      "name": "Levantamento terra (Deadlift)",
+      "category": "Academia",
+      "section": "Costas — Livres",
+      "kind": "exercise",
+      "muscleGroup": "Costas",
+      "equipmentType": "Livres/Polias"
+    },
+    {
+      "id": "academia-encolhimento-de-ombros-para-trapezio",
+      "name": "Encolhimento de ombros para trapézio",
+      "category": "Academia",
+      "section": "Costas — Livres",
+      "kind": "exercise",
+      "muscleGroup": "Costas",
+      "equipmentType": "Livres/Polias",
+      "variants": [
+        "Barra",
+        "Halteres"
+      ]
+    },
+    {
+      "id": "academia-remada-alta",
+      "name": "Remada alta",
+      "category": "Academia",
+      "section": "Costas — Livres",
+      "kind": "exercise",
+      "muscleGroup": "Costas",
+      "equipmentType": "Livres/Polias",
+      "variants": [
+        "Barra",
+        "Halteres"
+      ]
+    },
+    {
+      "id": "academia-leg-press",
+      "name": "Leg Press",
+      "category": "Academia",
+      "section": "Pernas — Máquinas",
+      "kind": "exercise",
+      "muscleGroup": "Quadríceps",
+      "equipmentType": "Máquinas",
+      "variants": [
+        "45°",
+        "Horizontal",
+        "Vertical"
+      ]
+    },
+    {
+      "id": "academia-cadeira-extensora",
+      "name": "Cadeira extensora",
+      "category": "Academia",
+      "section": "Pernas — Máquinas",
+      "kind": "exercise",
+      "muscleGroup": "Quadríceps",
+      "equipmentType": "Máquinas"
+    },
+    {
+      "id": "academia-agachamento-hack-hack-machine",
+      "name": "Agachamento Hack (Hack Machine)",
+      "category": "Academia",
+      "section": "Pernas — Máquinas",
+      "kind": "exercise",
+      "muscleGroup": "Quadríceps",
+      "equipmentType": "Máquinas"
+    },
+    {
+      "id": "academia-agachamento-no-smith",
+      "name": "Agachamento no Smith",
+      "category": "Academia",
+      "section": "Pernas — Máquinas",
+      "kind": "exercise",
+      "muscleGroup": "Quadríceps",
+      "equipmentType": "Máquinas"
+    },
+    {
+      "id": "academia-agachamento-pendular-pendulum-squat",
+      "name": "Agachamento Pendular (Pendulum Squat)",
+      "category": "Academia",
+      "section": "Pernas — Máquinas",
+      "kind": "exercise",
+      "muscleGroup": "Quadríceps",
+      "equipmentType": "Máquinas"
+    },
+    {
+      "id": "academia-agachamento-articulado-v-squat",
+      "name": "Agachamento articulado / V-Squat",
+      "category": "Academia",
+      "section": "Pernas — Máquinas",
+      "kind": "exercise",
+      "muscleGroup": "Quadríceps",
+      "equipmentType": "Máquinas"
+    },
+    {
+      "id": "academia-mesa-flexora",
+      "name": "Mesa flexora",
+      "category": "Academia",
+      "section": "Pernas — Máquinas",
+      "kind": "exercise",
+      "muscleGroup": "Posteriores",
+      "equipmentType": "Máquinas"
+    },
+    {
+      "id": "academia-cadeira-flexora",
+      "name": "Cadeira flexora",
+      "category": "Academia",
+      "section": "Pernas — Máquinas",
+      "kind": "exercise",
+      "muscleGroup": "Posteriores",
+      "equipmentType": "Máquinas"
+    },
+    {
+      "id": "academia-flexora-vertical-unilateral",
+      "name": "Flexora vertical / unilateral",
+      "category": "Academia",
+      "section": "Pernas — Máquinas",
+      "kind": "exercise",
+      "muscleGroup": "Posteriores",
+      "equipmentType": "Máquinas"
+    },
+    {
+      "id": "academia-cadeira-abdutora",
+      "name": "Cadeira abdutora",
+      "category": "Academia",
+      "section": "Pernas — Máquinas",
+      "kind": "exercise",
+      "muscleGroup": "Glúteos",
+      "equipmentType": "Máquinas"
+    },
+    {
+      "id": "academia-elevacao-pelvica-na-maquina-hip-thrust-machine",
+      "name": "Elevação pélvica na máquina (Hip Thrust Machine)",
+      "category": "Academia",
+      "section": "Pernas — Máquinas",
+      "kind": "exercise",
+      "muscleGroup": "Glúteos",
+      "equipmentType": "Máquinas"
+    },
+    {
+      "id": "academia-gluteo-na-maquina-coice-kickback-articulado",
+      "name": "Glúteo na máquina (Coice / Kickback articulado)",
+      "category": "Academia",
+      "section": "Pernas — Máquinas",
+      "kind": "exercise",
+      "muscleGroup": "Glúteos",
+      "equipmentType": "Máquinas"
+    },
+    {
+      "id": "academia-cadeira-adutora",
+      "name": "Cadeira adutora",
+      "category": "Academia",
+      "section": "Pernas — Máquinas",
+      "kind": "exercise",
+      "muscleGroup": "Adutores",
+      "equipmentType": "Máquinas"
+    },
+    {
+      "id": "academia-panturrilha-sentado-banco-soleo",
+      "name": "Panturrilha sentado (Banco sóleo)",
+      "category": "Academia",
+      "section": "Pernas — Máquinas",
+      "kind": "exercise",
+      "muscleGroup": "Panturrilhas",
+      "equipmentType": "Máquinas"
+    },
+    {
+      "id": "academia-panturrilha-em-pe-na-maquina-gemeos-em-pe",
+      "name": "Panturrilha em pé na máquina (Gêmeos em pé)",
+      "category": "Academia",
+      "section": "Pernas — Máquinas",
+      "kind": "exercise",
+      "muscleGroup": "Panturrilhas",
+      "equipmentType": "Máquinas"
+    },
+    {
+      "id": "academia-agachamento-livre-barra-nas-costas",
+      "name": "Agachamento livre (barra nas costas)",
+      "category": "Academia",
+      "section": "Pernas — Livres e Polias",
+      "kind": "exercise",
+      "muscleGroup": "Quadríceps",
+      "equipmentType": "Livres/Polias"
+    },
+    {
+      "id": "academia-agachamento-frontal-front-squat",
+      "name": "Agachamento frontal (Front Squat)",
+      "category": "Academia",
+      "section": "Pernas — Livres e Polias",
+      "kind": "exercise",
+      "muscleGroup": "Quadríceps",
+      "equipmentType": "Livres/Polias"
+    },
+    {
+      "id": "academia-agachamento-goblet",
+      "name": "Agachamento Goblet",
+      "category": "Academia",
+      "section": "Pernas — Livres e Polias",
+      "kind": "exercise",
+      "muscleGroup": "Quadríceps",
+      "equipmentType": "Livres/Polias"
+    },
+    {
+      "id": "academia-agachamento-sumo",
+      "name": "Agachamento Sumô",
+      "category": "Academia",
+      "section": "Pernas — Livres e Polias",
+      "kind": "exercise",
+      "muscleGroup": "Quadríceps",
+      "equipmentType": "Livres/Polias"
+    },
+    {
+      "id": "academia-agachamento-bulgaro",
+      "name": "Agachamento Búlgaro",
+      "category": "Academia",
+      "section": "Pernas — Livres e Polias",
+      "kind": "exercise",
+      "muscleGroup": "Quadríceps",
+      "equipmentType": "Livres/Polias"
+    },
+    {
+      "id": "academia-afundo-passada-avanco",
+      "name": "Afundo / Passada / Avanço",
+      "category": "Academia",
+      "section": "Pernas — Livres e Polias",
+      "kind": "exercise",
+      "muscleGroup": "Quadríceps",
+      "equipmentType": "Livres/Polias",
+      "variants": [
+        "Halteres",
+        "Barra"
+      ]
+    },
+    {
+      "id": "academia-stiff",
+      "name": "Stiff",
+      "category": "Academia",
+      "section": "Pernas — Livres e Polias",
+      "kind": "exercise",
+      "muscleGroup": "Posteriores",
+      "equipmentType": "Livres/Polias",
+      "variants": [
+        "Barra",
+        "Halteres"
+      ]
+    },
+    {
+      "id": "academia-levantamento-terra-romeno-rdl",
+      "name": "Levantamento Terra Romeno (RDL)",
+      "category": "Academia",
+      "section": "Pernas — Livres e Polias",
+      "kind": "exercise",
+      "muscleGroup": "Posteriores",
+      "equipmentType": "Livres/Polias",
+      "variants": [
+        "Barra",
+        "Halteres"
+      ]
+    },
+    {
+      "id": "academia-elevacao-pelvica-livre",
+      "name": "Elevação pélvica livre",
+      "category": "Academia",
+      "section": "Pernas — Livres e Polias",
+      "kind": "exercise",
+      "muscleGroup": "Glúteos",
+      "equipmentType": "Livres/Polias",
+      "variants": [
+        "Barra",
+        "Anilha"
+      ]
+    },
+    {
+      "id": "academia-gluteo-na-polia-baixa",
+      "name": "Glúteo na polia baixa",
+      "category": "Academia",
+      "section": "Pernas — Livres e Polias",
+      "kind": "exercise",
+      "muscleGroup": "Glúteos",
+      "equipmentType": "Livres/Polias",
+      "variants": [
+        "Coice",
+        "Abdução",
+        "Extensão de quadril"
+      ]
+    },
+    {
+      "id": "academia-elevacao-de-panturrilha-em-pe-no-degrau",
+      "name": "Elevação de panturrilha em pé no degrau",
+      "category": "Academia",
+      "section": "Pernas — Livres e Polias",
+      "kind": "exercise",
+      "muscleGroup": "Panturrilhas",
+      "equipmentType": "Livres/Polias",
+      "variants": [
+        "Livre",
+        "Smith"
+      ]
+    },
+    {
+      "id": "academia-desenvolvimento-na-maquina-shoulder-press",
+      "name": "Desenvolvimento na máquina (Shoulder Press)",
+      "category": "Academia",
+      "section": "Ombros — Máquinas",
+      "kind": "exercise",
+      "muscleGroup": "Ombros",
+      "equipmentType": "Máquinas"
+    },
+    {
+      "id": "academia-desenvolvimento-no-smith",
+      "name": "Desenvolvimento no Smith",
+      "category": "Academia",
+      "section": "Ombros — Máquinas",
+      "kind": "exercise",
+      "muscleGroup": "Ombros",
+      "equipmentType": "Máquinas"
+    },
+    {
+      "id": "academia-elevacao-lateral-na-maquina",
+      "name": "Elevação lateral na máquina",
+      "category": "Academia",
+      "section": "Ombros — Máquinas",
+      "kind": "exercise",
+      "muscleGroup": "Ombros",
+      "equipmentType": "Máquinas"
+    },
+    {
+      "id": "academia-voador-invertido-peck-deck-inverso",
+      "name": "Voador invertido / Peck Deck inverso",
+      "category": "Academia",
+      "section": "Ombros — Máquinas",
+      "kind": "exercise",
+      "muscleGroup": "Ombros",
+      "equipmentType": "Máquinas"
+    },
+    {
+      "id": "academia-polia-baixa-ombros",
+      "name": "Polia baixa (ombros)",
+      "category": "Academia",
+      "section": "Ombros — Máquinas",
+      "kind": "exercise",
+      "muscleGroup": "Ombros",
+      "equipmentType": "Máquinas",
+      "variants": [
+        "Elevação lateral",
+        "Elevação frontal",
+        "Crucifixo inverso unilateral"
+      ]
+    },
+    {
+      "id": "academia-face-pull-na-polia-alta",
+      "name": "Face Pull na polia alta",
+      "category": "Academia",
+      "section": "Ombros — Máquinas",
+      "kind": "exercise",
+      "muscleGroup": "Ombros",
+      "equipmentType": "Máquinas"
+    },
+    {
+      "id": "academia-desenvolvimento-com-halteres",
+      "name": "Desenvolvimento com halteres",
+      "category": "Academia",
+      "section": "Ombros — Livres",
+      "kind": "exercise",
+      "muscleGroup": "Ombros",
+      "equipmentType": "Livres/Polias",
+      "variants": [
+        "Sentado",
+        "Em pé"
+      ]
+    },
+    {
+      "id": "academia-desenvolvimento-militar-barra",
+      "name": "Desenvolvimento militar (barra)",
+      "category": "Academia",
+      "section": "Ombros — Livres",
+      "kind": "exercise",
+      "muscleGroup": "Ombros",
+      "equipmentType": "Livres/Polias"
+    },
+    {
+      "id": "academia-desenvolvimento-arnold",
+      "name": "Desenvolvimento Arnold",
+      "category": "Academia",
+      "section": "Ombros — Livres",
+      "kind": "exercise",
+      "muscleGroup": "Ombros",
+      "equipmentType": "Livres/Polias"
+    },
+    {
+      "id": "academia-elevacao-lateral-com-halteres",
+      "name": "Elevação lateral com halteres",
+      "category": "Academia",
+      "section": "Ombros — Livres",
+      "kind": "exercise",
+      "muscleGroup": "Ombros",
+      "equipmentType": "Livres/Polias"
+    },
+    {
+      "id": "academia-elevacao-frontal",
+      "name": "Elevação frontal",
+      "category": "Academia",
+      "section": "Ombros — Livres",
+      "kind": "exercise",
+      "muscleGroup": "Ombros",
+      "equipmentType": "Livres/Polias",
+      "variants": [
+        "Halteres",
+        "Barra",
+        "Anilha"
+      ]
+    },
+    {
+      "id": "academia-crucifixo-inverso-inclinado-com-halteres",
+      "name": "Crucifixo inverso inclinado com halteres",
+      "category": "Academia",
+      "section": "Ombros — Livres",
+      "kind": "exercise",
+      "muscleGroup": "Ombros",
+      "equipmentType": "Livres/Polias"
+    },
+    {
+      "id": "academia-triceps-na-polia-alta-pulley",
+      "name": "Tríceps na polia alta / Pulley",
+      "category": "Academia",
+      "section": "Braços — Máquinas e Polias",
+      "kind": "exercise",
+      "muscleGroup": "Tríceps",
+      "equipmentType": "Máquinas",
+      "variants": [
+        "Barra reta",
+        "Barra W",
+        "Corda"
+      ]
+    },
+    {
+      "id": "academia-triceps-frances-na-polia",
+      "name": "Tríceps francês na polia",
+      "category": "Academia",
+      "section": "Braços — Máquinas e Polias",
+      "kind": "exercise",
+      "muscleGroup": "Tríceps",
+      "equipmentType": "Máquinas"
+    },
+    {
+      "id": "academia-triceps-coice-na-polia",
+      "name": "Tríceps coice na polia",
+      "category": "Academia",
+      "section": "Braços — Máquinas e Polias",
+      "kind": "exercise",
+      "muscleGroup": "Tríceps",
+      "equipmentType": "Máquinas"
+    },
+    {
+      "id": "academia-maquina-de-triceps-mergulho-sentado-triceps-press",
+      "name": "Máquina de tríceps (Mergulho sentado / Triceps Press)",
+      "category": "Academia",
+      "section": "Braços — Máquinas e Polias",
+      "kind": "exercise",
+      "muscleGroup": "Tríceps",
+      "equipmentType": "Máquinas"
+    },
+    {
+      "id": "academia-rosca-direta-na-polia-baixa",
+      "name": "Rosca direta na polia baixa",
+      "category": "Academia",
+      "section": "Braços — Máquinas e Polias",
+      "kind": "exercise",
+      "muscleGroup": "Bíceps",
+      "equipmentType": "Máquinas"
+    },
+    {
+      "id": "academia-rosca-scott-na-maquina-banco-scott-com-polia",
+      "name": "Rosca Scott na máquina / banco Scott com polia",
+      "category": "Academia",
+      "section": "Braços — Máquinas e Polias",
+      "kind": "exercise",
+      "muscleGroup": "Bíceps",
+      "equipmentType": "Máquinas"
+    },
+    {
+      "id": "academia-maquina-de-biceps-articulada",
+      "name": "Máquina de bíceps articulada",
+      "category": "Academia",
+      "section": "Braços — Máquinas e Polias",
+      "kind": "exercise",
+      "muscleGroup": "Bíceps",
+      "equipmentType": "Máquinas"
+    },
+    {
+      "id": "academia-rosca-direta",
+      "name": "Rosca direta",
+      "category": "Academia",
+      "section": "Braços — Livres",
+      "kind": "exercise",
+      "muscleGroup": "Bíceps",
+      "equipmentType": "Livres/Polias",
+      "variants": [
+        "Barra reta",
+        "Barra W",
+        "Halteres"
+      ]
+    },
+    {
+      "id": "academia-rosca-alternada-com-halteres",
+      "name": "Rosca alternada com halteres",
+      "category": "Academia",
+      "section": "Braços — Livres",
+      "kind": "exercise",
+      "muscleGroup": "Bíceps",
+      "equipmentType": "Livres/Polias"
+    },
+    {
+      "id": "academia-rosca-martelo",
+      "name": "Rosca martelo",
+      "category": "Academia",
+      "section": "Braços — Livres",
+      "kind": "exercise",
+      "muscleGroup": "Bíceps",
+      "equipmentType": "Livres/Polias",
+      "variants": [
+        "Halteres",
+        "Corda"
+      ]
+    },
+    {
+      "id": "academia-rosca-concentrada-com-halter",
+      "name": "Rosca concentrada com halter",
+      "category": "Academia",
+      "section": "Braços — Livres",
+      "kind": "exercise",
+      "muscleGroup": "Bíceps",
+      "equipmentType": "Livres/Polias"
+    },
+    {
+      "id": "academia-rosca-inclinada-no-banco-a-45",
+      "name": "Rosca inclinada no banco a 45°",
+      "category": "Academia",
+      "section": "Braços — Livres",
+      "kind": "exercise",
+      "muscleGroup": "Bíceps",
+      "equipmentType": "Livres/Polias"
+    },
+    {
+      "id": "academia-rosca-scott-livre",
+      "name": "Rosca Scott livre",
+      "category": "Academia",
+      "section": "Braços — Livres",
+      "kind": "exercise",
+      "muscleGroup": "Bíceps",
+      "equipmentType": "Livres/Polias",
+      "variants": [
+        "Barra W",
+        "Halter"
+      ]
+    },
+    {
+      "id": "academia-triceps-testa",
+      "name": "Tríceps testa",
+      "category": "Academia",
+      "section": "Braços — Livres",
+      "kind": "exercise",
+      "muscleGroup": "Tríceps",
+      "equipmentType": "Livres/Polias",
+      "variants": [
+        "Barra W",
+        "Halteres"
+      ]
+    },
+    {
+      "id": "academia-triceps-frances",
+      "name": "Tríceps francês",
+      "category": "Academia",
+      "section": "Braços — Livres",
+      "kind": "exercise",
+      "muscleGroup": "Tríceps",
+      "equipmentType": "Livres/Polias",
+      "variants": [
+        "Halter",
+        "Barra"
+      ]
+    },
+    {
+      "id": "academia-triceps-coice-com-halter",
+      "name": "Tríceps coice com halter",
+      "category": "Academia",
+      "section": "Braços — Livres",
+      "kind": "exercise",
+      "muscleGroup": "Tríceps",
+      "equipmentType": "Livres/Polias"
+    },
+    {
+      "id": "academia-triceps-banco",
+      "name": "Tríceps banco",
+      "category": "Academia",
+      "section": "Braços — Livres",
+      "kind": "exercise",
+      "muscleGroup": "Tríceps",
+      "equipmentType": "Livres/Polias"
+    },
+    {
+      "id": "academia-paralelas-foco-em-triceps",
+      "name": "Paralelas (foco em tríceps)",
+      "category": "Academia",
+      "section": "Braços — Livres",
+      "kind": "exercise",
+      "muscleGroup": "Tríceps",
+      "equipmentType": "Livres/Polias"
+    },
+    {
+      "id": "academia-rosca-punho",
+      "name": "Rosca punho",
+      "category": "Academia",
+      "section": "Braços — Livres",
+      "kind": "exercise",
+      "muscleGroup": "Antebraço",
+      "equipmentType": "Livres/Polias"
+    },
+    {
+      "id": "academia-rosca-punho-invertida",
+      "name": "Rosca punho invertida",
+      "category": "Academia",
+      "section": "Braços — Livres",
+      "kind": "exercise",
+      "muscleGroup": "Antebraço",
+      "equipmentType": "Livres/Polias"
+    },
+    {
+      "id": "academia-maquina-de-abdominal-abdominal-crunch-machine",
+      "name": "Máquina de abdominal (Abdominal Crunch Machine)",
+      "category": "Academia",
+      "section": "Abdômen e Core — Máquinas e Acessórios",
+      "kind": "exercise",
+      "muscleGroup": "Abdômen/Core",
+      "equipmentType": "Máquinas"
+    },
+    {
+      "id": "academia-abdominal-na-polia-alta-crunch-ajoelhado",
+      "name": "Abdominal na polia alta (Crunch ajoelhado)",
+      "category": "Academia",
+      "section": "Abdômen e Core — Máquinas e Acessórios",
+      "kind": "exercise",
+      "muscleGroup": "Abdômen/Core",
+      "equipmentType": "Máquinas"
+    },
+    {
+      "id": "academia-cadeira-abdominal-paralela-abdominal",
+      "name": "Cadeira abdominal / Paralela abdominal",
+      "category": "Academia",
+      "section": "Abdômen e Core — Máquinas e Acessórios",
+      "kind": "exercise",
+      "muscleGroup": "Abdômen/Core",
+      "equipmentType": "Máquinas"
+    },
+    {
+      "id": "academia-prancha-declinada-banco-de-abdominal",
+      "name": "Prancha declinada (banco de abdominal)",
+      "category": "Academia",
+      "section": "Abdômen e Core — Máquinas e Acessórios",
+      "kind": "exercise",
+      "muscleGroup": "Abdômen/Core",
+      "equipmentType": "Máquinas"
+    },
+    {
+      "id": "academia-roda-abdominal-ab-wheel",
+      "name": "Roda abdominal (Ab Wheel)",
+      "category": "Academia",
+      "section": "Abdômen e Core — Máquinas e Acessórios",
+      "kind": "exercise",
+      "muscleGroup": "Abdômen/Core",
+      "equipmentType": "Máquinas"
+    },
+    {
+      "id": "academia-abdominal-supra-crunch",
+      "name": "Abdominal supra (Crunch)",
+      "category": "Academia",
+      "section": "Abdômen e Core — Livres",
+      "kind": "exercise",
+      "muscleGroup": "Abdômen/Core",
+      "equipmentType": "Livres/Polias"
+    },
+    {
+      "id": "academia-abdominal-infra",
+      "name": "Abdominal infra",
+      "category": "Academia",
+      "section": "Abdômen e Core — Livres",
+      "kind": "exercise",
+      "muscleGroup": "Abdômen/Core",
+      "equipmentType": "Livres/Polias",
+      "variants": [
+        "Elevação de pernas deitado",
+        "Elevação de pernas pendurado"
+      ]
+    },
+    {
+      "id": "academia-abdominal-obliquo-bicicleta",
+      "name": "Abdominal oblíquo / Bicicleta",
+      "category": "Academia",
+      "section": "Abdômen e Core — Livres",
+      "kind": "exercise",
+      "muscleGroup": "Abdômen/Core",
+      "equipmentType": "Livres/Polias"
+    },
+    {
+      "id": "academia-abdominal-remador",
+      "name": "Abdominal remador",
+      "category": "Academia",
+      "section": "Abdômen e Core — Livres",
+      "kind": "exercise",
+      "muscleGroup": "Abdômen/Core",
+      "equipmentType": "Livres/Polias"
+    },
+    {
+      "id": "academia-abdominal-canivete-v-up",
+      "name": "Abdominal canivete (V-up)",
+      "category": "Academia",
+      "section": "Abdômen e Core — Livres",
+      "kind": "exercise",
+      "muscleGroup": "Abdômen/Core",
+      "equipmentType": "Livres/Polias"
+    },
+    {
+      "id": "academia-prancha-isometrica",
+      "name": "Prancha isométrica",
+      "category": "Academia",
+      "section": "Abdômen e Core — Livres",
+      "kind": "exercise",
+      "muscleGroup": "Abdômen/Core",
+      "equipmentType": "Livres/Polias",
+      "variants": [
+        "Frontal",
+        "Lateral"
+      ]
+    },
+    {
+      "id": "academia-russian-twist",
+      "name": "Russian Twist",
+      "category": "Academia",
+      "section": "Abdômen e Core — Livres",
+      "kind": "exercise",
+      "muscleGroup": "Abdômen/Core",
+      "equipmentType": "Livres/Polias",
+      "variants": [
+        "Com peso",
+        "Sem peso"
+      ]
+    },
+    {
+      "id": "academia-vacuum-abdominal",
+      "name": "Vacuum abdominal",
+      "category": "Academia",
+      "section": "Abdômen e Core — Livres",
+      "kind": "exercise",
+      "muscleGroup": "Abdômen/Core",
+      "equipmentType": "Livres/Polias"
+    },
+    {
+      "id": "academia-esteira-ergometrica",
+      "name": "Esteira ergométrica",
+      "category": "Academia",
+      "section": "Máquinas Cardiorrespiratórias e Funcionais",
+      "kind": "exercise",
+      "muscleGroup": "Cardiorrespiratório",
+      "equipmentType": "Monoestrutural"
+    },
+    {
+      "id": "academia-bicicleta-ergometrica",
+      "name": "Bicicleta ergométrica",
+      "category": "Academia",
+      "section": "Máquinas Cardiorrespiratórias e Funcionais",
+      "kind": "exercise",
+      "muscleGroup": "Cardiorrespiratório",
+      "equipmentType": "Monoestrutural",
+      "variants": [
+        "Vertical",
+        "Horizontal"
+      ]
+    },
+    {
+      "id": "academia-bicicleta-de-spinning",
+      "name": "Bicicleta de Spinning",
+      "category": "Academia",
+      "section": "Máquinas Cardiorrespiratórias e Funcionais",
+      "kind": "exercise",
+      "muscleGroup": "Cardiorrespiratório",
+      "equipmentType": "Monoestrutural"
+    },
+    {
+      "id": "academia-eliptico-transport",
+      "name": "Elíptico (Transport)",
+      "category": "Academia",
+      "section": "Máquinas Cardiorrespiratórias e Funcionais",
+      "kind": "exercise",
+      "muscleGroup": "Cardiorrespiratório",
+      "equipmentType": "Monoestrutural"
+    },
+    {
+      "id": "academia-simulador-de-escada-stairmaster",
+      "name": "Simulador de escada (StairMaster)",
+      "category": "Academia",
+      "section": "Máquinas Cardiorrespiratórias e Funcionais",
+      "kind": "exercise",
+      "muscleGroup": "Cardiorrespiratório",
+      "equipmentType": "Monoestrutural"
+    },
+    {
+      "id": "academia-remo-seco-concept2-rowing-machine",
+      "name": "Remo seco (Concept2 / Rowing Machine)",
+      "category": "Academia",
+      "section": "Máquinas Cardiorrespiratórias e Funcionais",
+      "kind": "exercise",
+      "muscleGroup": "Cardiorrespiratório",
+      "equipmentType": "Monoestrutural"
+    },
+    {
+      "id": "academia-air-bike-resistencia-a-ar",
+      "name": "Air Bike (resistência a ar)",
+      "category": "Academia",
+      "section": "Máquinas Cardiorrespiratórias e Funcionais",
+      "kind": "exercise",
+      "muscleGroup": "Cardiorrespiratório",
+      "equipmentType": "Monoestrutural"
+    },
+    {
+      "id": "academia-skierg-simulador-de-esqui",
+      "name": "SkiErg (simulador de esqui)",
+      "category": "Academia",
+      "section": "Máquinas Cardiorrespiratórias e Funcionais",
+      "kind": "exercise",
+      "muscleGroup": "Cardiorrespiratório",
+      "equipmentType": "Monoestrutural"
+    },
+    {
+      "id": "academia-treno-de-empurrar-puxar-sled-prowler",
+      "name": "Trenó de empurrar/puxar (Sled / Prowler)",
+      "category": "Academia",
+      "section": "Máquinas Cardiorrespiratórias e Funcionais",
+      "kind": "exercise",
+      "muscleGroup": "Cardiorrespiratório",
+      "equipmentType": "Monoestrutural",
+      "variants": [
+        "Empurrar",
+        "Puxar"
+      ]
+    },
+    {
+      "id": "crossfit-rower-remo-seco-concept2",
+      "name": "Rower (Remo Seco - Concept2)",
+      "category": "CrossFit",
+      "section": "Equipamentos e Máquinas",
+      "kind": "equipment",
+      "muscleGroup": null,
+      "equipmentType": "Monoestrutural",
+      "description": "Máquina de remo com resistência a ar"
+    },
+    {
+      "id": "crossfit-assault-bike-echo-bike-air-bike",
+      "name": "Assault Bike / Echo Bike (Air Bike)",
+      "category": "CrossFit",
+      "section": "Equipamentos e Máquinas",
+      "kind": "equipment",
+      "muscleGroup": null,
+      "equipmentType": "Monoestrutural",
+      "description": "Bicicleta com resistência a ar, braços e pernas"
+    },
+    {
+      "id": "crossfit-skierg-concept2",
+      "name": "SkiErg (Concept2)",
+      "category": "CrossFit",
+      "section": "Equipamentos e Máquinas",
+      "kind": "equipment",
+      "muscleGroup": null,
+      "equipmentType": "Monoestrutural",
+      "description": "Simulador de esqui cross-country"
+    },
+    {
+      "id": "crossfit-bikeerg-concept2",
+      "name": "BikeErg (Concept2)",
+      "category": "CrossFit",
+      "section": "Equipamentos e Máquinas",
+      "kind": "equipment",
+      "muscleGroup": null,
+      "equipmentType": "Monoestrutural",
+      "description": "Bicicleta com resistência a ar"
+    },
+    {
+      "id": "crossfit-trueform-airrunner",
+      "name": "TrueForm / AirRunner",
+      "category": "CrossFit",
+      "section": "Equipamentos e Máquinas",
+      "kind": "equipment",
+      "muscleGroup": null,
+      "equipmentType": "Monoestrutural",
+      "description": "Esteira curva não motorizada"
+    },
+    {
+      "id": "crossfit-rig-rack",
+      "name": "Rig / Rack",
+      "category": "CrossFit",
+      "section": "Equipamentos e Máquinas",
+      "kind": "equipment",
+      "muscleGroup": null,
+      "equipmentType": "Equipamentos",
+      "description": "Estrutura para movimentos ginásticos e barras"
+    },
+    {
+      "id": "crossfit-gymnastic-rings-argolas-olimpicas",
+      "name": "Gymnastic Rings (Argolas Olímpicas)",
+      "category": "CrossFit",
+      "section": "Equipamentos e Máquinas",
+      "kind": "equipment",
+      "muscleGroup": null,
+      "equipmentType": "Equipamentos"
+    },
+    {
+      "id": "crossfit-plyo-box-caixa-pliometrica",
+      "name": "Plyo Box (Caixa Pliométrica)",
+      "category": "CrossFit",
+      "section": "Equipamentos e Máquinas",
+      "kind": "equipment",
+      "muscleGroup": null,
+      "equipmentType": "Equipamentos",
+      "description": "Caixa de 20, 24 ou 30 polegadas"
+    },
+    {
+      "id": "crossfit-wall-ball-bola-medicinal",
+      "name": "Wall Ball (Bola Medicinal)",
+      "category": "CrossFit",
+      "section": "Equipamentos e Máquinas",
+      "kind": "equipment",
+      "muscleGroup": null,
+      "equipmentType": "Equipamentos",
+      "description": "Bola para arremessos"
+    },
+    {
+      "id": "crossfit-slam-ball-d-ball-sandbag",
+      "name": "Slam Ball / D-Ball / Sandbag",
+      "category": "CrossFit",
+      "section": "Equipamentos e Máquinas",
+      "kind": "equipment",
+      "muscleGroup": null,
+      "equipmentType": "Equipamentos",
+      "description": "Bolas e sacos pesados"
+    },
+    {
+      "id": "crossfit-ghd-glute-ham-developer",
+      "name": "GHD (Glute Ham Developer)",
+      "category": "CrossFit",
+      "section": "Equipamentos e Máquinas",
+      "kind": "equipment",
+      "muscleGroup": null,
+      "equipmentType": "Equipamentos"
+    },
+    {
+      "id": "crossfit-climbing-rope-corda-de-escalada",
+      "name": "Climbing Rope (Corda de escalada)",
+      "category": "CrossFit",
+      "section": "Equipamentos e Máquinas",
+      "kind": "equipment",
+      "muscleGroup": null,
+      "equipmentType": "Equipamentos"
+    },
+    {
+      "id": "crossfit-speed-rope-corda-de-pular",
+      "name": "Speed Rope (Corda de Pular)",
+      "category": "CrossFit",
+      "section": "Equipamentos e Máquinas",
+      "kind": "equipment",
+      "muscleGroup": null,
+      "equipmentType": "Equipamentos"
+    },
+    {
+      "id": "crossfit-sled-prowler",
+      "name": "Sled / Prowler",
+      "category": "CrossFit",
+      "section": "Equipamentos e Máquinas",
+      "kind": "equipment",
+      "muscleGroup": null,
+      "equipmentType": "Equipamentos"
+    },
+    {
+      "id": "crossfit-yoke-canga",
+      "name": "Yoke (Canga)",
+      "category": "CrossFit",
+      "section": "Equipamentos e Máquinas",
+      "kind": "equipment",
+      "muscleGroup": null,
+      "equipmentType": "Equipamentos"
+    },
+    {
+      "id": "crossfit-barra-olimpica-e-anilhas-bumper",
+      "name": "Barra Olímpica e Anilhas Bumper",
+      "category": "CrossFit",
+      "section": "Equipamentos e Máquinas",
+      "kind": "equipment",
+      "muscleGroup": null,
+      "equipmentType": "Equipamentos",
+      "description": "Barras de 20 kg/15 kg e anilhas emborrachadas"
+    },
+    {
+      "id": "crossfit-kettlebells-kbs-e-dumbbells-halteres-hexagonais",
+      "name": "Kettlebells (KBs) e Dumbbells (Halteres hexagonais)",
+      "category": "CrossFit",
+      "section": "Equipamentos e Máquinas",
+      "kind": "equipment",
+      "muscleGroup": null,
+      "equipmentType": "Equipamentos"
+    },
+    {
+      "id": "crossfit-air-squat",
+      "name": "Air Squat",
+      "category": "CrossFit",
+      "section": "Gymnastics",
+      "kind": "exercise",
+      "muscleGroup": "Quadríceps",
+      "equipmentType": "Ginástico"
+    },
+    {
+      "id": "crossfit-pistol-squat",
+      "name": "Pistol Squat",
+      "category": "CrossFit",
+      "section": "Gymnastics",
+      "kind": "exercise",
+      "muscleGroup": "Quadríceps",
+      "equipmentType": "Ginástico"
+    },
+    {
+      "id": "crossfit-push-up-hand-release-push-up",
+      "name": "Push-up / Hand-Release Push-up",
+      "category": "CrossFit",
+      "section": "Gymnastics",
+      "kind": "exercise",
+      "muscleGroup": "Peitoral",
+      "equipmentType": "Ginástico",
+      "variants": [
+        "Push-up",
+        "Hand-Release Push-up"
+      ]
+    },
+    {
+      "id": "crossfit-pull-up",
+      "name": "Pull-up",
+      "category": "CrossFit",
+      "section": "Gymnastics",
+      "kind": "exercise",
+      "muscleGroup": "Costas",
+      "equipmentType": "Ginástico",
+      "variants": [
+        "Strict",
+        "Kipping",
+        "Butterfly"
+      ]
+    },
+    {
+      "id": "crossfit-chest-to-bar-c2b",
+      "name": "Chest-to-Bar (C2B)",
+      "category": "CrossFit",
+      "section": "Gymnastics",
+      "kind": "exercise",
+      "muscleGroup": "Costas",
+      "equipmentType": "Ginástico"
+    },
+    {
+      "id": "crossfit-bar-muscle-up-bmu",
+      "name": "Bar Muscle-Up (BMU)",
+      "category": "CrossFit",
+      "section": "Gymnastics",
+      "kind": "exercise",
+      "muscleGroup": "Costas",
+      "equipmentType": "Ginástico"
+    },
+    {
+      "id": "crossfit-ring-muscle-up-rmu",
+      "name": "Ring Muscle-Up (RMU)",
+      "category": "CrossFit",
+      "section": "Gymnastics",
+      "kind": "exercise",
+      "muscleGroup": "Costas",
+      "equipmentType": "Ginástico"
+    },
+    {
+      "id": "crossfit-rope-climb-legless-rope-climb",
+      "name": "Rope Climb / Legless Rope Climb",
+      "category": "CrossFit",
+      "section": "Gymnastics",
+      "kind": "exercise",
+      "muscleGroup": "Costas",
+      "equipmentType": "Ginástico",
+      "variants": [
+        "Rope Climb",
+        "Legless Rope Climb"
+      ]
+    },
+    {
+      "id": "crossfit-toes-to-bar-t2b",
+      "name": "Toes-to-Bar (T2B)",
+      "category": "CrossFit",
+      "section": "Gymnastics",
+      "kind": "exercise",
+      "muscleGroup": "Abdômen/Core",
+      "equipmentType": "Ginástico"
+    },
+    {
+      "id": "crossfit-knees-to-elbows-k2e",
+      "name": "Knees-to-Elbows (K2E)",
+      "category": "CrossFit",
+      "section": "Gymnastics",
+      "kind": "exercise",
+      "muscleGroup": "Abdômen/Core",
+      "equipmentType": "Ginástico"
+    },
+    {
+      "id": "crossfit-sit-up-ghd-sit-up",
+      "name": "Sit-up / GHD Sit-up",
+      "category": "CrossFit",
+      "section": "Gymnastics",
+      "kind": "exercise",
+      "muscleGroup": "Abdômen/Core",
+      "equipmentType": "Ginástico",
+      "variants": [
+        "Sit-up",
+        "GHD Sit-up"
+      ]
+    },
+    {
+      "id": "crossfit-v-up-hollow-rock",
+      "name": "V-Up / Hollow Rock",
+      "category": "CrossFit",
+      "section": "Gymnastics",
+      "kind": "exercise",
+      "muscleGroup": "Abdômen/Core",
+      "equipmentType": "Ginástico",
+      "variants": [
+        "V-Up",
+        "Hollow Rock"
+      ]
+    },
+    {
+      "id": "crossfit-ring-dip-bar-dip",
+      "name": "Ring Dip / Bar Dip",
+      "category": "CrossFit",
+      "section": "Gymnastics",
+      "kind": "exercise",
+      "muscleGroup": "Tríceps",
+      "equipmentType": "Ginástico",
+      "variants": [
+        "Ring Dip",
+        "Bar Dip"
+      ]
+    },
+    {
+      "id": "crossfit-handstand-hold-handstand-walk-hsw",
+      "name": "Handstand Hold / Handstand Walk (HSW)",
+      "category": "CrossFit",
+      "section": "Gymnastics",
+      "kind": "exercise",
+      "muscleGroup": "Ombros",
+      "equipmentType": "Ginástico",
+      "variants": [
+        "Handstand Hold",
+        "Handstand Walk"
+      ]
+    },
+    {
+      "id": "crossfit-handstand-push-up-hspu",
+      "name": "Handstand Push-up (HSPU)",
+      "category": "CrossFit",
+      "section": "Gymnastics",
+      "kind": "exercise",
+      "muscleGroup": "Ombros",
+      "equipmentType": "Ginástico",
+      "variants": [
+        "Strict",
+        "Kipping"
+      ]
+    },
+    {
+      "id": "crossfit-wall-walk",
+      "name": "Wall Walk",
+      "category": "CrossFit",
+      "section": "Gymnastics",
+      "kind": "exercise",
+      "muscleGroup": "Ombros",
+      "equipmentType": "Ginástico"
+    },
+    {
+      "id": "crossfit-burpee-burpee-over-the-bar-burpee-box-jump-over",
+      "name": "Burpee / Burpee Over the Bar / Burpee Box Jump Over",
+      "category": "CrossFit",
+      "section": "Gymnastics",
+      "kind": "exercise",
+      "muscleGroup": "Corpo inteiro",
+      "equipmentType": "Ginástico",
+      "variants": [
+        "Burpee",
+        "Burpee Over the Bar",
+        "Burpee Box Jump Over"
+      ]
+    },
+    {
+      "id": "crossfit-box-jump-box-step-up",
+      "name": "Box Jump / Box Step-Up",
+      "category": "CrossFit",
+      "section": "Gymnastics",
+      "kind": "exercise",
+      "muscleGroup": "Corpo inteiro",
+      "equipmentType": "Ginástico",
+      "variants": [
+        "Box Jump",
+        "Box Step-Up"
+      ]
+    },
+    {
+      "id": "crossfit-double-under-du-single-under-su",
+      "name": "Double Under (DU) / Single Under (SU)",
+      "category": "CrossFit",
+      "section": "Gymnastics",
+      "kind": "exercise",
+      "muscleGroup": "Cardiorrespiratório",
+      "equipmentType": "Monoestrutural",
+      "variants": [
+        "Double Under",
+        "Single Under"
+      ]
+    },
+    {
+      "id": "crossfit-clean",
+      "name": "Clean",
+      "category": "CrossFit",
+      "section": "Weightlifting — Barras",
+      "kind": "exercise",
+      "muscleGroup": "Corpo inteiro",
+      "equipmentType": "Levantamento de peso",
+      "variants": [
+        "Squat Clean",
+        "Power Clean",
+        "Hang Clean"
+      ]
+    },
+    {
+      "id": "crossfit-jerk",
+      "name": "Jerk",
+      "category": "CrossFit",
+      "section": "Weightlifting — Barras",
+      "kind": "exercise",
+      "muscleGroup": "Corpo inteiro",
+      "equipmentType": "Levantamento de peso",
+      "variants": [
+        "Push Jerk",
+        "Split Jerk"
+      ]
+    },
+    {
+      "id": "crossfit-clean-jerk",
+      "name": "Clean & Jerk",
+      "category": "CrossFit",
+      "section": "Weightlifting — Barras",
+      "kind": "exercise",
+      "muscleGroup": "Corpo inteiro",
+      "equipmentType": "Levantamento de peso"
+    },
+    {
+      "id": "crossfit-snatch",
+      "name": "Snatch",
+      "category": "CrossFit",
+      "section": "Weightlifting — Barras",
+      "kind": "exercise",
+      "muscleGroup": "Corpo inteiro",
+      "equipmentType": "Levantamento de peso",
+      "variants": [
+        "Squat Snatch",
+        "Power Snatch",
+        "Hang Snatch"
+      ]
+    },
+    {
+      "id": "crossfit-thruster",
+      "name": "Thruster",
+      "category": "CrossFit",
+      "section": "Weightlifting — Barras",
+      "kind": "exercise",
+      "muscleGroup": "Corpo inteiro",
+      "equipmentType": "Levantamento de peso"
+    },
+    {
+      "id": "crossfit-deadlift-sumo-deadlift-high-pull-sdhp",
+      "name": "Deadlift / Sumo Deadlift High Pull (SDHP)",
+      "category": "CrossFit",
+      "section": "Weightlifting — Barras",
+      "kind": "exercise",
+      "muscleGroup": "Corpo inteiro",
+      "equipmentType": "Levantamento de peso",
+      "variants": [
+        "Deadlift",
+        "Sumo Deadlift High Pull"
+      ]
+    },
+    {
+      "id": "crossfit-front-squat-back-squat-overhead-squat-ohs",
+      "name": "Front Squat / Back Squat / Overhead Squat (OHS)",
+      "category": "CrossFit",
+      "section": "Weightlifting — Barras",
+      "kind": "exercise",
+      "muscleGroup": "Quadríceps",
+      "equipmentType": "Levantamento de peso",
+      "variants": [
+        "Front Squat",
+        "Back Squat",
+        "Overhead Squat"
+      ]
+    },
+    {
+      "id": "crossfit-shoulder-press-push-press",
+      "name": "Shoulder Press / Push Press",
+      "category": "CrossFit",
+      "section": "Weightlifting — Barras",
+      "kind": "exercise",
+      "muscleGroup": "Ombros",
+      "equipmentType": "Levantamento de peso",
+      "variants": [
+        "Shoulder Press",
+        "Push Press"
+      ]
+    },
+    {
+      "id": "crossfit-devil-press",
+      "name": "Devil Press",
+      "category": "CrossFit",
+      "section": "Weightlifting — Halteres e Objetos",
+      "kind": "exercise",
+      "muscleGroup": "Corpo inteiro",
+      "equipmentType": "Levantamento de peso"
+    },
+    {
+      "id": "crossfit-man-maker",
+      "name": "Man Maker",
+      "category": "CrossFit",
+      "section": "Weightlifting — Halteres e Objetos",
+      "kind": "exercise",
+      "muscleGroup": "Corpo inteiro",
+      "equipmentType": "Levantamento de peso"
+    },
+    {
+      "id": "crossfit-dumbbell-snatch-clean-jerk",
+      "name": "Dumbbell Snatch / Clean & Jerk",
+      "category": "CrossFit",
+      "section": "Weightlifting — Halteres e Objetos",
+      "kind": "exercise",
+      "muscleGroup": "Corpo inteiro",
+      "equipmentType": "Levantamento de peso",
+      "variants": [
+        "Dumbbell Snatch",
+        "Dumbbell Clean & Jerk"
+      ]
+    },
+    {
+      "id": "crossfit-kettlebell-swing",
+      "name": "Kettlebell Swing",
+      "category": "CrossFit",
+      "section": "Weightlifting — Halteres e Objetos",
+      "kind": "exercise",
+      "muscleGroup": "Corpo inteiro",
+      "equipmentType": "Levantamento de peso",
+      "variants": [
+        "American",
+        "Russian"
+      ]
+    },
+    {
+      "id": "crossfit-turkish-get-up-tgu",
+      "name": "Turkish Get-Up (TGU)",
+      "category": "CrossFit",
+      "section": "Weightlifting — Halteres e Objetos",
+      "kind": "exercise",
+      "muscleGroup": "Corpo inteiro",
+      "equipmentType": "Levantamento de peso"
+    },
+    {
+      "id": "crossfit-farmer-s-carry",
+      "name": "Farmer’s Carry",
+      "category": "CrossFit",
+      "section": "Weightlifting — Halteres e Objetos",
+      "kind": "exercise",
+      "muscleGroup": "Corpo inteiro",
+      "equipmentType": "Levantamento de peso"
+    },
+    {
+      "id": "crossfit-wall-ball-shot",
+      "name": "Wall Ball Shot",
+      "category": "CrossFit",
+      "section": "Weightlifting — Halteres e Objetos",
+      "kind": "exercise",
+      "muscleGroup": "Corpo inteiro",
+      "equipmentType": "Levantamento de peso"
+    },
+    {
+      "id": "crossfit-sandbag-clean-sandbag-carry",
+      "name": "Sandbag Clean / Sandbag Carry",
+      "category": "CrossFit",
+      "section": "Weightlifting — Halteres e Objetos",
+      "kind": "exercise",
+      "muscleGroup": "Corpo inteiro",
+      "equipmentType": "Levantamento de peso",
+      "variants": [
+        "Sandbag Clean",
+        "Sandbag Carry"
+      ]
+    },
+    {
+      "id": "hyrox-skierg-concept2",
+      "name": "SkiErg (Concept2)",
+      "category": "HYROX",
+      "section": "Equipamentos oficiais",
+      "kind": "equipment",
+      "muscleGroup": null,
+      "equipmentType": "Equipamentos"
+    },
+    {
+      "id": "hyrox-rower-concept2",
+      "name": "Rower (Concept2)",
+      "category": "HYROX",
+      "section": "Equipamentos oficiais",
+      "kind": "equipment",
+      "muscleGroup": null,
+      "equipmentType": "Equipamentos"
+    },
+    {
+      "id": "hyrox-sled-treno-de-competicao",
+      "name": "Sled (Trenó de competição)",
+      "category": "HYROX",
+      "section": "Equipamentos oficiais",
+      "kind": "equipment",
+      "muscleGroup": null,
+      "equipmentType": "Equipamentos"
+    },
+    {
+      "id": "hyrox-wall-ball-e-alvo-oficial-de-dupla-altura",
+      "name": "Wall Ball e alvo oficial de dupla altura",
+      "category": "HYROX",
+      "section": "Equipamentos oficiais",
+      "kind": "equipment",
+      "muscleGroup": null,
+      "equipmentType": "Equipamentos"
+    },
+    {
+      "id": "hyrox-sandbag-saco-de-areia-com-alcas",
+      "name": "Sandbag (Saco de areia com alças)",
+      "category": "HYROX",
+      "section": "Equipamentos oficiais",
+      "kind": "equipment",
+      "muscleGroup": null,
+      "equipmentType": "Equipamentos"
+    },
+    {
+      "id": "hyrox-kettlebells-de-competicao",
+      "name": "Kettlebells de competição",
+      "category": "HYROX",
+      "section": "Equipamentos oficiais",
+      "kind": "equipment",
+      "muscleGroup": null,
+      "equipmentType": "Equipamentos"
+    },
+    {
+      "id": "hyrox-skierg",
+      "name": "SkiErg",
+      "category": "HYROX",
+      "section": "Estações oficiais",
+      "kind": "exercise",
+      "muscleGroup": "Cardiorrespiratório",
+      "equipmentType": "Monoestrutural",
+      "stationOrder": 1,
+      "target": "1000 m"
+    },
+    {
+      "id": "hyrox-sled-push",
+      "name": "Sled Push",
+      "category": "HYROX",
+      "section": "Estações oficiais",
+      "kind": "exercise",
+      "muscleGroup": "Corpo inteiro",
+      "equipmentType": "Estações",
+      "stationOrder": 2,
+      "target": "50 m"
+    },
+    {
+      "id": "hyrox-sled-pull",
+      "name": "Sled Pull",
+      "category": "HYROX",
+      "section": "Estações oficiais",
+      "kind": "exercise",
+      "muscleGroup": "Corpo inteiro",
+      "equipmentType": "Estações",
+      "stationOrder": 3,
+      "target": "50 m"
+    },
+    {
+      "id": "hyrox-burpee-broad-jumps",
+      "name": "Burpee Broad Jumps",
+      "category": "HYROX",
+      "section": "Estações oficiais",
+      "kind": "exercise",
+      "muscleGroup": "Corpo inteiro",
+      "equipmentType": "Estações",
+      "stationOrder": 4,
+      "target": "80 m"
+    },
+    {
+      "id": "hyrox-rowing",
+      "name": "Rowing",
+      "category": "HYROX",
+      "section": "Estações oficiais",
+      "kind": "exercise",
+      "muscleGroup": "Cardiorrespiratório",
+      "equipmentType": "Monoestrutural",
+      "stationOrder": 5,
+      "target": "1000 m"
+    },
+    {
+      "id": "hyrox-farmers-carry",
+      "name": "Farmers Carry",
+      "category": "HYROX",
+      "section": "Estações oficiais",
+      "kind": "exercise",
+      "muscleGroup": "Corpo inteiro",
+      "equipmentType": "Estações",
+      "stationOrder": 6,
+      "target": "200 m"
+    },
+    {
+      "id": "hyrox-sandbag-lunges",
+      "name": "Sandbag Lunges",
+      "category": "HYROX",
+      "section": "Estações oficiais",
+      "kind": "exercise",
+      "muscleGroup": "Quadríceps",
+      "equipmentType": "Estações",
+      "stationOrder": 7,
+      "target": "100 m"
+    },
+    {
+      "id": "hyrox-wall-balls",
+      "name": "Wall Balls",
+      "category": "HYROX",
+      "section": "Estações oficiais",
+      "kind": "exercise",
+      "muscleGroup": "Corpo inteiro",
+      "equipmentType": "Estações",
+      "stationOrder": 8,
+      "target": "75 ou 100 repetições"
+    },
+    {
+      "id": "hyrox-running-corrida",
+      "name": "Running (corrida)",
+      "category": "HYROX",
+      "section": "Corrida intercalada",
+      "kind": "exercise",
+      "muscleGroup": "Cardiorrespiratório",
+      "equipmentType": "Monoestrutural",
+      "target": "8 × 1 km"
+    },
+    {
+      "id": "hyrox-thrusters",
+      "name": "Thrusters",
+      "category": "HYROX",
+      "section": "Treino híbrido — apoio",
+      "kind": "exercise",
+      "muscleGroup": "Corpo inteiro",
+      "equipmentType": "Funcional"
+    },
+    {
+      "id": "hyrox-box-step-ups-com-carga",
+      "name": "Box Step-Ups com carga",
+      "category": "HYROX",
+      "section": "Treino híbrido — apoio",
+      "kind": "exercise",
+      "muscleGroup": "Corpo inteiro",
+      "equipmentType": "Funcional"
+    },
+    {
+      "id": "hyrox-dumbbell-snatches",
+      "name": "Dumbbell Snatches",
+      "category": "HYROX",
+      "section": "Treino híbrido — apoio",
+      "kind": "exercise",
+      "muscleGroup": "Corpo inteiro",
+      "equipmentType": "Funcional"
+    },
+    {
+      "id": "hyrox-air-bike",
+      "name": "Air Bike",
+      "category": "HYROX",
+      "section": "Treino híbrido — apoio",
+      "kind": "exercise",
+      "muscleGroup": "Cardiorrespiratório",
+      "equipmentType": "Monoestrutural"
+    },
+    {
+      "id": "hyrox-corrida-intervalada",
+      "name": "Corrida intervalada",
+      "category": "HYROX",
+      "section": "Treino híbrido — apoio",
+      "kind": "exercise",
+      "muscleGroup": "Cardiorrespiratório",
+      "equipmentType": "Monoestrutural"
+    }
+  ]
+}

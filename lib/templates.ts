@@ -8,6 +8,9 @@ export type Exercise = {
   target: string;
   defaultLoad: number | null;
   unit: Unit;
+  category?: import('./exerciseCatalog').ExerciseCategory;
+  muscleGroup?: import('./exerciseCatalog').MuscleGroup;
+  equipmentType?: import('./exerciseCatalog').EquipmentType;
   tip?: string;
   block?: number;
 };

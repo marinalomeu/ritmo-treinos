@@ -1,0 +1,1050 @@
+{
+  "schemaVersion": 1,
+  "title": "Em Outro Ritmo",
+  "description": "Catálogo de provas e benchmarks para fichas prontas e metas de performance",
+  "referenceDate": "2026-11-20",
+  "sourcePolicy": "As distâncias, cargas e prescrições devem ser conferidas conforme a categoria e a edição oficial. Material importado da lista da usuária, com divergências relevantes corrigidas/indicadas.",
+  "challengeCount": 28,
+  "challenges": [
+    {
+      "id": "run-5k",
+      "name": "5K",
+      "modality": "Corrida",
+      "format": "distance",
+      "score": {
+        "metric": "elapsed_seconds",
+        "direction": "lower"
+      },
+      "steps": [
+        {
+          "name": "Corrida",
+          "amount": 5000,
+          "unit": "m"
+        }
+      ],
+      "standard": "distance_target",
+      "notes": "Distância-alvo; sem pace obrigatório."
+    },
+    {
+      "id": "run-10k",
+      "name": "10K",
+      "modality": "Corrida",
+      "format": "distance",
+      "score": {
+        "metric": "elapsed_seconds",
+        "direction": "lower"
+      },
+      "steps": [
+        {
+          "name": "Corrida",
+          "amount": 10000,
+          "unit": "m"
+        }
+      ],
+      "standard": "distance_target",
+      "notes": "Distância-alvo; sem pace obrigatório."
+    },
+    {
+      "id": "run-15k",
+      "name": "15K",
+      "modality": "Corrida",
+      "format": "distance",
+      "score": {
+        "metric": "elapsed_seconds",
+        "direction": "lower"
+      },
+      "steps": [
+        {
+          "name": "Corrida",
+          "amount": 15000,
+          "unit": "m"
+        }
+      ],
+      "standard": "distance_target",
+      "notes": "Distância-alvo; sem pace obrigatório."
+    },
+    {
+      "id": "run-10mi",
+      "name": "10 Milhas",
+      "modality": "Corrida",
+      "format": "distance",
+      "score": {
+        "metric": "elapsed_seconds",
+        "direction": "lower"
+      },
+      "steps": [
+        {
+          "name": "Corrida",
+          "amount": 16093.44,
+          "unit": "m"
+        }
+      ],
+      "standard": "distance_target",
+      "notes": "Distância-alvo; sem pace obrigatório."
+    },
+    {
+      "id": "run-half",
+      "name": "Meia Maratona",
+      "modality": "Corrida",
+      "format": "distance",
+      "score": {
+        "metric": "elapsed_seconds",
+        "direction": "lower"
+      },
+      "steps": [
+        {
+          "name": "Corrida",
+          "amount": 21097.5,
+          "unit": "m"
+        }
+      ],
+      "standard": "distance_target",
+      "notes": "Distância-alvo; sem pace obrigatório."
+    },
+    {
+      "id": "run-marathon",
+      "name": "Maratona",
+      "modality": "Corrida",
+      "format": "distance",
+      "score": {
+        "metric": "elapsed_seconds",
+        "direction": "lower"
+      },
+      "steps": [
+        {
+          "name": "Corrida",
+          "amount": 42195,
+          "unit": "m"
+        }
+      ],
+      "standard": "distance_target",
+      "notes": "Distância-alvo; sem pace obrigatório."
+    },
+    {
+      "id": "run-ultra50",
+      "name": "Ultra 50K",
+      "modality": "Corrida",
+      "format": "distance",
+      "score": {
+        "metric": "elapsed_seconds",
+        "direction": "lower"
+      },
+      "steps": [
+        {
+          "name": "Corrida",
+          "amount": 50000,
+          "unit": "m"
+        }
+      ],
+      "standard": "distance_target",
+      "notes": "Distância-alvo; sem pace obrigatório."
+    },
+    {
+      "id": "run-ultra80",
+      "name": "Ultra 80K",
+      "modality": "Corrida",
+      "format": "distance",
+      "score": {
+        "metric": "elapsed_seconds",
+        "direction": "lower"
+      },
+      "steps": [
+        {
+          "name": "Corrida",
+          "amount": 80000,
+          "unit": "m"
+        }
+      ],
+      "standard": "distance_target",
+      "notes": "80 km e 50 milhas (80,467 km) são distâncias diferentes."
+    },
+    {
+      "id": "run-ultra100",
+      "name": "Ultra 100K",
+      "modality": "Corrida",
+      "format": "distance",
+      "score": {
+        "metric": "elapsed_seconds",
+        "direction": "lower"
+      },
+      "steps": [
+        {
+          "name": "Corrida",
+          "amount": 100000,
+          "unit": "m"
+        }
+      ],
+      "standard": "distance_target",
+      "notes": "Distância-alvo; sem pace obrigatório."
+    },
+    {
+      "id": "run-ultra160",
+      "name": "Ultra 160K",
+      "modality": "Corrida",
+      "format": "distance",
+      "score": {
+        "metric": "elapsed_seconds",
+        "direction": "lower"
+      },
+      "steps": [
+        {
+          "name": "Corrida",
+          "amount": 160000,
+          "unit": "m"
+        }
+      ],
+      "standard": "distance_target",
+      "notes": "Distância-alvo; sem pace obrigatório."
+    },
+    {
+      "id": "tri-super-sprint",
+      "name": "Super Sprint",
+      "modality": "Triathlon",
+      "format": "sequential",
+      "score": {
+        "metric": "elapsed_seconds",
+        "direction": "lower"
+      },
+      "steps": [
+        {
+          "name": "Natação",
+          "amount": 400,
+          "unit": "m"
+        },
+        {
+          "name": "Ciclismo",
+          "amount": 10000,
+          "unit": "m"
+        },
+        {
+          "name": "Corrida",
+          "amount": 2500,
+          "unit": "m"
+        }
+      ],
+      "notes": "Alvos nominais de distância; regulamento do evento pode prever tolerâncias e modificações."
+    },
+    {
+      "id": "tri-sprint",
+      "name": "Sprint",
+      "modality": "Triathlon",
+      "format": "sequential",
+      "score": {
+        "metric": "elapsed_seconds",
+        "direction": "lower"
+      },
+      "steps": [
+        {
+          "name": "Natação",
+          "amount": 750,
+          "unit": "m"
+        },
+        {
+          "name": "Ciclismo",
+          "amount": 20000,
+          "unit": "m"
+        },
+        {
+          "name": "Corrida",
+          "amount": 5000,
+          "unit": "m"
+        }
+      ],
+      "notes": "Alvos nominais de distância; regulamento do evento pode prever tolerâncias e modificações."
+    },
+    {
+      "id": "tri-standard",
+      "name": "Olímpico / Standard",
+      "modality": "Triathlon",
+      "format": "sequential",
+      "score": {
+        "metric": "elapsed_seconds",
+        "direction": "lower"
+      },
+      "steps": [
+        {
+          "name": "Natação",
+          "amount": 1500,
+          "unit": "m"
+        },
+        {
+          "name": "Ciclismo",
+          "amount": 40000,
+          "unit": "m"
+        },
+        {
+          "name": "Corrida",
+          "amount": 10000,
+          "unit": "m"
+        }
+      ],
+      "notes": "Alvos nominais de distância; regulamento do evento pode prever tolerâncias e modificações."
+    },
+    {
+      "id": "tri-t100",
+      "name": "T100",
+      "modality": "Triathlon",
+      "format": "sequential",
+      "score": {
+        "metric": "elapsed_seconds",
+        "direction": "lower"
+      },
+      "steps": [
+        {
+          "name": "Natação",
+          "amount": 2000,
+          "unit": "m"
+        },
+        {
+          "name": "Ciclismo",
+          "amount": 80000,
+          "unit": "m"
+        },
+        {
+          "name": "Corrida",
+          "amount": 18000,
+          "unit": "m"
+        }
+      ],
+      "notes": "Alvos nominais de distância; regulamento do evento pode prever tolerâncias e modificações."
+    },
+    {
+      "id": "tri-70-3",
+      "name": "Ironman 70.3",
+      "modality": "Triathlon",
+      "format": "sequential",
+      "score": {
+        "metric": "elapsed_seconds",
+        "direction": "lower"
+      },
+      "steps": [
+        {
+          "name": "Natação",
+          "amount": 1900,
+          "unit": "m"
+        },
+        {
+          "name": "Ciclismo",
+          "amount": 90000,
+          "unit": "m"
+        },
+        {
+          "name": "Corrida",
+          "amount": 21100,
+          "unit": "m"
+        }
+      ],
+      "notes": "Alvos nominais de distância; regulamento do evento pode prever tolerâncias e modificações."
+    },
+    {
+      "id": "tri-full",
+      "name": "Ironman Full",
+      "modality": "Triathlon",
+      "format": "sequential",
+      "score": {
+        "metric": "elapsed_seconds",
+        "direction": "lower"
+      },
+      "steps": [
+        {
+          "name": "Natação",
+          "amount": 3800,
+          "unit": "m"
+        },
+        {
+          "name": "Ciclismo",
+          "amount": 180000,
+          "unit": "m"
+        },
+        {
+          "name": "Corrida",
+          "amount": 42200,
+          "unit": "m"
+        }
+      ],
+      "notes": "Alvos nominais de distância; regulamento do evento pode prever tolerâncias e modificações."
+    },
+    {
+      "id": "hyrox-singles",
+      "name": "HYROX Singles",
+      "modality": "Fitness híbrido",
+      "format": "for_time",
+      "score": {
+        "metric": "elapsed_seconds",
+        "direction": "lower"
+      },
+      "divisions": [
+        "women_open",
+        "men_open",
+        "women_pro",
+        "men_pro"
+      ],
+      "steps": [
+        {
+          "name": "Corrida",
+          "amount": 1000,
+          "unit": "m",
+          "block": 1
+        },
+        {
+          "name": "SkiErg",
+          "amount": 1000,
+          "unit": "m",
+          "station": 1
+        },
+        {
+          "name": "Corrida",
+          "amount": 1000,
+          "unit": "m",
+          "block": 2
+        },
+        {
+          "name": "Sled Push",
+          "amount": 50,
+          "unit": "m",
+          "loadKg": {
+            "women_open": 102,
+            "men_open": 152,
+            "women_pro": 152,
+            "men_pro": 202
+          },
+          "loadIncludesEquipment": true,
+          "station": 2
+        },
+        {
+          "name": "Corrida",
+          "amount": 1000,
+          "unit": "m",
+          "block": 3
+        },
+        {
+          "name": "Sled Pull",
+          "amount": 50,
+          "unit": "m",
+          "loadKg": {
+            "women_open": 78,
+            "men_open": 103,
+            "women_pro": 103,
+            "men_pro": 153
+          },
+          "loadIncludesEquipment": true,
+          "station": 3
+        },
+        {
+          "name": "Corrida",
+          "amount": 1000,
+          "unit": "m",
+          "block": 4
+        },
+        {
+          "name": "Burpee Broad Jumps",
+          "amount": 80,
+          "unit": "m",
+          "station": 4
+        },
+        {
+          "name": "Corrida",
+          "amount": 1000,
+          "unit": "m",
+          "block": 5
+        },
+        {
+          "name": "Rowing",
+          "amount": 1000,
+          "unit": "m",
+          "station": 5
+        },
+        {
+          "name": "Corrida",
+          "amount": 1000,
+          "unit": "m",
+          "block": 6
+        },
+        {
+          "name": "Farmers Carry",
+          "amount": 200,
+          "unit": "m",
+          "loadKgPerHand": {
+            "women_open": 16,
+            "men_open": 24,
+            "women_pro": 24,
+            "men_pro": 32
+          },
+          "station": 6
+        },
+        {
+          "name": "Corrida",
+          "amount": 1000,
+          "unit": "m",
+          "block": 7
+        },
+        {
+          "name": "Sandbag Lunges",
+          "amount": 100,
+          "unit": "m",
+          "loadKg": {
+            "women_open": 10,
+            "men_open": 20,
+            "women_pro": 20,
+            "men_pro": 30
+          },
+          "station": 7
+        },
+        {
+          "name": "Corrida",
+          "amount": 1000,
+          "unit": "m",
+          "block": 8
+        },
+        {
+          "name": "Wall Balls",
+          "amount": 100,
+          "unit": "reps",
+          "loadKg": {
+            "women_open": 4,
+            "men_open": 6,
+            "women_pro": 6,
+            "men_pro": 9
+          },
+          "targetHeightM": {
+            "women_open": 2.7,
+            "men_open": 3,
+            "women_pro": 2.7,
+            "men_pro": 3
+          },
+          "station": 8
+        }
+      ],
+      "standard": "2025/26 singles",
+      "notes": "São oito corridas de 1 km intercaladas com oito estações. Wall Balls: 100 repetições também em Women Open; pesos do trenó incluem o equipamento.",
+      "sources": [
+        "https://hyrox.com/rulebook/",
+        "https://hyrox.com/wp-content/uploads/2025/07/25_26_HYROX_RulebookSingles_EN.pdf"
+      ]
+    },
+    {
+      "id": "deka-fit",
+      "name": "DEKA FIT",
+      "modality": "Fitness híbrido",
+      "format": "for_time",
+      "score": {
+        "metric": "elapsed_seconds",
+        "direction": "lower"
+      },
+      "steps": [
+        {
+          "name": "Corrida",
+          "amount": 500,
+          "unit": "m",
+          "block": 1
+        },
+        {
+          "name": "RAM Alternating Reverse Lunges",
+          "amount": 30,
+          "unit": "reps",
+          "loadKg": {
+            "women": 15,
+            "men": 25
+          },
+          "zone": 1
+        },
+        {
+          "name": "Corrida",
+          "amount": 500,
+          "unit": "m",
+          "block": 2
+        },
+        {
+          "name": "Rowing",
+          "amount": 500,
+          "unit": "m",
+          "zone": 2
+        },
+        {
+          "name": "Corrida",
+          "amount": 500,
+          "unit": "m",
+          "block": 3
+        },
+        {
+          "name": "Box Jump/Step-Overs",
+          "amount": 20,
+          "unit": "reps",
+          "zone": 3
+        },
+        {
+          "name": "Corrida",
+          "amount": 500,
+          "unit": "m",
+          "block": 4
+        },
+        {
+          "name": "Med Ball Sit-Up Throws",
+          "amount": 25,
+          "unit": "reps",
+          "loadKg": {
+            "women": 6,
+            "men": 9
+          },
+          "zone": 4
+        },
+        {
+          "name": "Corrida",
+          "amount": 500,
+          "unit": "m",
+          "block": 5
+        },
+        {
+          "name": "SkiErg",
+          "amount": 500,
+          "unit": "m",
+          "zone": 5
+        },
+        {
+          "name": "Corrida",
+          "amount": 500,
+          "unit": "m",
+          "block": 6
+        },
+        {
+          "name": "Farmers Carry",
+          "amount": 100,
+          "unit": "m",
+          "loadKgPerHand": {
+            "women": 17.5,
+            "men": 27.5
+          },
+          "zone": 6
+        },
+        {
+          "name": "Corrida",
+          "amount": 500,
+          "unit": "m",
+          "block": 7
+        },
+        {
+          "name": "Air Bike",
+          "amount": 25,
+          "unit": "cal",
+          "zone": 7
+        },
+        {
+          "name": "Corrida",
+          "amount": 500,
+          "unit": "m",
+          "block": 8
+        },
+        {
+          "name": "Dead Ball Wall Overs",
+          "amount": 20,
+          "unit": "reps",
+          "loadKg": {
+            "women": 17.5,
+            "men": 27.5
+          },
+          "zone": 8
+        },
+        {
+          "name": "Corrida",
+          "amount": 500,
+          "unit": "m",
+          "block": 9
+        },
+        {
+          "name": "Tank Push/Pull",
+          "amount": 100,
+          "unit": "m",
+          "resistance": {
+            "women": {
+              "xebex": 7,
+              "torque": 2
+            },
+            "men": {
+              "xebex": 8,
+              "torque": 3
+            }
+          },
+          "zone": 9
+        },
+        {
+          "name": "Corrida",
+          "amount": 500,
+          "unit": "m",
+          "block": 10
+        },
+        {
+          "name": "RAM Burpees",
+          "amount": 20,
+          "unit": "reps",
+          "loadKg": {
+            "women": 10,
+            "men": 20
+          },
+          "zone": 10
+        }
+      ],
+      "standard": "2026 adult reference",
+      "notes": "Configuração de carga de adultos de referência, com divisões etárias específicas no regulamento. A zona 9 usa resistência de equipamento, não peso fixo; confirmar categoria e edição.",
+      "sources": [
+        "https://spartan-img.secaworld.com/pdf/2026/0421/69e6f31b942646485.pdf",
+        "https://pt.spartan.com/pt/deka/equipment"
+      ]
+    },
+    {
+      "id": "crossfit-murph",
+      "name": "Murph",
+      "modality": "CrossFit",
+      "format": "for_time",
+      "score": {
+        "metric": "elapsed_seconds",
+        "direction": "lower"
+      },
+      "steps": [
+        {
+          "name": "Corrida",
+          "amount": 1609.344,
+          "unit": "m"
+        },
+        {
+          "name": "Pull-ups",
+          "amount": 100,
+          "unit": "reps"
+        },
+        {
+          "name": "Push-ups",
+          "amount": 200,
+          "unit": "reps"
+        },
+        {
+          "name": "Air Squats",
+          "amount": 300,
+          "unit": "reps"
+        },
+        {
+          "name": "Corrida",
+          "amount": 1609.344,
+          "unit": "m"
+        }
+      ],
+      "optionalVestKg": {
+        "men": 9.07,
+        "women": 6.35
+      },
+      "notes": "Movimentos centrais podem ser particionados; colete é condicional à versão RX.",
+      "sources": [
+        "https://www.crossfit.com/benchmark/murph"
+      ]
+    },
+    {
+      "id": "crossfit-fran",
+      "name": "Fran",
+      "modality": "CrossFit",
+      "format": "for_time",
+      "score": {
+        "metric": "elapsed_seconds",
+        "direction": "lower"
+      },
+      "steps": [
+        {
+          "name": "Thrusters",
+          "amount": 21,
+          "unit": "reps",
+          "round": 1,
+          "rxLoadKg": {
+            "men": 43.09,
+            "women": 29.48
+          }
+        },
+        {
+          "name": "Pull-ups",
+          "amount": 21,
+          "unit": "reps",
+          "round": 1
+        },
+        {
+          "name": "Thrusters",
+          "amount": 15,
+          "unit": "reps",
+          "round": 2,
+          "rxLoadKg": {
+            "men": 43.09,
+            "women": 29.48
+          }
+        },
+        {
+          "name": "Pull-ups",
+          "amount": 15,
+          "unit": "reps",
+          "round": 2
+        },
+        {
+          "name": "Thrusters",
+          "amount": 9,
+          "unit": "reps",
+          "round": 3,
+          "rxLoadKg": {
+            "men": 43.09,
+            "women": 29.48
+          }
+        },
+        {
+          "name": "Pull-ups",
+          "amount": 9,
+          "unit": "reps",
+          "round": 3
+        }
+      ],
+      "sources": [
+        "https://www.crossfit.com/benchmark/fran"
+      ]
+    },
+    {
+      "id": "crossfit-cindy",
+      "name": "Cindy",
+      "modality": "CrossFit",
+      "format": "amrap",
+      "score": {
+        "metric": "rounds_plus_reps",
+        "direction": "higher"
+      },
+      "steps": [
+        {
+          "name": "Pull-ups",
+          "amount": 5,
+          "unit": "reps"
+        },
+        {
+          "name": "Push-ups",
+          "amount": 10,
+          "unit": "reps"
+        },
+        {
+          "name": "Air Squats",
+          "amount": 15,
+          "unit": "reps"
+        }
+      ],
+      "timeCapSeconds": 1200,
+      "repeat": "rounds_as_possible"
+    },
+    {
+      "id": "crossfit-helen",
+      "name": "Helen",
+      "modality": "CrossFit",
+      "format": "for_time",
+      "score": {
+        "metric": "elapsed_seconds",
+        "direction": "lower"
+      },
+      "steps": [
+        {
+          "name": "Corrida",
+          "amount": 400,
+          "unit": "m"
+        },
+        {
+          "name": "Kettlebell Swings",
+          "amount": 21,
+          "unit": "reps",
+          "rxLoadKg": {
+            "men": 24,
+            "women": 16
+          }
+        },
+        {
+          "name": "Pull-ups",
+          "amount": 12,
+          "unit": "reps"
+        }
+      ],
+      "rounds": 3
+    },
+    {
+      "id": "crossfit-grace",
+      "name": "Grace",
+      "modality": "CrossFit",
+      "format": "for_time",
+      "score": {
+        "metric": "elapsed_seconds",
+        "direction": "lower"
+      },
+      "steps": [
+        {
+          "name": "Clean & Jerk",
+          "amount": 30,
+          "unit": "reps",
+          "rxLoadKg": {
+            "men": 61.23,
+            "women": 43.09
+          }
+        }
+      ]
+    },
+    {
+      "id": "crossfit-isabel",
+      "name": "Isabel",
+      "modality": "CrossFit",
+      "format": "for_time",
+      "score": {
+        "metric": "elapsed_seconds",
+        "direction": "lower"
+      },
+      "steps": [
+        {
+          "name": "Snatch",
+          "amount": 30,
+          "unit": "reps",
+          "rxLoadKg": {
+            "men": 61.23,
+            "women": 43.09
+          }
+        }
+      ]
+    },
+    {
+      "id": "crossfit-karen",
+      "name": "Karen",
+      "modality": "CrossFit",
+      "format": "for_time",
+      "score": {
+        "metric": "elapsed_seconds",
+        "direction": "lower"
+      },
+      "steps": [
+        {
+          "name": "Wall Ball Shots",
+          "amount": 150,
+          "unit": "reps",
+          "rxLoadKg": {
+            "men": 9.07,
+            "women": 6.35
+          },
+          "targetHeightM": {
+            "men": 3.048,
+            "women": 2.7432
+          }
+        }
+      ],
+      "sources": [
+        "https://www.crossfit.com/benchmark/karen"
+      ]
+    },
+    {
+      "id": "crossfit-dt",
+      "name": "DT",
+      "modality": "CrossFit",
+      "format": "for_time",
+      "score": {
+        "metric": "elapsed_seconds",
+        "direction": "lower"
+      },
+      "steps": [
+        {
+          "name": "Deadlifts",
+          "amount": 12,
+          "unit": "reps"
+        },
+        {
+          "name": "Hang Power Cleans",
+          "amount": 9,
+          "unit": "reps"
+        },
+        {
+          "name": "Push Jerks",
+          "amount": 6,
+          "unit": "reps"
+        }
+      ],
+      "rounds": 5,
+      "commonBarbellLoadKg": {
+        "men": 70,
+        "women": 47
+      },
+      "notes": "Carga da barra comum aos três movimentos."
+    },
+    {
+      "id": "crossfit-fight-gone-bad",
+      "name": "Fight Gone Bad",
+      "modality": "CrossFit",
+      "format": "total_reps",
+      "score": {
+        "metric": "total_reps_calories",
+        "direction": "higher"
+      },
+      "steps": [
+        {
+          "name": "Wall Balls",
+          "amount": 60,
+          "unit": "sec",
+          "rxLoadKg": {
+            "men": 9.07,
+            "women": 6.35
+          }
+        },
+        {
+          "name": "Sumo Deadlift High Pull",
+          "amount": 60,
+          "unit": "sec",
+          "rxLoadKg": {
+            "men": 34.02,
+            "women": 24.95
+          }
+        },
+        {
+          "name": "Box Jumps",
+          "amount": 60,
+          "unit": "sec",
+          "heightCm": 50.8
+        },
+        {
+          "name": "Push Press",
+          "amount": 60,
+          "unit": "sec",
+          "rxLoadKg": {
+            "men": 34.02,
+            "women": 24.95
+          }
+        },
+        {
+          "name": "Row",
+          "amount": 60,
+          "unit": "sec",
+          "scoreUnit": "cal"
+        },
+        {
+          "name": "Descanso",
+          "amount": 60,
+          "unit": "sec"
+        }
+      ],
+      "rounds": 3,
+      "notes": "Cinco estações de 1 minuto e 1 minuto de descanso por rodada; duração total 18 minutos, com 15 minutos pontuáveis (não 17)."
+    },
+    {
+      "id": "crossfit-chad1000x",
+      "name": "CHAD1000X",
+      "modality": "CrossFit",
+      "format": "for_time",
+      "score": {
+        "metric": "elapsed_seconds",
+        "direction": "lower"
+      },
+      "steps": [
+        {
+          "name": "Box Step-Ups",
+          "amount": 1000,
+          "unit": "reps",
+          "boxHeightCm": 50.8
+        }
+      ],
+      "ruckKg": {
+        "men": 20.41,
+        "women": 15.88
+      },
+      "sources": [
+        "https://www.crossfit.com/benchmark/chad1000x"
+      ],
+      "notes": "Prescrição RX com mochila; existem variantes sem carga."
+    }
+  ]
+}
