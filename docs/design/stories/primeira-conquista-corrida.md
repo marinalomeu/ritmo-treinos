@@ -1,48 +1,55 @@
-# Ritmo — Story oficial de primeira conquista: corrida
+# Ritmo — Stories de desafios de corrida: modelos oficiais
 
-**Aprovação:** 20/11/2026. **Tipo:** diretriz de identidade visual oficial. **Status técnico:** documentação; ainda não integrado ao gerador nem homologado. Não gerar deploy nesta etapa.
+**Aprovação final:** 20/11/2026. **Status:** os dois modelos visuais estão aprovados como referência oficial. **Implementação e deploy: pendentes para o próximo pacote consolidado.**
 
-## Referência visual escolhida
+> **Importante:** as artes PNG foram aprovadas na conversa, mas seu upload binário ao GitHub ainda não está confirmado. Este documento é a decisão oficial e a especificação de fidelidade; não substitui os PNGs originais. Não afirmar que os arquivos foram publicados no repositório até verificar URLs de arquivos reais.
 
-A referência oficial é a **imagem aprovada no chat em 20/11/2026**, reapresentada pela usuária como `Imagem do ChatGPT 20 de nov. de 2026, 12_54_39.png`, e a sua revisão **sem as duas folhas/ramos laterais ao título**. A arte tem:
+## Modelo 1 — Primeira conquista de CADA desafio de corrida
 
-1. Fundo verde-claro suave com curvas discretas e sem alterar a identidade da composição.
-2. Logo `ritmo.` centralizado na margem superior segura.
-3. Pílula `Em outro ritmo`.
-4. Título `PRIMEIRA CONQUISTA` (na versão oficial atual).
-5. Medalha dourada com fita verde, corredor e distância da corrida gravados, incluindo os elementos decorativos **internos da medalha**.
-6. Distância principal abaixo da medalha e frase `Conquistei no meu ritmo`.
-7. Faixa arredondada com `Tempo` e `Data`.
-8. Pílula inferior `1ª vez nesse desafio`.
+**Referência exata:** última versão verde-clara aprovada, sem a escrita `PRIMEIRA CONQUISTA`, sem ramos laterais, preservando a medalha dourada com fita verde, seu relevo de corredor e o texto de distância, a composição, as tipografias, as curvas e margens da arte aprovada no chat.
 
-**Não reinvenção:** manter escala, posições, tipografia, fundos e ícones exatamente na referência aprovada; remover exclusivamente as folhagens independentes laterais ao título. Não substituir o original por mockups de composição distinta.
+**Composição fixa:**
+- Logo `ritmo.` no alto, com área de segurança do Instagram.
+- Medalha dourada com fita verde e a distância daquele desafio.
+- Distância em destaque sob a medalha, seguida por `Conquistei no meu ritmo`.
+- Barra arredondada de resultado com tempo e data.
+- Pílula inferior `1ª vez nesse desafio`.
+- **Remover a pílula `Em outro ritmo`** conforme a revisão posterior da usuária; não repetir essa expressão no topo.
+- Uma **única paleta verde-clara**; não oferecer temas alternativos.
 
-### Variante experimental solicitada
+**Apenas três valores variáveis:** distância/quilômetros do desafio, tempo efetivo e data da conclusão. São valores **obtidos automaticamente dos dados persistidos, não editáveis** no Story. A única escolha é **mostrar ou ocultar o tempo**; quando oculto, **centralizar a data na barra**, sem substituir por outro dado. Não inventar tempos nem conquistas.
 
-Avaliar uma **segunda versão sem o texto `PRIMEIRA CONQUISTA`**, removendo **apenas** essa inscrição. Todos os outros elementos devem permanecer iguais. Esta variante só se torna oficial mediante aprovação posterior.
+**Elegibilidade:** apenas na primeira conclusão válida **daquele ID de desafio pelo usuário**, e não apenas no primeiro desafio da conta. Uma primeira conclusão de 5K e uma primeira conclusão de 10K são conquistas independentes.
 
-## Política única de cor
+## Modelo 2 — Novo recorde pessoal no mesmo desafio, da segunda conclusão em diante
 
-Este Story especial de primeira conquista dos **desafios de corrida** usa sempre a **mesma paleta verde-clara aprovada**. Não oferecer seletor de temas para ele. Os Stories normais continuam sujeitos às suas próprias cinco paletas oficiais.
+**Referência exata:** última simulação do Story `Em um novo ritmo.` com **fonte principal reduzida**, explicitamente aprovada pela usuária. Não utilizar a versão imediatamente anterior de título muito grande.
 
-## Dados dinâmicos e não editáveis
+**Composição oficial:**
+- Logo `ritmo.` no alto; **sem a pílula `Em outro ritmo`**.
+- Selo superior `DESAFIO CONCLUÍDO` com troféu, evidenciando que se trata de um desafio do catálogo.
+- Manchete central `Em um novo ritmo.` em duas linhas, com a **tipografia reduzida da última referência**, em destaque equilibrado.
+- Linha imediatamente abaixo `Novo recorde pessoal neste desafio`.
+- Onda suave, distância do desafio em destaque e a barra horizontal de tempo/data, alinhadas à posição correspondente no modelo de primeira conquista.
+- Estética verde-clara coerente com a arte final aprovada. **Não adicionar uma medalha de primeira conquista**: ela distingue o Modelo 1.
+- Selo de melhor marca **opcional no Story normal**, habilitado somente quando a nova tentativa superou de fato a **melhor performance anterior do mesmo desafio em condições comparáveis**. Uma tentativa pior ou sem comparação válida não habilita esse selo.
+- Para corridas, melhoria significa **menor tempo na mesma distância/percurso e nas condições comparáveis definidas pelo produto**. Não inferir recorde do simples término de uma sessão.
 
-**Apenas três valores podem variar entre instâncias do modelo**, sempre automaticamente conforme a conclusão real verificada:
+**Sobre o Story normal:** a partir da segunda execução, o usuário mantém acesso à família normal de Stories; a expressão/selo de melhor marca representa uma variação **somente se elegível e selecionada**, nunca substitui obrigatoriamente as opções comuns.
 
-- **Distância/quilometragem:** desafio de corrida concluído, por ex. `5K`/`10K`; sincronizar inscrição da medalha e valor central. Origem: ID canônico e prescrição do desafio.
-- **Tempo:** resultado do desafio realmente registrado, nunca valor fictício nem duração total do treino se não representa o tempo da prova.
-- **Data:** data real da conclusão.
+## Critérios de QA e governança
 
-Esses valores **não devem ter campos editáveis no editor de Stories**. Todos os demais elementos são estáticos no layout. A ausência de tempo válido impede apresentar um tempo inventado: estabelecer o tratamento desse estado na implementação/homologação.
+1. Comparar prévia e PNG exportado com os dois modelos exatos aprovados, incluindo espaçamento, fontes, margens seguras, paleta, medalha e posicionamento de distância/tempo/data.
+2. O story de primeira conquista não inclui título `PRIMEIRA CONQUISTA` nem a pílula `Em outro ritmo`.
+3. O Story de novo recorde usa a versão de fonte **menor**, traz `DESAFIO CONCLUÍDO` e explicita `Novo recorde pessoal neste desafio`; sem a pílula `Em outro ritmo`.
+4. Cada conclusão é de um desafio específico e pertence ao usuário autenticado; não há concessão de selo para tempo pior, outra distância ou tentativas incompletas.
+5. Dados de corrida são reais e preservados; sem edição manual de distância, tempo ou data no modelo de primeira conquista. Ocultação de tempo centraliza somente a data.
+6. Não apagar histórico nem realizar migrações ou deploy automático em resposta à aprovação de design.
 
-## Elegibilidade e testes futuros
+## Links e referências
 
-- Gerar exclusivamente na **primeira conclusão válida daquele desafio específico** por usuário autenticado, não apenas na primeira conclusão global da conta.
-- Repetição do mesmo desafio: Story normal; eventual selo de melhor marca só com melhora comprovada (issue #23).
-- Histórico e resultados de outro usuário não devem influenciar elegibilidade ou dados exibidos.
-- Validar fidelidade entre prévia e PNG exportado, safe areas de Stories e diferentes comprimentos de distância/data.
-- **Nenhuma implementação, migração ou deploy autorizados por este documento.**
+- [Backlog oficial: issue #23](https://github.com/marinalomeu/ritmo-treinos/issues/23).
+- [Família de 25 Stories normais](README.md).
+- Referências visuais aprovadas em chat no dia 20/11/2026: **primeira conquista sem título** e **Em um novo ritmo com fonte reduzida**.
 
-Relações: [issue #23](https://github.com/marinalomeu/ritmo-treinos/issues/23), [designs anteriores](README.md).
-
-**Observação de versionamento:** este arquivo registra a aprovação e localiza o anexo visual da conversa. O upload do PNG binário integral ainda precisa ser confirmado por um caminho real no GitHub; não tratar este markdown como substituto do arquivo de imagem.
+**Pendência operacional:** versionar os **dois PNGs finais** neste diretório por meio de upload GitHub com conteúdo binário verificável. Até isso ser feito, as artes permanecem aprovadas na conversa, mas o repositório guarda apenas as especificações.
