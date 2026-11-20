@@ -6,10 +6,12 @@ import { DEMO_TEMPLATES } from '../lib/demoTemplates';
 import { createAdhocSession, createSession, deleteSession, finishSession, getSession, listData, saveSet, saveGoal, type Mode } from '../lib/clientStore';
 import { DEFAULT_GOAL, SHOWCASE_GOAL, goalProgress, isValidGoal, type TrainingGoal } from '../lib/goal';
 import TemplateDialog from './TemplateDialog';
+import ChallengesView from './ChallengesView';
+import { challengeToTemplate, type ChallengeDefinition } from '../lib/challengeTemplates';
 import ExerciseMultiSelect from './ExerciseMultiSelect';
 import MultiProgressGraph from './MultiProgressGraph';
 
-type View = 'home' | 'history' | 'progress' | 'workout';
+type View = 'home' | 'history' | 'progress' | 'challenges' | 'workout';
 const todayLocal = () => {const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;};
 const humanDate = (value:string) => {const [y,m,d]=value.slice(0,10).split('-');return `${d}/${m}/${y}`;};
 const formatLong = (s:string) => new Intl.DateTimeFormat('pt-BR',{weekday:'long',day:'numeric',month:'long'}).format(new Date(s+'T12:00:00'));
@@ -56,6 +58,7 @@ export default function WorkoutApp({mode}:{mode:Mode}) {
   const alertError=(e:unknown)=>setError(e instanceof Error?e.message:'Ocorreu um erro.');
   const openWorkout=async(id:string)=>{setBusy(true);setError('');try{const r=await getSession(mode,id);setDetail(r);setView('workout');setShowNew(false);}catch(e){alertError(e);}finally{setBusy(false);}};
   const startAdhoc=async(template:Template)=>{setBusy(true);setError('');try{const id=await createAdhocSession(mode,template,date);setCreatingAdhoc(false);await openWorkout(id);await refresh();}catch(e){alertError(e);throw e;}finally{setBusy(false);}};
+  const startChallenge=async(challenge:ChallengeDefinition,division:string)=>{setBusy(true);setError('');try{const template=challengeToTemplate(challenge,division);const id=await createAdhocSession(mode,template,date,true);await openWorkout(id);await refresh();}catch(e){alertError(e);throw e;}finally{setBusy(false);}};
   const startWorkout=async()=>{setBusy(true);setError('');try{const id=await createSession(mode,activeTemplate,date);await openWorkout(id);await refresh();}catch(e){alertError(e);}finally{setBusy(false);}};
   const patchSet=async(id:string,changes:Partial<StoredSet>)=>{
     if(!detail)return;const before=detail.sets.find(s=>s.id===id);if(!before)return;
@@ -77,7 +80,7 @@ export default function WorkoutApp({mode}:{mode:Mode}) {
   const remove=async(id:string)=>{if(!window.confirm('Excluir esta sessão e todas as séries registradas? Esta ação não pode ser desfeita.'))return;setBusy(true);try{await deleteSession(mode,id);if(detail?.session.id===id){setDetail(null);setView('history');}await refresh();}catch(e){alertError(e);}finally{setBusy(false);}};
   const selectView=(next:View)=>{setView(next);setError('');setShowNew(false);if(next!=='workout')setDetail(null);};
   const progress=mode==='showcase'?{daysLeft:48,checkins:5,planned:40}:goalProgress(goal,data.sessions,currentDate);
-  const nav=[{id:'home' as View,label:'Visão geral',Icon:Activity},{id:'history' as View,label:'Histórico',Icon:History},{id:'progress' as View,label:'Evolução',Icon:BarChart3}];
+  const nav=[{id:'home' as View,label:'Visão geral',Icon:Activity},{id:'history' as View,label:'Histórico',Icon:History},{id:'progress' as View,label:'Evolução',Icon:BarChart3},{id:'challenges' as View,label:'Em Outro Ritmo',Icon:Sparkles}];
   const allProgress=useMemo(()=>{
     const keys=new Map<string,{key:string,name:string,unit:Unit}>();
     visibleTemplates.forEach(t=>t.exercises.filter(e=>e.unit!=='none').forEach(e=>{if(!keys.has(e.key))keys.set(e.key,{key:e.key,name:e.name,unit:e.unit});}));
@@ -95,7 +98,7 @@ export default function WorkoutApp({mode}:{mode:Mode}) {
       <nav className="side-links" aria-label="Navegação principal">{nav.map(n=><button key={n.id} className={`nav-item ${view===n.id?'active':''}`} onClick={()=>selectView(n.id)}><n.Icon size={18}/>{n.label}{view===n.id&&<ChevronRight size={15} className="chev"/>}</button>)}</nav>
       <div className="sidebar-bottom"><div className="side-daily"><Sparkles size={18}/><div><strong>{goal.name}</strong><span>Constância, um treino por vez.</span></div></div><div className="mode-tag">{mode==='cloud'?<Cloud size={14}/>:<WifiOff size={14}/>} {mode==='cloud'?'Salvando no Neon':mode==='showcase'?'Dados fictícios e isolados':'Modo demonstração'}</div>{mode==='cloud'&&<button className="logout-link" onClick={async()=>{await fetch('/api/logout',{method:'POST'});window.location.reload();}}><LogOut size={15}/> Sair</button>}</div>
     </aside>
-    <main className="main-area"><header className="topbar"><div className="breadcrumbs"><span>Meu espaço</span><ChevronRight size={13}/><strong>{view==='home'?'Visão geral':view==='history'?'Histórico':view==='progress'?'Evolução':'Treino em andamento'}</strong></div><div className="header-date"><CalendarDays size={15}/>{humanDate(todayLocal())}</div></header>
+    <main className="main-area"><header className="topbar"><div className="breadcrumbs"><span>Meu espaço</span><ChevronRight size={13}/><strong>{view==='home'?'Visão geral':view==='history'?'Histórico':view==='progress'?'Evolução':view==='challenges'?'Em Outro Ritmo':'Treino em andamento'}</strong></div><div className="header-date"><CalendarDays size={15}/>{humanDate(todayLocal())}</div></header>
       <div className="page-content">
       {mode==='showcase'&&<div className="demo-banner"><WifiOff size={17}/><span><strong>Perfil de demonstração:</strong> cinco treinos fictícios. Alterações feitas aqui ficam apenas neste navegador, sem acesso ao banco real.</span></div>}
       {mode==='demo'&&<div className="demo-banner"><WifiOff size={17}/><span><strong>Modo demonstração:</strong> os registros ficam neste navegador. Para sincronizar com o Neon, configure o banco e as variáveis de ambiente.</span></div>}
@@ -111,10 +114,11 @@ export default function WorkoutApp({mode}:{mode:Mode}) {
         <div className="recent-list">{data.sessions.length?data.sessions.slice(0,4).map(s=><SessionRow key={s.id} s={s} showcase={mode==='showcase'} onClick={()=>openWorkout(s.id)}/>):<EmptyState title="Seu histórico começa aqui" text="Escolha uma ficha e registre seu primeiro treino."/>}</div>
       </>}
       {view==='history'&&<><PageHeading label="SEU REGISTRO" title="Histórico de treinos" description="Cada sessão fica salva com data, séries realizadas e cargas utilizadas."/><div className="history-toolbar"><span>{data.sessions.length} {data.sessions.length===1?'sessão registrada':'sessões registradas'}</span><button className="btn btn-primary" onClick={ensureStart}><Plus size={16}/> Novo treino</button></div><div className="recent-list">{data.sessions.length?data.sessions.map(s=><SessionRow key={s.id} s={s} showcase={mode==='showcase'} onClick={()=>openWorkout(s.id)}/>):<EmptyState title="Nenhum treino registrado" text="Quando você concluir suas séries, elas aparecerão aqui."/>}</div></>}
+      {view==='challenges'&&<ChallengesView onStart={startChallenge} disabled={busy}/>}
       {view==='progress'&&<><PageHeading label="EVOLUÇÃO DE CARGAS" title="Sua força, em perspectiva" description="Selecione quantos exercícios quiser para comparar sua evolução."/><div className="progress-card"><label className="input-label">EXERCÍCIOS PARA COMPARAR</label><ExerciseMultiSelect options={allProgress} selected={activeComparison.map(x=>x.key)} onChange={setSelectedExercises} label="Escolher exercícios" max={allProgress.length}/><MultiProgressGraph items={activeComparison} progress={data.progress}/></div><div className="progress-note"><TrendingUp size={18}/><span>O gráfico usa a maior carga concluída de cada exercício por sessão. Em exercícios assistidos, menos assistência significa maior esforço; compare a tendência considerando essa diferença.</span></div></>}
       {view==='workout'&&detail&&<>
         <button className="back-link" onClick={()=>{setDetail(null);setView('history');void refresh();}}><ArrowLeft size={17}/> Voltar ao histórico</button>
-        <div className="workout-heading"><div><p className="overline">{/^[A-Z]$/.test(detail.session.template_id)?`FICHA ${detail.session.template_id}`:'FICHA PERSONALIZADA'} · {detail.session.status==='finished'?'TREINO FINALIZADO':'TREINO EM ANDAMENTO'}</p><h1>{detail.session.template_name}</h1><p>{findVisibleTemplate(detail.session.template_id)?.description}</p></div><div className="workout-head-right"><label className="date-label">DATA<input type="date" value={detail.session.performed_on} disabled /></label></div></div>
+        <div className="workout-heading"><div><p className="overline">{/^[A-Z]$/.test(detail.session.template_id)?`FICHA ${detail.session.template_id}`:detail.session.template_id==='avulso'?'TREINO AVULSO / DESAFIO':'FICHA PERSONALIZADA'} · {detail.session.status==='finished'?'TREINO FINALIZADO':'TREINO EM ANDAMENTO'}</p><h1>{detail.session.template_name}</h1><p>{findVisibleTemplate(detail.session.template_id)?.description}</p></div><div className="workout-head-right"><label className="date-label">DATA<input type="date" value={detail.session.performed_on} disabled /></label></div></div>
         <div className="completion-card"><div><strong>{detail.sets.filter(s=>s.completed).length} de {detail.sets.length} séries</strong><span>concluídas nesta sessão</span></div><span className="completion-pct">{Math.round(100*detail.sets.filter(s=>s.completed).length/Math.max(detail.sets.length,1))}%</span><div className="progress-track"><div style={{width:`${100*detail.sets.filter(s=>s.completed).length/Math.max(detail.sets.length,1)}%`}}/></div></div>
         {mode!=='showcase'&&detail.session.template_name==='HYROX adaptado'&&detail.sets.some(s=>s.load_unit==='km/h')&&<div className="hyrox-info"><Footprints size={18}/><div><strong>6 blocos de 500 m</strong><span>Velocidade-alvo de 10 km/h, com pausas conforme necessário. Faça cada estação após sua corrida.</span></div></div>}
         <WorkoutSets detail={detail} template={findVisibleTemplate(detail.session.template_id)} saving={saving} patchSet={patchSet} updateLocalWeight={updateLocalWeight} saveEditedWeight={saveEditedWeight}/>
