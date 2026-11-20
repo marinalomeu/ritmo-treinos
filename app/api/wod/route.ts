@@ -51,17 +51,17 @@ export async function POST(request:Request){
     const entries=makeSets(template).map(s=>({
       exercise_key:s.exercise_key,exercise_name:s.exercise_name,sort_order:s.sort_order,
       block_number:s.block_number,set_number:s.set_number,target_reps:s.target_reps,
-      load_unit:s.load_unit,weight_kg:s.weight_kg
+      load_unit:s.load_unit,weight_kg:s.weight_kg,actual_reps:s.actual_reps
     }));
     try{
       await sql`
         INSERT INTO public.session_sets(session_id,exercise_key,exercise_name,sort_order,
-          block_number,set_number,target_reps,load_unit,weight_kg)
+          block_number,set_number,target_reps,load_unit,weight_kg,actual_reps)
         SELECT ${id}::uuid,x.exercise_key,x.exercise_name,x.sort_order,x.block_number,
-          x.set_number,x.target_reps,x.load_unit,x.weight_kg
+          x.set_number,x.target_reps,x.load_unit,x.weight_kg,x.actual_reps
         FROM jsonb_to_recordset(${JSON.stringify(entries)}::jsonb) AS x(
           exercise_key text,exercise_name text,sort_order smallint,block_number smallint,
-          set_number smallint,target_reps text,load_unit text,weight_kg numeric
+          set_number smallint,target_reps text,load_unit text,weight_kg numeric,actual_reps integer
         )
       `;
     }catch(error){
