@@ -171,6 +171,7 @@ async function specialChallengePoster(detail:SessionDetail,name:string,summary:S
 }
 
 export default function WorkoutShareCard({detail,onClose}:{detail:SessionDetail;onClose:()=>void}){
+  const [eligibility,setEligibility]=useState<ShareEligibility|null>(null);
   const [visual,setVisual]=useState<ShareVisual>('dark-green');
   const [showChallengeTime,setShowChallengeTime]=useState(true);
   const [showBestBadge,setShowBestBadge]=useState(false);
@@ -179,7 +180,7 @@ export default function WorkoutShareCard({detail,onClose}:{detail:SessionDetail;
   const bestChallenge=Boolean(isChallenge&&eligibility?.challengeBest&&!eligibility?.challengeFirst);
   const challengeName=detail.session.template_name.replace(/^(Desafio|Prova)\s*[:·-]\s*/i,'').trim();
   const [composition,setComposition]=useState<ShareComposition>('training');
-  const [eligibility,setEligibility]=useState<ShareEligibility|null>(null);
+
   const [eligibilityError,setEligibilityError]=useState(false);
   useEffect(()=>{
     let alive=true;
