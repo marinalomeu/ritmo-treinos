@@ -17,9 +17,9 @@ const copyTemplate=(t:Template):Template=>JSON.parse(JSON.stringify(t)) as Templ
 const fmtLoad=(e:Exercise)=>e.unit==='none'?'Peso corporal':
   e.defaultLoad===null?'Carga livre':`${e.defaultLoad} ${e.unit==='assist_kg'?'kg de assistência':e.unit}`;
 
-export default function TemplateDialog({template,mode,onClose,onChanged,onStart,availableTemplates}:{
+export default function TemplateDialog({template,mode,onClose,onChanged,onStart,availableTemplates,sessionOnly=false,onSessionCreated}:{
   template:Template|null; mode:Mode;onClose:()=>void;onChanged:()=>Promise<void>;
-  onStart:(id:string)=>void;availableTemplates:Template[];
+  onStart:(id:string)=>void;availableTemplates:Template[];sessionOnly?:boolean;onSessionCreated?:(template:Template)=>Promise<void>;
 }){
   const [editing,setEditing]=useState(!template);
   const [draft,setDraft]=useState<Template>(()=>template?copyTemplate(template):newTemplate());
@@ -36,9 +36,8 @@ export default function TemplateDialog({template,mode,onClose,onChanged,onStart,
     if(!normalized){setError('Informe o nome da ficha e preencha pelo menos um exercício. Confira séries, metas e cargas.');return;}
     setBusy(true);setError('');
     try{
-      await persistTemplate(mode,normalized,!template);
-      await onChanged();
-      onClose();
+      if(sessionOnly){if(!onSessionCreated)throw new Error('Não foi possível iniciar o treino avulso.');await onSessionCreated(normalized);}
+      else {await persistTemplate(mode,normalized,!template);await onChanged();onClose();}
     }catch(err){setError(err instanceof Error?err.message:'Não foi possível salvar a ficha.');}
     finally{setBusy(false);}
   };
@@ -52,8 +51,8 @@ export default function TemplateDialog({template,mode,onClose,onChanged,onStart,
   return <div className="modal-backdrop" onMouseDown={e=>{if(e.target===e.currentTarget&&!busy)onClose();}}>
     <div className="modal template-dialog" role="dialog" aria-modal="true" aria-labelledby="template-dialog-title">
       <div className="modal-head">
-        <div><p className="overline">{editing?(template?'EDITAR FICHA':'NOVA FICHA'):'CONSULTAR EXERCÍCIOS'}</p>
-          <h2 id="template-dialog-title">{editing?(template?'Editar ficha':'Criar ficha'):(template?.name||'Ficha')}</h2></div>
+        <div><p className="overline">{editing?(sessionOnly?'TREINO AVULSO':template?'EDITAR FICHA':'NOVA FICHA'):'CONSULTAR EXERCÍCIOS'}</p>
+          <h2 id="template-dialog-title">{editing?(sessionOnly?'Montar treino avulso':template?'Editar ficha':'Criar ficha'):(template?.name||'Ficha')}</h2></div>
         <button className="close-btn" type="button" aria-label="Fechar" disabled={busy} onClick={onClose}>×</button>
       </div>
       {error&&<p className="template-alert" role="alert">{error}</p>}
@@ -93,9 +92,9 @@ export default function TemplateDialog({template,mode,onClose,onChanged,onStart,
             <label>UNIDADE<select value={e.unit} onChange={v=>updateExercise(i,{unit:v.target.value as Exercise['unit']})}><option value="kg">kg</option><option value="assist_kg">kg de assistência</option><option value="km/h">km/h</option><option value="none">Peso corporal</option></select></label>
           </div>
         </div>)}</div>
-        <p className="template-history-notice">Editar ou retirar exercícios muda apenas esta ficha daqui para frente. Seu histórico continua disponível na aba Evolução.</p>
+        <p className="template-history-notice">{sessionOnly?'Este treino será registrado no histórico, sem criar uma ficha permanente.':'Editar ou retirar exercícios muda apenas esta ficha daqui para frente. Seu histórico continua disponível na aba Evolução.'}</p>
         <div className="template-dialog-actions">
-          <button type="button" className="btn btn-primary" disabled={busy} onClick={()=>void save()}>{busy?<LoaderCircle size={16} className="spin"/>:<Check size={16}/>} Salvar ficha</button>
+          <button type="button" className="btn btn-primary" disabled={busy} onClick={()=>void save()}>{busy?<LoaderCircle size={16} className="spin"/>:<Check size={16}/>} {sessionOnly?'Começar treino avulso':'Salvar ficha'}</button>
           <button type="button" className="btn btn-outline-template" disabled={busy} onClick={()=>{if(template){setEditing(false);setError('');}else onClose();}}>Cancelar</button>
         </div>
       </>}
