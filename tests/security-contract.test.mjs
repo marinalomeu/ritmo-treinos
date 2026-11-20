@@ -336,7 +336,7 @@ test('card possui seleção elegante de informações, volume imutável e mínim
   assert.ok(ui.includes('aria-pressed={active}'),'estado acessível');
   assert.ok(ui.includes('updateShareOption(key)'),'opções independentes');
   assert.ok(ui.includes('toggleTargets'),'metas opcionais para WOD');
-  assert.ok(ui.includes("options.showDate?'  ·  '"),'PNG respeita data');
+  assert.ok(ui.includes('if(options.showDate)'),'PNG respeita data');
   assert.ok(ui.includes('numericShareTarget(entry.target)'),'metas sem texto extra');
   assert.ok(ui.includes('shareMetricValues(summary,options)'),'prévia e PNG usam mesmos dados');
   assert.ok(ui.includes('pngPoster(detail,visual,options,summary,composition,verified,showBestBadge&&Boolean(verified?.challengeBest))'),'exportação respeita estilo e seleção');

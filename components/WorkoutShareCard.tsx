@@ -7,6 +7,7 @@ import { DEFAULT_SHARE_OPTIONS, numericShareTarget, shareMetricValues, shareSele
   type ShareComposition, type ShareEligibility, type ShareMetric, type ShareOptions, type ShareSummary, type ShareVisual } from '../lib/workoutShare';
 
 const cap=(value:string)=>value.charAt(0).toLocaleUpperCase('pt-BR')+value.slice(1);
+const formatStoryDate=(day:string)=>new Date(day+'T12:00:00').toLocaleDateString('pt-BR',{day:'numeric',month:'long',year:'numeric'});
 const formatDate=(day:string)=>{
   const [year,month,date]=day.split('-');
   return `${date}.${month}.${year}`;
@@ -61,7 +62,7 @@ async function pngPoster(detail:SessionDetail,visual:ShareVisual,options:ShareOp
   drawWrapped(ctx,label,112,nameY-9,w-190,39,1);
   if(options.showDate){
     ctx.fillStyle=colors.secondary;ctx.font='600 24px DM Sans, sans-serif';
-    ctx.fillText(detail.session.performed_on.split('-').reverse().join('/'),112,nameY+33);
+    ctx.fillText(formatStoryDate(detail.session.performed_on),112,nameY+33);
   }
   if(options.showGymName&&detail.session.gym_name){
     ctx.fillStyle=colors.secondary;ctx.font='600 22px DM Sans, sans-serif';
