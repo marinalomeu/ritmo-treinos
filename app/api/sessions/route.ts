@@ -1,23 +1,31 @@
 import { NextResponse } from 'next/server';
 import { db, hasSession, sameOrigin, serverError, unauthorized, forbiddenOrigin } from '../../../lib/server';
 import { makeSets, type Template } from '../../../lib/templates';
+import { normalizeTemplate } from '../../../lib/templateEditor';
 export async function POST(request: Request) {
   if (!await hasSession()) return unauthorized();
   if (!sameOrigin(request)) return forbiddenOrigin();
   try {
     const body = await request.json();
     const date=body.performed_on;
-    if(typeof body.template_id!=='string'||typeof date!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(date)
+    if((typeof body.template_id!=='string'&&!body.template)||typeof date!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(date)
       || Number.isNaN(Date.parse(`${date}T12:00:00Z`))) {
       return NextResponse.json({error:'Ficha ou data inválida.'},{status:400});
     }
     const sql=db();
-    const available=await sql`
-      SELECT id,name,description,days,category,exercises
-      FROM workout_templates WHERE id=${body.template_id} LIMIT 1
-    `;
-    if(!available.length)return NextResponse.json({error:'Esta ficha não existe mais.'},{status:404});
-    const template=available[0] as unknown as Template;
+    let template:Template;
+    if(body.template){
+      const valid=normalizeTemplate(body.template,'avulso');
+      if(!valid)return NextResponse.json({error:'Exercícios inválidos para treino avulso.'},{status:400});
+      template=valid;
+    }else{
+      const available=await sql`
+        SELECT id,name,description,days,category,exercises
+        FROM workout_templates WHERE id=${body.template_id} LIMIT 1
+      `;
+      if(!available.length)return NextResponse.json({error:'Esta ficha não existe mais.'},{status:404});
+      template=available[0] as unknown as Template;
+    }
     const latest = await sql`
       SELECT DISTINCT ON (exercise_key) exercise_key, weight_kg::float8 AS weight_kg
       FROM session_sets WHERE completed = TRUE AND weight_kg IS NOT NULL
