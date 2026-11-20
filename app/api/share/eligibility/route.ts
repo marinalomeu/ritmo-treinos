@@ -2,7 +2,7 @@ import {NextRequest,NextResponse} from 'next/server';
 import {db,unauthorized,serverError} from '../../../../lib/server';
 import {currentProfile,multiuserConfigured} from '../../../../lib/multiuser';
 
-type Session={id:string;performed_on:string;status:string;completed_sets:number;challenge_id:string|null;started_at:string;finished_at:string|null;challenge_division:string|null};
+type Session={id:string;performed_on:string;status:string;completed_sets:number;challenge_id:string|null;started_at:string;finished_at:string|null;challenge_division:string|null;paused_ms?:number};
 const utc=(s:string)=>Date.parse(s.slice(0,10)+'T12:00:00Z');
 const day=(n:number)=>new Date(n).toISOString().slice(0,10);
 export async function GET(request:NextRequest){
