@@ -1,3 +1,2 @@
-import OwnerActivation from '../../components/OwnerActivation';
-export const dynamic='force-dynamic';
-export default function ActivateAccountPage(){return <OwnerActivation/>;}
+import OwnerSetup from '../../components/OwnerSetup';
+export default function ActivateOwnerPage(){return <OwnerSetup/>;}

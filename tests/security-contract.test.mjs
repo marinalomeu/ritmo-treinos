@@ -471,3 +471,16 @@ test('webhook so consome convite quando id Neon Auth corresponde ao email assina
   assert.ok(created.includes('i.email=lower(u.email)'),'nao consumir convite de email diferente');
   assert.ok(created.includes('p.id=u.id AND p.email<>i.email'),'nao consumir convite se perfil preexistente discorda');
 });
+
+test('ativacao da proprietaria exige verificacao e senha antes de habilitar perfil',()=>{
+  const setup=source('components/OwnerSetup.tsx');
+  const activation=source('app/api/owner/activate/route.ts');
+  assert.ok(setup.includes('auth.emailOtp.sendVerificationOtp'),'enviar OTP de email');
+  assert.ok(setup.includes('auth.emailOtp.verifyEmail'),'verificar email antes de criar senha');
+  assert.ok(setup.includes('auth.emailOtp.resetPassword'),'senha definida pelo titular');
+  assert.ok(setup.includes("fetch('/api/owner/activate'"),'ativacao somente após login');
+  assert.ok(activation.includes("p.role='owner'"),'nao promover membro');
+  assert.ok(activation.includes('p.enabled=false'),'nao ativar contas arbitrarias');
+  assert.ok(activation.includes('u."emailVerified"=true'),'exigir verificacao no provider');
+  assert.ok(activation.includes('a.password IS NOT NULL'),'exigir credencial com senha');
+});
