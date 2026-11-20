@@ -1,4 +1,4 @@
-import { DEMO_TEMPLATES } from './demoTemplates';
+import { DEMO_TEMPLATES } from './demoTemplates.ts';
 import type { PersonalRecord, ExerciseModality } from './personalRecords';
 import type { CatalogExercise } from './exerciseCatalog';
 
