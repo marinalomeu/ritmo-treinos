@@ -112,3 +112,7 @@ Decisão de produto: a entrada Meu Box fica **invisível sem membership**, não 
 - As tabelas futuras `referral_links`, `referral_claims` e `referral_conversion_events` estão em `db/migrations/20261120_referral_affiliates_future.sql`. A tabela anterior `partner_attributions` é apenas uma base preliminar e **não pode ser utilizada em paralelo como segundo cálculo de comissão** sem reconciliação e decisão de modelo único.
 
 **Status:** somente especificação e migração proposta; não foi implementado cadastro por indicação, rastreamento, comissão nem convites operacionais.
+
+## Fonte oficial de decisões comerciais
+
+Consultar [Decisões Comerciais](decisoes-comerciais.md) antes de configurar comissões, programa de indicações, recompensas individuais ou regras financeiras. Esse registro distingue decisões homologadas de hipóteses comerciais pendentes. As regras técnicas desta arquitetura não determinam, por si só, percentuais ou condições de comissão.
