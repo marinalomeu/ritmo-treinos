@@ -1,6 +1,6 @@
 # Ritmo — Stories de triathlon: primeira conquista e recorde pessoal
 
-**Data:** 20/11/2026. **Estado:** primeira conquista APROVADA; variante **Em um novo ritmo.** em avaliação visual. **Não implementar ou publicar agora**; consolidar no próximo pacote.
+**Data:** 20/11/2026. **Estado:** primeira conquista e variante **Em um novo ritmo.** OFICIALMENTE APROVADAS. **Não implementar ou publicar agora**; consolidar no próximo pacote.
 
 ## Primeira conquista — MODELO OFICIAL APROVADO
 
@@ -13,7 +13,7 @@ O modelo aprovado é a arte verde-clara de **TRIATHLON SPRINT** apresentada na c
 - **Conquista independente por desafio:** primeira conclusão **daquele desafio** pelo usuário, e não primeira conclusão geral da conta. Provas Sprint e Olímpico têm primeiros marcos independentes.
 - Preservar layout, ícones, proporções, margens e a legibilidade do modelo aprovado, inclusive em exportação PNG.
 
-## Novo recorde — CONCEITO EM AVALIAÇÃO
+## Novo recorde — MODELO OFICIAL APROVADO
 
 Arte apresentada após a aprovação da primeira conquista, intitulada `Em um novo ritmo.`, com:
 - Logo `ritmo.`, pílula superior `DESAFIO CONCLUÍDO` e troféu.
@@ -21,7 +21,7 @@ Arte apresentada após a aprovação da primeira conquista, intitulada `Em um no
 - Medalha dourada com símbolos de natação/ciclismo/corrida, prova `TRIATHLON SPRINT`, distâncias por modalidade, faixa de tempo/data.
 - Fundo verde-claro, tipografia e elementos coerentes com a arte de primeira conquista.
 
-**Ainda não homologada pela usuária:** não promover este conceito ao modelo oficial sem aprovação explícita.
+**Aprovação explícita:** usuária aprovou a composição final de “Em um novo ritmo.” para triathlon em 20/11/2026. A medalha dourada com as três modalidades deve permanecer no modelo, tal como na simulação aprovada. Aplicar a regra de ocultar o tempo e centralizar a data também nesta variante, preservando os dados reais e não editáveis. Não confundir aprovação visual com implementação/homologação técnica.
 
 ### Elegibilidade do novo recorde
 - Apenas da segunda conclusão em diante e quando um resultado da mesma prova e divisão comparável **supera a melhor marca anterior**, não somente a última tentativa.
