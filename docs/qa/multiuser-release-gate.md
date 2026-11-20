@@ -61,3 +61,13 @@ A correção de código associa `accepted_by` **somente depois** da criação de
 4. Nenhum deploy automático de produção durante a fase de testes. Liberar somente por go/no-go explícito.
 
 **Conclusão atual:** código e schema parcialmente validados, mas **isolamento entre contas ainda não homologado**. Este gate não deve ser tratado como aprovação para liberar usuários.
+
+
+## Evidência adicional — 20/11/2026: login em preview
+
+- Usuária apresentou erro `Invalid origin` ao fazer login no deploy preview `ritmo-treinos-deauyddbx-marina-lomeus-projects.vercel.app`.
+- Na configuração do Neon Auth **da branch de staging**, somente o alias fixo da branch estava autorizado como origem confiável.
+- A origem exata do preview foi adicionada ao allowlist Better Auth, e o cadastro foi confirmado por nova leitura da configuração.
+- A usuária confirmou em seguida: **"consegui"**, referindo-se ao login no preview após a correção.
+- **Resultado parcial MU-09:** LOGIN VALIDADO para esta conta/preview após a correção de origem. Continuam pendentes os testes de expiração de sessão, revogação de sessão e comprovação separada de reset de senha ponta a ponta. Não marcar MU-09 completa.
+- Nenhuma senha foi consultada ou modificada pela equipe, e nenhuma alteração foi aplicada ao banco de produção.
