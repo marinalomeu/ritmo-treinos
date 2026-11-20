@@ -77,3 +77,38 @@ C: calendário/editor/publicação do WOD, sessões com cargas editáveis e mét
 D: atribuição comercial, controle de planos e relatórios de parceiro dentro de permissões e contratos.
 
 Decisão de produto: a entrada Meu Box fica **invisível sem membership**, não apenas desabilitada.
+
+## Programa de indicação / afiliados — dois convites independentes
+
+**Decisão de produto (20/11/2026):** a tela de convites poderá ser liberada para boxes e, futuramente, usuários comuns. Um link de indicação atribui possível receita comercial, **não** concede permissão de visualização de WODs nem prova que a pessoa treina naquele box.
+
+### Cenário X/Y
+1. O box gera um link de indicação público/reutilizável (ou código), identificado por `referral_links.code`.
+2. X se cadastra pelo link do box e passa a treinar lá. O cadastro pode gerar um `referral_claim` pendente; **somente uma conversão de pagamento elegível e confirmada** permite calcular eventual comissão. Para acessar WODs, X recebe **outro convite**, privado, de uso único, direcionado a e-mail verificado, via `partner_invitations`.
+3. Y também se cadastra pelo link, mas faz musculação em outra academia. Seu pagamento elegível pode gerar comissão para o mesmo box, **sem membership ou acesso** ao box.
+4. X e Y mantêm suas fichas e históricos sob contas individuais, independentemente da atribuição comercial.
+
+### Diferenças de segurança e UX
+| Recurso | Link afiliado | Convite privado do box |
+| --- | --- | --- |
+| Finalidade | Origem da venda/indicação | Membership e acesso ao painel/WOD |
+| Público-alvo | Qualquer potencial assinante | E-mail especificamente convidado |
+| Reutilização | Reutilizável até pausar/expirar | Token de uso único, revogável, prazo curto |
+| Acesso concedido | Nenhum | Acesso ao box conforme papel autorizado |
+| Resultado do clique | Cadastro com rastreamento permitido | Aceitação autenticada e e-mail verificado |
+| Gera comissão | Nunca apenas pelo clique/cadastro | Nunca por si só |
+
+### Evolução da tela de convites
+- **Parceiro/box:** link de indicação, código copiável, convites privados a membros, histórico de indicação e métricas comerciais autorizadas; sessões pessoais dos indicados não ficam acessíveis.
+- **Usuário comum (futuro):** link próprio do programa de indicação, se elegível, sem criação de organização/box.
+- **Admin Ritmo:** políticas de elegibilidade, limite, validade, alteração, suspensão, auditoria de conversões e reversões por estorno.
+- A interface deve explicar a distinção entre **Indicar o Ritmo** e **Convidar para meu box**; nunca reutilizar o mesmo token para as duas ações.
+
+### Regras comerciais a definir antes da operação
+- Atribuição first-touch/last-touch, janelas, regras de múltiplos indicadores e proteção contra autosindicação.
+- Eventos de assinatura, pagamentos, renovação, cancelamento, estorno, chargeback e conciliação financeira. Definir se a comissão é pontual ou recorrente.
+- Eligibility, tratamento LGPD (consentimento e retenção para tracking), e ausência de compartilhamento automático de e-mails com o box.
+- Contrato de comissionamento separado de contrato de membership; vínculo ao box nunca altera o indicador da compra sem regra explícita.
+- As tabelas futuras `referral_links`, `referral_claims` e `referral_conversion_events` estão em `db/migrations/20261120_referral_affiliates_future.sql`. A tabela anterior `partner_attributions` é apenas uma base preliminar e **não pode ser utilizada em paralelo como segundo cálculo de comissão** sem reconciliação e decisão de modelo único.
+
+**Status:** somente especificação e migração proposta; não foi implementado cadastro por indicação, rastreamento, comissão nem convites operacionais.
