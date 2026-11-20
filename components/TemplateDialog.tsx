@@ -5,6 +5,7 @@ import type { Template, Exercise } from '../lib/templates';
 import type { Mode } from '../lib/clientStore';
 import { persistTemplate, removeTemplate } from '../lib/clientStore';
 import { normalizeTemplate } from '../lib/templateEditor';
+import ExerciseMultiSelect from './ExerciseMultiSelect';
 
 const newExercise=():Exercise=>({
   key:`ex-${crypto.randomUUID()}`,name:'',sets:3,target:'10 repetições',defaultLoad:null,unit:'kg'
@@ -16,14 +17,17 @@ const copyTemplate=(t:Template):Template=>JSON.parse(JSON.stringify(t)) as Templ
 const fmtLoad=(e:Exercise)=>e.unit==='none'?'Peso corporal':
   e.defaultLoad===null?'Carga livre':`${e.defaultLoad} ${e.unit==='assist_kg'?'kg de assistência':e.unit}`;
 
-export default function TemplateDialog({template,mode,onClose,onChanged,onStart}:{
+export default function TemplateDialog({template,mode,onClose,onChanged,onStart,availableTemplates}:{
   template:Template|null; mode:Mode;onClose:()=>void;onChanged:()=>Promise<void>;
-  onStart:(id:string)=>void;
+  onStart:(id:string)=>void;availableTemplates:Template[];
 }){
   const [editing,setEditing]=useState(!template);
   const [draft,setDraft]=useState<Template>(()=>template?copyTemplate(template):newTemplate());
   const [error,setError]=useState('');
   const [busy,setBusy]=useState(false);
+  const catalog=[...new Map(availableTemplates.flatMap(t=>t.exercises).map(e=>[e.key,e] as const)).values()];
+  const [queuedKeys,setQueuedKeys]=useState<string[]>([]);
+  const addSelected=()=>{const chosen=catalog.filter(e=>queuedKeys.includes(e.key)&&!draft.exercises.some(x=>x.key===e.key));setDraft(d=>({...d,exercises:[...d.exercises.filter(e=>e.name.trim()),...chosen.map(e=>({...e}))].slice(0,40)}));setQueuedKeys([]);};
   const updateExercise=(i:number,patch:Partial<Exercise>)=>{
     setDraft(d=>({...d,exercises:d.exercises.map((e,index)=>index===i?{...e,...patch}:e)}));
   };
@@ -78,6 +82,7 @@ export default function TemplateDialog({template,mode,onClose,onChanged,onStart}
           </div>
         </div>
         <div className="template-editor-heading"><strong>Exercícios</strong><button type="button" className="text-btn" onClick={()=>setDraft(d=>({...d,exercises:[...d.exercises,newExercise()]}))} disabled={draft.exercises.length>=40||busy}><Plus size={15}/> Adicionar exercício</button></div>
+        <div className="template-bulk-picker"><strong>Adicionar vários exercícios</strong><p>Selecione todos os exercícios primeiro. Configure séries, repetições e cargas nos cartões abaixo antes de salvar.</p><ExerciseMultiSelect options={catalog.filter(e=>!draft.exercises.some(x=>x.key===e.key))} selected={queuedKeys} onChange={setQueuedKeys} label="Escolher exercícios da biblioteca" max={Math.max(0,40-draft.exercises.length)}/><button type="button" className="btn btn-outline-template" disabled={!queuedKeys.length||busy} onClick={addSelected}><Plus size={15}/> Adicionar {queuedKeys.length||''} selecionados</button></div>
         <div className="template-edit-exercises">{draft.exercises.map((e,i)=><div className="template-edit-exercise" key={e.key}>
           <div className="template-edit-head"><strong>Exercício {i+1}</strong><button type="button" className="template-remove-exercise" disabled={draft.exercises.length<=1||busy} onClick={()=>setDraft(d=>({...d,exercises:d.exercises.filter(x=>x.key!==e.key)}))}><X size={14}/> Remover</button></div>
           <label>NOME<input maxLength={100} placeholder="Nome do exercício" value={e.name} onChange={v=>updateExercise(i,{name:v.target.value})}/></label>
