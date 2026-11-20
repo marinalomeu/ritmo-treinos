@@ -32,6 +32,7 @@ const sessionDuration=(startedAt:string,finishedAt:string|null,now:number)=>{
 export default function WorkoutApp({mode,isOwner=false}:{mode:Mode;isOwner?:boolean}) {
   const [view,setView]=useState<View>('home');const [data,setData]=useState<HistoryData>({sessions:[],progress:[]});
   const [clockNow,setClockNow]=useState(()=>Date.now());
+  const [restState,setRestState]=useState<{setId:string;until:number;skipped:boolean}|null>(null);
   const [detail,setDetail]=useState<SessionDetail|null>(null);const [loading,setLoading]=useState(true);const [busy,setBusy]=useState(false);const [error,setError]=useState('');
   const [date,setDate]=useState(todayLocal());const [currentDate,setCurrentDate]=useState(todayLocal());const [activeTemplate,setActiveTemplate]=useState('A');const [showNew,setShowNew]=useState(false);
   const [selectedExercises,setSelectedExercises]=useState<string[]>(mode==='showcase'?['a1']:[]);
@@ -96,7 +97,9 @@ export default function WorkoutApp({mode,isOwner=false}:{mode:Mode;isOwner?:bool
     return ()=>window.clearInterval(interval);
   },[view,detail?.session.id,detail?.session.status]);
   const alertError=(e:unknown)=>setError(e instanceof Error?e.message:'Ocorreu um erro.');
-  const openWorkout=async(id:string)=>{setBusy(true);setError('');setApplyNotice('');setApplyTarget('');setPrUpdateMode(null);setTemplateUpdateMode(null);setPendingTemplateLoads([]);setShowShare(false);try{const r=await getSession(mode,id);setDetail(r);setSessionGymDraft(r.session.gym_name??'');setView('workout');setShowNew(false);}catch(e){alertError(e);}finally{setBusy(false);}};
+  const openWorkout=async(id:string)=>{setBusy(true);setError('');setApplyNotice('');setApplyTarget('');setPrUpdateMode(null);setTemplateUpdateMode(null);setPendingTemplateLoads([]);setShowShare(false);try{const r=await getSession(mode,id);setDetail(r);setSessionGymDraft(r.session.gym_name??'');
+      try{const saved=sessionStorage.getItem(`ritmo-rest:${id}`);setRestState(saved?JSON.parse(saved):null);}catch{setRestState(null);}
+      setView('workout');setShowNew(false);}catch(e){alertError(e);}finally{setBusy(false);}};
   const startWorkout=async()=>{setBusy(true);setError('');try{const id=await createSession(mode,activeTemplate,date,sessionGymOverride);await openWorkout(id);await refresh();}catch(e){alertError(e);}finally{setBusy(false);}};
   const patchSet=async(id:string,changes:Partial<StoredSet>)=>{
     if(!detail)return;const before=detail.sets.find(s=>s.id===id);if(!before)return;
@@ -104,11 +107,19 @@ export default function WorkoutApp({mode,isOwner=false}:{mode:Mode;isOwner?:bool
     if(changes.completed===true&&!before.completed&&next.actual_reps===null){
       next.actual_reps=prescribedReps(next.target_reps);
     }
+    next.completed_at=next.completed?(before.completed_at??new Date().toISOString()):null;
     const finalWeight=next.weight_kg;
     if(next.actual_reps!=null&&(!Number.isInteger(next.actual_reps)||next.actual_reps<0||next.actual_reps>10000)){setError('Confira as repetições realizadas.');return;}
     if(finalWeight!==null&&(!Number.isFinite(finalWeight)||finalWeight<0||finalWeight>2000)){setError('Confira a carga ou a velocidade informada.');return;}
     setDetail(d=>d?{...d,sets:d.sets.map(s=>s.id===id?next:s)}:d);setSaving(s=>[...s,id]);setError('');
-    try{await saveSet(mode,id,next.completed,finalWeight,next.actual_reps??null);await refresh();}
+    try{await saveSet(mode,id,next.completed,finalWeight,next.actual_reps??null);await refresh();
+      if(changes.completed===true&&!before.completed&&typeof next.rest_seconds==='number'&&next.rest_seconds>0){
+        const pending=detail.sets.some(s=>s.exercise_key===next.exercise_key&&!s.completed&&s.id!==id);
+        if(pending){const state={setId:id,until:Date.now()+next.rest_seconds*1000,skipped:false};setRestState(state);
+          try{sessionStorage.setItem(`ritmo-rest:${detail.session.id}`,JSON.stringify(state));}catch{}
+        }
+      }
+    }
     catch(e){setDetail(d=>d?{...d,sets:d.sets.map(s=>s.id===id?before:s)}:d);alertError(e);}
     finally{setSaving(s=>s.filter(x=>x!==id));}
   };
@@ -280,6 +291,7 @@ export default function WorkoutApp({mode,isOwner=false}:{mode:Mode;isOwner?:bool
         </div>
         <div className="completion-card"><div><strong>{detail.sets.filter(s=>s.completed).length} de {detail.sets.length} séries</strong><span>concluídas nesta sessão</span></div><span className="completion-pct">{Math.round(100*detail.sets.filter(s=>s.completed).length/Math.max(detail.sets.length,1))}%</span><div className="progress-track"><div style={{width:`${100*detail.sets.filter(s=>s.completed).length/Math.max(detail.sets.length,1)}%`}}/></div></div>
         {mode!=='showcase'&&detail.session.template_name==='HYROX adaptado'&&detail.sets.some(s=>s.load_unit==='km/h')&&<div className="hyrox-info"><Footprints size={18}/><div><strong>6 blocos de 500 m</strong><span>Velocidade-alvo de 10 km/h, com pausas conforme necessário. Faça cada estação após sua corrida.</span></div></div>}
+        {detail.session.status==='active'&&restState&&!restState.skipped&&restState.until>clockNow&&detail.sets.some(s=>s.id===restState.setId&&s.completed)&&<div className="rest-timer"><Clock3 size={18}/><strong>Descanso: {Math.ceil((restState.until-clockNow)/1000)}s</strong><button type="button" onClick={()=>{const n={...restState,skipped:true};setRestState(n);try{sessionStorage.setItem(`ritmo-rest:${detail.session.id}`,JSON.stringify(n));}catch{}}}>Pular</button><button type="button" onClick={()=>{const n={...restState,until:restState.until+30000};setRestState(n);try{sessionStorage.setItem(`ritmo-rest:${detail.session.id}`,JSON.stringify(n));}catch{}}}>+30s</button></div>}
         <WorkoutSets detail={detail} template={findVisibleTemplate(detail.session.template_id)} saving={saving} patchSet={patchSet} updateLocalWeight={updateLocalWeight} saveEditedWeight={saveEditedWeight} updateLocalReps={updateLocalReps} saveEditedReps={saveEditedReps}/>
 
         {detail.session.status==='finished'&&<div className="post-workout-share-invite">

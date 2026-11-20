@@ -12,6 +12,7 @@ export type Exercise = {
   unit: Unit;
   tip?: string;
   block?: number;
+  restSeconds?: number | null;
 };
 export type Template = {
   id: string;
@@ -34,6 +35,7 @@ export type StoredSet = {
   set_number: number;
   target_reps: string;
   actual_reps: number | null;
+  rest_seconds?: number | null;
   load_unit: Unit;
   weight_kg: number | null;
   completed: boolean;
@@ -62,6 +64,6 @@ export function prescribedReps(target:string):number|null {
 }
 export const makeSets = (template: Template, past: Record<string, number> = {}): StoredSet[] => template.exercises.flatMap((e, index) => Array.from({length: e.sets}, (_, i) => ({
   id: `${e.key}-${i+1}`, exercise_key: e.key, exercise_name: e.name, sort_order: index, block_number: e.block ?? null,
-  set_number: i+1, target_reps: e.target, actual_reps: null, load_unit: e.unit, weight_kg: past[e.key] ?? e.defaultLoad,
+  set_number: i+1, target_reps: e.target, actual_reps: null, rest_seconds:e.restSeconds??null, load_unit: e.unit, weight_kg: past[e.key] ?? e.defaultLoad,
   completed: false, completed_at: null
 })));

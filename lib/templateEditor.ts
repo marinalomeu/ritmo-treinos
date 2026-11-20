@@ -21,13 +21,15 @@ export const normalizeTemplate=(input:unknown,id:string):Template | null=>{
     if(!validKey(x.key)||keys.has(x.key as string)||!text(x.name,100)||!text(x.target,100)
       ||!Number.isInteger(x.sets)||x.sets!<1||x.sets!>20||!units.includes(x.unit as Unit)
       ||!(x.defaultLoad===null || (typeof x.defaultLoad==='number' && Number.isFinite(x.defaultLoad) && x.defaultLoad>=0 && x.defaultLoad<=2000))
-      ||!(x.block===undefined||x.block===null||(Number.isInteger(x.block)&&x.block>=1&&x.block<=20)))return null;
+      ||!(x.block===undefined||x.block===null||(Number.isInteger(x.block)&&x.block>=1&&x.block<=20))
+      ||!(x.restSeconds===undefined||x.restSeconds===null||(Number.isInteger(x.restSeconds)&&x.restSeconds>=0&&x.restSeconds<=3600)))return null;
     keys.add(x.key as string);
     exercises.push({
       key:x.key as string,name:text(x.name,100),sets:x.sets as number,target:text(x.target,100),
       defaultLoad:x.defaultLoad as number|null,unit:x.unit as Unit,
       ...(text(x.tip,300)?{tip:text(x.tip,300)}:{}),
-      ...(typeof x.block==='number'?{block:x.block}:{})
+      ...(typeof x.block==='number'?{block:x.block}:{}),
+      ...(typeof x.restSeconds==='number'?{restSeconds:x.restSeconds}:{})
     });
   }
   return {id,name,description,days,category,gym_name,exercises};

@@ -506,3 +506,11 @@ test('inicio contextual da ficha nao reabre seletor de treinos',()=>{
  assert.ok(context.includes('createSession(mode,id,todayLocal()'));
  assert.ok(!context.includes('setShowNew(true)'));
 });
+
+test('descanso configuravel preservado no snapshot da serie',()=>{
+ const src=source('lib/templates.ts'),editor=source('lib/templateEditor.ts');
+ assert.ok(src.includes('restSeconds?: number | null;'));
+ assert.ok(editor.includes('x.restSeconds<=3600'));
+ assert.ok(source('app/api/sessions/route.ts').includes('rest_seconds'));
+ assert.ok(source('components/WorkoutApp.tsx').includes('sessionStorage.setItem'));
+});
