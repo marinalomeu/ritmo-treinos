@@ -37,6 +37,26 @@ async function pngPoster(detail:SessionDetail,visual:ShareVisual,options:ShareOp
   const w=c.width,h=c.height;
   const metrics=shareMetricValues(summary,options);
   const exercises=visibleShareExercises(summary,metrics.length);
+  const [previewUrl,setPreviewUrl]=useState('');
+  const [previewBusy,setPreviewBusy]=useState(true);
+  // A prévia é gerada pelo MESMO Canvas usado para exportar o PNG.
+  useEffect(()=>{
+    let alive=true;
+    let url='';
+    if(isChallenge&&!eligibility){setPreviewBusy(false);return;}
+    setPreviewBusy(true);
+    const task=window.setTimeout(()=>{
+      (firstChallenge
+        ?specialChallengePoster(detail,challengeName,summary,showChallengeTime)
+        :pngPoster(detail,visual,options,summary,composition,eligibility,showBestBadge&&bestChallenge))
+      .then(file=>{
+        if(!alive)return;
+        url=URL.createObjectURL(file);
+        setPreviewUrl(url);setPreviewBusy(false);
+      }).catch(()=>{if(alive){setPreviewUrl('');setPreviewBusy(false);}});
+    },120);
+    return()=>{alive=false;window.clearTimeout(task);if(url)URL.revokeObjectURL(url);};
+  },[detail,summary,visual,options,composition,eligibility,firstChallenge,bestChallenge,showBestBadge,showChallengeTime,challengeName,isChallenge]);
   const colors=SHARE_THEMES[visual];
   const grad=ctx.createLinearGradient(0,0,w,h);
   grad.addColorStop(0,colors.gradient[0]);grad.addColorStop(.55,colors.gradient[1]);grad.addColorStop(1,colors.gradient[2]);
@@ -243,6 +263,7 @@ export default function WorkoutShareCard({detail,onClose}:{detail:SessionDetail;
         verified=await r.json() as ShareEligibility;
         if(!verified?.challengeFirst&&!isAllowed(composition,verified))throw new Error('Esta conquista ainda não está disponível para seu treino.');
       }
+      if(isChallenge&&!verified)throw new Error('Não foi possível confirmar a conclusão deste desafio.');
       const file=isChallenge&&verified?.challengeFirst
         ?await specialChallengePoster(detail,challengeName,summary,showChallengeTime)
         :await pngPoster(detail,visual,options,summary,composition,verified,showBestBadge&&Boolean(verified?.challengeBest));
@@ -265,7 +286,9 @@ export default function WorkoutShareCard({detail,onClose}:{detail:SessionDetail;
         <button className="close-btn" type="button" onClick={onClose} aria-label="Fechar"><X size={18}/></button>
       </div>
       <div className="share-layout">
-        {firstChallenge?<div className="challenge-special-poster" aria-label="Story da primeira conclusão do desafio">
+        {previewUrl?<img className="share-rendered-preview" src={previewUrl} alt="Prévia idêntica à imagem PNG exportada"/>:
+         isChallenge&&!eligibility&&!eligibilityError?<div className="share-preview-pending" role="status">Confirmando conclusão do desafio...</div>:
+         firstChallenge?<div className="challenge-special-poster" aria-label="Story da primeira conclusão do desafio">
           <strong className="challenge-special-logo">ritmo.</strong>
           <div className="challenge-special-medal"><span>{detail.session.challenge_id?.includes('triathlon')?'TRI':detail.session.challenge_id?.includes('hyrox')?'HYROX':detail.session.challenge_id?.includes('murph')?'MURPH':challengeName.match(/\d+\s*(?:km|k|milhas)/i)?.[0]||'★'}</span></div>
           <div className="challenge-special-main"><strong>{challengeName}</strong><em>Conquistei no meu ritmo</em></div>
@@ -349,10 +372,10 @@ export default function WorkoutShareCard({detail,onClose}:{detail:SessionDetail;
           </>}
           <p className="share-privacy">A prévia muda conforme suas escolhas. Nenhuma informação pessoal é incluída, e nada será publicado automaticamente.</p>
           {error&&<p className="template-alert" role="alert">{error}</p>}
-          <button className="btn btn-primary" disabled={busy} type="button" onClick={()=>void exportCard(true)}>
+          <button className="btn btn-primary" disabled={busy||previewBusy||(isChallenge&&!eligibility)} type="button" onClick={()=>void exportCard(true)}>
             <Share2 size={17}/> {busy?'Gerando arte…':'Compartilhar meu treino'}
           </button>
-          <button className="btn btn-outline-template" disabled={busy} type="button" onClick={()=>void exportCard(false)}>
+          <button className="btn btn-outline-template" disabled={busy||previewBusy||(isChallenge&&!eligibility)} type="button" onClick={()=>void exportCard(false)}>
             <Download size={16}/> Baixar imagem PNG
           </button>
           <button className="share-continue" type="button" onClick={onClose}>Ver detalhes e atualizar meus PRs</button>
