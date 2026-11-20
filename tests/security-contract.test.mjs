@@ -425,3 +425,23 @@ test('seletor multiplo para grafico e montagem de treinos mantem identidade e es
   assert.ok(wod.includes('defaultLoad:null'),'carga editada individualmente apos escolha');
   assert.ok(css.includes('.multi-exercise-menu'),'menu customizado nao nativo');
 });
+
+test('convite aceito registra identidade autenticada para trilha de auditoria',()=>{
+  const webhook=source('app/api/webhooks/neon/route.ts');
+  const fallback=source('lib/multiuser.ts');
+  for (const [path,body] of [['webhook',webhook],['fallback autenticado',fallback]]) {
+    assert.ok(body.includes('SET accepted_by=${id}::uuid'),path+' deve associar aceite ao usuario');
+    assert.ok(body.includes("i.status='accepted'"),path+' deve exigir convite aceito');
+    assert.ok(body.includes('i.accepted_by IS NULL'),path+' nao pode sobrescrever atribuicao existente');
+    assert.ok(body.includes('p.id=${id}::uuid AND p.email=${email}'),path+' precisa vincular a conta e email');
+  }
+});
+
+test('testes reais de staging sao exigidos para liberar multiusuario',()=>{
+  const checklist=source('docs/qa/multiuser-release-gate.md');
+  assert.ok(checklist.includes('BLOQUEADO'), 'manter bloqueio ate testes dinamicos de isolamento');
+  assert.ok(checklist.includes('Acesso cruzado entre duas contas'));
+  assert.ok(checklist.includes('Cadastro sem convite'));
+  assert.ok(checklist.includes('Migração de dados da proprietária'));
+  assert.ok(checklist.includes('Rollback'));
+});
