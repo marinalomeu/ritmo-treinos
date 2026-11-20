@@ -317,7 +317,7 @@ test('histórico não exibe UUID de ficha e conclusão apresenta card compartilh
   assert.ok(!app.includes('Ficha {s.template_id}'),'ocultar ID do cadastro no histórico');
   assert.ok(app.includes('setShowShare(true)'),'tela de conquista após finalizar');
   assert.ok(app.includes('setDetail(completed)'),'continuar com sessão concluída aberta');
-  assert.ok(share.includes('c.width=1080;c.height=1920'),'exportar ambos os visuais em 9:16');
+  assert.ok(share.includes('c.width=1170;c.height=2058'),'exportar ambos os visuais em 9:16');
   assert.ok(share.includes('navigator.share'),'usuário inicia compartilhamento');
   assert.ok(share.includes('Baixar imagem PNG'),'download de arte disponível');
   assert.ok(share.includes('options.showExercises'),'exercícios são opt-in no card');
@@ -339,7 +339,7 @@ test('card possui seleção elegante de informações, volume imutável e mínim
   assert.ok(ui.includes("options.showDate?'  ·  '"),'PNG respeita data');
   assert.ok(ui.includes('numericShareTarget(entry.target)'),'metas sem texto extra');
   assert.ok(ui.includes('shareMetricValues(summary,options)'),'prévia e PNG usam mesmos dados');
-  assert.ok(ui.includes('pngPoster(detail,visual,options,summary)'),'exportação respeita estilo e seleção');
+  assert.ok(ui.includes('pngPoster(detail,visual,options,summary,composition,verified)'),'exportação respeita estilo e seleção');
   assert.ok(calc.includes("set.load_unit!=='kg'"),'assistência e velocidade não contam como volume');
   assert.ok(calc.includes('set.actual_reps'),'volume não usa reps planejadas');
   assert.ok(calc.includes("summary.volumeKg===null?'—'"),'sem inventar volume antigo');
@@ -354,13 +354,13 @@ test('seletor visual alterna claro/escuro sem voltar ao quadrado de feed',()=>{
   const css=source('app/globals.css');
   const share=source('lib/workoutShare.ts');
   assert.ok(ui.includes('>VISUAL</span>'),'seletor se chama VISUAL');
-  assert.ok(ui.includes("setVisual('dark')"),'alternativa escura');
-  assert.ok(ui.includes("setVisual('light')"),'alternativa clara');
-  assert.ok(ui.includes('aria-pressed={visual'), 'botões anunciam seleção acessível');
+  assert.ok(ui.includes("value:'dark'" )||ui.includes('SHARE_PALETTES.map'),'paletas oficiais');
+  assert.ok(ui.includes('SHARE_PALETTES.map'),'cinco paletas oficiais');
+  assert.ok(ui.includes('aria-pressed={visual===p.value}'), 'botões anunciam seleção acessível');
   assert.ok(ui.includes('share-poster-${visual}'),'prévia acompanha a aparência');
-  assert.ok(ui.includes('c.width=1080;c.height=1920'),'PNG sempre vertical');
+  assert.ok(ui.includes('c.width=1170;c.height=2058'),'PNG sempre vertical');
   assert.ok(ui.includes('SHARE_THEMES[visual]'),'Canvas usa cores por visual');
-  assert.ok(ui.includes('pngPoster(detail,visual,options,summary)'),'exporta visual selecionado');
+  assert.ok(ui.includes('pngPoster(detail,visual,options,summary,composition,verified)'),'exporta visual selecionado');
   assert.ok(share.includes("light:{"),'paleta clara explícita');
   assert.ok(css.includes('.share-poster-light .share-poster-main>strong'),'título escuro no fundo claro');
   assert.ok(css.includes('.share-poster-light .share-poster-metrics'),'métricas legíveis no fundo claro');
@@ -519,4 +519,15 @@ test('distancias realizadas ficam em coluna propria, separadas de reps',()=>{
  assert.ok(source('lib/templates.ts').includes('function prescribedDistanceMeters'));
  assert.ok(source('app/api/sets/[id]/route.ts').includes('actual_distance_m'));
  assert.ok(source('components/WorkoutApp.tsx').includes('metros feitos'));
+});
+
+test('Stories de conquista consultam elegibilidade verificada no servidor',()=>{
+ const ui=source('components/WorkoutShareCard.tsx'),logic=source('lib/workoutShare.ts');
+ const api=source('app/api/share/eligibility/route.ts');
+ assert.ok(ui.includes("fetch('/api/share/eligibility?session_id='"));
+ assert.ok(logic.includes('SHARE_PALETTES'));
+ assert.ok(logic.includes('SHARE_COMPOSITIONS'));
+ assert.ok(logic.includes("requires:['pr','week','month']"));
+ assert.ok(api.includes('currentProfile()'));
+ assert.ok(api.includes('WHERE ws.user_id='));
 });
