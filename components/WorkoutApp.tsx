@@ -341,6 +341,20 @@ export default function WorkoutApp({mode,isOwner=false}:{mode:Mode;isOwner?:bool
       <TemplateLoadDialog key={detail.session.id+templateUpdateMode} detail={detail}
         template={visibleTemplates.find(t=>t.id===(detail.session.template_id==='wod'?applyTarget:detail.session.template_id))!}
         busy={busy} combined={templateUpdateMode==='both'} onClose={()=>setTemplateUpdateMode(null)}
+        onAddMissing={async items=>{
+          if(!detail)return;
+          const target=detail.session.template_id==='wod'?applyTarget:detail.session.template_id;
+          try{
+            const response=await fetch('/api/templates/'+encodeURIComponent(target)+'/append',{
+              method:'POST',headers:{'Content-Type':'application/json'},
+              body:JSON.stringify({session_id:detail.session.id,items})
+            });
+            const result=await response.json().catch(()=>({})) as {added?:number;error?:string};
+            if(!response.ok)throw new Error(result.error||'Não foi possível adicionar exercícios.');
+            await refresh();setTemplateUpdateMode(null);
+            setApplyNotice(String(result.added||0)+' exercícios adicionados à ficha. O histórico foi preservado.');
+          }catch(e){alertError(e);}
+        }}
         onConfirm={async loads=>{
           if(templateUpdateMode==='both'){
             setPendingTemplateLoads(loads);setTemplateUpdateMode(null);setPrUpdateMode('both');
