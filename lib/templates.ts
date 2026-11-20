@@ -52,6 +52,8 @@ export type WorkoutSession = {
   gym_name?: string | null;
   started_at: string;
   finished_at: string | null;
+  paused_at?: string | null;
+  paused_ms?: number;
   status: 'active' | 'finished';
   completed_sets: number;
   total_sets: number;

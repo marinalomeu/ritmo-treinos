@@ -11,7 +11,7 @@ export async function GET() {
     const sql = db();
     const sessions = await sql`
       SELECT ws.id::text AS id,ws.template_id,ws.template_name,ws.gym_name,ws.performed_on::text AS performed_on,
-        ws.started_at::text AS started_at,ws.finished_at::text AS finished_at,ws.status,ws.challenge_id,ws.challenge_division,
+        ws.started_at::text AS started_at,ws.finished_at::text AS finished_at,ws.paused_at::text AS paused_at,ws.paused_ms,ws.status,ws.challenge_id,ws.challenge_division,
         COUNT(ss.id)::int AS total_sets,
         COUNT(ss.id) FILTER (WHERE ss.completed)::int AS completed_sets
       FROM public.workout_sessions ws

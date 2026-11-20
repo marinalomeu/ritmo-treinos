@@ -23,10 +23,11 @@ const humanDate = (value:string) => {const [y,m,d]=value.slice(0,10).split('-');
 const formatLong = (s:string) => new Intl.DateTimeFormat('pt-BR',{weekday:'long',day:'numeric',month:'long'}).format(new Date(s+'T12:00:00'));
 const fmt = (n:number) => Number.isInteger(n) ? String(n) : n.toLocaleString('pt-BR',{maximumFractionDigits:2});
 const unitName = (u:Unit) => u==='assist_kg'?'kg de assistência':u==='km/h'?'km/h':u==='kg'?'kg':'peso corporal';
-const sessionDuration=(startedAt:string,finishedAt:string|null,now:number)=>{
+const sessionDuration=(startedAt:string,finishedAt:string|null,now:number,pausedMs=0,pausedAt:string|null=null)=>{
   const start=Date.parse(startedAt),end=finishedAt?Date.parse(finishedAt):now;
   if(!Number.isFinite(start)||!Number.isFinite(end))return '00:00:00';
-  const seconds=Math.max(0,Math.floor((end-start)/1000));
+  const livePause=pausedAt&&Number.isFinite(Date.parse(pausedAt))?Math.max(0,end-Date.parse(pausedAt)):0;
+  const seconds=Math.max(0,Math.floor((end-start-pausedMs-livePause)/1000));
   return `${String(Math.floor(seconds/3600)).padStart(2,'0')}:${String(Math.floor((seconds%3600)/60)).padStart(2,'0')}:${String(seconds%60).padStart(2,'0')}`;
 };
 export default function WorkoutApp({mode,isOwner=false}:{mode:Mode;isOwner?:boolean}) {
@@ -139,6 +140,21 @@ export default function WorkoutApp({mode,isOwner=false}:{mode:Mode;isOwner?:bool
       setDetail(d=>d?{...d,session:{...d.session,gym_name:gym}}:d);
       await refresh();
     }catch(e){alertError(e);}finally{setGymSaving(false);}
+  };
+  const togglePause=async()=>{
+    if(!detail||detail.session.status!=='active'||busy)return;
+    setBusy(true);setError('');
+    try{
+      if(mode==='cloud'){
+        const response=await fetch('/api/sessions/'+encodeURIComponent(detail.session.id)+'/pause',{method:'POST'});
+        const body=await response.json() as {paused_at?:string|null;paused_ms?:number;error?:string};
+        if(!response.ok)throw new Error(body.error||'Não foi possível alterar a pausa.');
+        setDetail(d=>d?{...d,session:{...d.session,paused_at:body.paused_at??null,paused_ms:body.paused_ms??0}}:d);
+      }else{
+        const at=detail.session.paused_at;
+        setDetail(d=>d?{...d,session:{...d.session,paused_at:at?null:new Date().toISOString(),paused_ms:(d.session.paused_ms??0)+(at?Math.max(0,Date.now()-Date.parse(at)):0)}}:d);
+      }
+    }catch(e){alertError(e);}finally{setBusy(false);}
   };
   const finish=async()=>{
     if(!detail)return;
@@ -297,10 +313,11 @@ export default function WorkoutApp({mode,isOwner=false}:{mode:Mode;isOwner?:bool
           <div className="workout-timer" aria-label="Duração transcorrida do treino">
             <Clock3 size={17} aria-hidden="true"/>
             <span><small>{detail.session.status==='active'?'TEMPO DE TREINO':'DURAÇÃO DO TREINO'}</small>
-              <strong>{sessionDuration(detail.session.started_at,detail.session.finished_at,clockNow)}</strong>
+              <strong>{sessionDuration(detail.session.started_at,detail.session.finished_at,clockNow,detail.session.paused_ms??0,detail.session.paused_at??null)}</strong>
             </span>
           </div>
-          <label className="date-label">DATA<input type="date" value={detail.session.performed_on} disabled /></label>
+          {detail.session.status==='active'&&<button type="button" className="btn btn-outline-template" disabled={busy} onClick={()=>void togglePause()}>{detail.session.paused_at?'Retomar':'Pausar'} cronômetro</button>}
+           <label className="date-label">DATA<input type="date" value={detail.session.performed_on} disabled /></label>
         </div></div>
         <div className="workout-gym-field"><label htmlFor="workout-gym">ACADEMIA / LOCAL DO TREINO (OPCIONAL)</label>
           <div><input id="workout-gym" maxLength={100} value={sessionGymDraft} onChange={e=>setSessionGymDraft(e.target.value)} placeholder="Onde você treinou?"/>

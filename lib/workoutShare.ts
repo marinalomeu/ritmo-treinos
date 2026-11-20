@@ -27,7 +27,7 @@ export const formatVolume=(value:number)=>new Intl.NumberFormat('pt-BR',{maximum
 export function workoutShareSummary(detail:SessionDetail):ShareSummary{
   const start=Date.parse(detail.session.started_at),finish=Date.parse(detail.session.finished_at||'');
   const elapsedSec=Number.isFinite(start)&&Number.isFinite(finish)?
-    Math.max(0,Math.floor((finish-start)/1000)):0;
+    Math.max(0,Math.floor((finish-start-(detail.session.paused_ms??0))/1000)):0;
   const elapsed=`${String(Math.floor(elapsedSec/3600)).padStart(2,'0')}:${String(Math.floor(elapsedSec%3600/60)).padStart(2,'0')}`;
   const ordered=[...detail.sets].sort((a,b)=>a.sort_order-b.sort_order||a.set_number-b.set_number);
   const exercises=new Map<string,ExerciseSummary>();
