@@ -46,39 +46,69 @@ async function pngPoster(detail:SessionDetail,visual:ShareVisual,options:ShareOp
   ctx.fillStyle=colors.logo;ctx.font='800 57px Manrope, sans-serif';ctx.fillText('ritmo.',75,275);
   ctx.fillStyle=colors.subtitle;ctx.font='700 22px DM Sans, sans-serif';
   ctx.fillText('SEU DIÁRIO DE TREINOS',78,315);
-  // Mesma composição da prévia: conteúdo agrupado na faixa inferior, sem vazio abaixo.
-  // Com mais exercícios/métricas, deslocar os blocos superiores para preservar a margem do rodapé.
+  // Coordenadas alinhadas às pranchas oficiais 1170 x 2058 (logo no topo,
+  // título no terço inferior, conquistas entre título e caixa de resultados).
   const extraRows=options.showExercises?Math.min(exercises.entries.length+Number(exercises.extra>0),8):0;
   const rows=metrics.length===4?2:1;
   const badges=shareAwardLabels(composition,eligibility);
-  const top=Math.max(780,1705-(rows-1)*158-extraRows*65-(options.showGymName?44:0)-(badges.length?50:0));
-  const hero=top-(options.showWorkoutName?260:175)-(options.showGymName?45:0);
-  ctx.fillStyle=colors.kicker;ctx.font='800 24px DM Sans, sans-serif';
-  ctx.fillText('TREINO REGISTRADO'+(options.showDate?'  ·  '+formatDate(detail.session.performed_on):''),76,hero-185);
-  ctx.fillStyle=colors.headline;ctx.font='800 106px Manrope, sans-serif';
-  ctx.fillText('FEITO NO',72,hero-92);ctx.fillText('MEU RITMO.',72,hero+20);
-  let labelY=hero+98;
-  if(options.showWorkoutName){
-    ctx.fillStyle=colors.secondary;ctx.font='600 32px DM Sans, sans-serif';
-    drawWrapped(ctx,cap(detail.session.template_name),78,labelY,w-150,42,2);
-    labelY+=84;
+  const top=Math.max(1150,1530-(rows-1)*154-extraRows*49-(options.showGymName?22:0));
+  const titleY=Math.max(820,Math.min(1135,top-390));
+  const nameY=titleY-197;
+  ctx.fillStyle=visual==='dark-green'||visual==='mauve'||visual==='dark'?'#bce780':'#9bcc54';
+  roundedRect(ctx,76,nameY-42,12,77,5);ctx.fill();
+  ctx.fillStyle=colors.kicker;ctx.font='800 36px DM Sans, sans-serif';
+  const label=options.showWorkoutName?cap(detail.session.template_name):'TREINO REGISTRADO';
+  drawWrapped(ctx,label,112,nameY-9,w-190,39,1);
+  if(options.showDate){
+    ctx.fillStyle=colors.secondary;ctx.font='600 24px DM Sans, sans-serif';
+    ctx.fillText(detail.session.performed_on.split('-').reverse().join('/'),112,nameY+33);
   }
   if(options.showGymName&&detail.session.gym_name){
-    ctx.fillStyle=colors.secondary;ctx.font='600 28px DM Sans, sans-serif';
-    drawWrapped(ctx,detail.session.gym_name,78,labelY,w-150,38,1);
+    ctx.fillStyle=colors.secondary;ctx.font='600 22px DM Sans, sans-serif';
+    drawWrapped(ctx,detail.session.gym_name,112,nameY+64,w-200,30,1);
   }
+  ctx.fillStyle=colors.headline;ctx.font='800 124px Manrope, sans-serif';
+  ctx.fillText('FEITO NO',73,titleY);ctx.fillText('MEU RITMO.',73,titleY+118);
+  const accent=visual==='dark-green'||visual==='light-green'?'#a6e72f':'#da9cc4';
+  const longest=ctx.measureText('MEU RITMO.').width;
+  ctx.fillStyle=accent;ctx.beginPath();ctx.arc(74+longest-3,titleY+104,9,0,Math.PI*2);ctx.fill();
   if(showBestBadge){
-    ctx.fillStyle=colors.headline;ctx.font='800 44px Manrope, sans-serif';
-    ctx.fillText('DESAFIO CONCLUÍDO · EM UM NOVO RITMO.',76,top-215,1020);
-    ctx.font='600 24px DM Sans, sans-serif';ctx.fillText('Novo recorde pessoal neste desafio',77,top-165,1020);
+    ctx.fillStyle=colors.headline;ctx.font='800 31px Manrope, sans-serif';
+    ctx.fillText('DESAFIO CONCLUÍDO · EM UM NOVO RITMO.',77,titleY+188,1010);
+    ctx.font='600 21px DM Sans, sans-serif';
+    ctx.fillText('Novo recorde pessoal neste desafio',77,titleY+224,1010);
   }
   if(badges.length){
-    const badgeTop=top-(badges.length===3?148:94);
-    const blocks=badges.length===3?[[badges[0],76,badgeTop,440,104],[badges[1],534,badgeTop,518,45],[badges[2],534,badgeTop+59,518,45]] as const:badges.map(value=>[value,76,badgeTop,850,63] as const);
-    for(const [label,bx,by,bw,bh] of blocks){
-      ctx.fillStyle=colors.metricsBackground;roundedRect(ctx,bx,by,bw,bh,21);ctx.fill();
-      ctx.strokeStyle=colors.ring;ctx.stroke();
-      ctx.fillStyle=colors.headline;ctx.font='800 27px Manrope, sans-serif';ctx.fillText(label,bx+23,by+bh/2+9,bw-40);
+    const badgeTop=top-(badges.length===3?155:144);
+    const blocks=badges.length===3?
+      [[badges[0],76,badgeTop,422,103],[badges[1],512,badgeTop,575,47],[badges[2],512,badgeTop+56,575,47]] as const:
+      badges.map(v=>[v,76,badgeTop,1007,76] as const);
+    for(const [value,bx,by,bw,bh] of blocks){
+      const pr=value.startsWith('PR BATIDO');
+      const week=value.startsWith('SEMANA');
+      ctx.fillStyle=pr?'#b6ea78':colors.metricsBackground;
+      roundedRect(ctx,bx,by,bw,bh,20);ctx.fill();
+      if(!pr){ctx.strokeStyle=colors.ring;ctx.lineWidth=2;ctx.stroke();}
+      ctx.fillStyle=pr?'#254c2f':colors.headline;
+      const textValue=week?'SEMANA NO RITMO':value.startsWith('MÊS')?'MÊS NO RITMO':'PR BATIDO';
+      ctx.font=`800 ${bh>=70?28:23}px Manrope, sans-serif`;
+      ctx.fillText(pr?'🏆  '+textValue:'▣  '+textValue,bx+24,by+bh/2+9,bw-56);
+      if(week){
+        ctx.fillStyle='#aff05f';
+        for(let i=0;i<5;i++){
+          const cx=bx+bw-190+i*35,cy=by+bh/2;
+          ctx.beginPath();ctx.arc(cx,cy,11,0,Math.PI*2);ctx.fill();
+        }
+      }
+      if(value.startsWith('MÊS')){
+        const data=value.match(/(\d+)\/(\d+)/);
+        const current=data?Number(data[1]):0,target=data?Number(data[2]):0;
+        const progress=target>0?Math.min(1,current/target):0;
+        ctx.fillStyle=colors.secondary;ctx.font='600 17px DM Sans, sans-serif';
+        ctx.fillText(target?current+'/'+target+' treinos':'Mês cumprido',bx+bw-224,by+bh/2+7);
+        ctx.fillStyle=colors.ring;roundedRect(ctx,bx+bw-108,by+bh/2-4,88,9,5);ctx.fill();
+        ctx.fillStyle='#adf06e';roundedRect(ctx,bx+bw-108,by+bh/2-4,88*progress,9,5);ctx.fill();
+      }
     }
   }
   let metricBottom=top;
@@ -118,7 +148,7 @@ async function pngPoster(detail:SessionDetail,visual:ShareVisual,options:ShareOp
       ctx.fillText(`+ ${exercises.extra} outros exercícios`,78,y+exercises.entries.length*lineHeight);
     }
   }
-  const foot=h-125;
+  const foot=h-215;
   ctx.fillStyle=colors.footer;ctx.font='600 26px DM Sans, sans-serif';
   ctx.fillText('Um treino de cada vez. Uma evolução de cada vez.',76,foot);
   const blob=await new Promise<Blob|null>(resolve=>c.toBlob(resolve,'image/png'));
