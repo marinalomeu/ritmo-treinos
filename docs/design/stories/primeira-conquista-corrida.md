@@ -31,7 +31,7 @@
 - Manchete central `Em um novo ritmo.` em duas linhas, com a **tipografia reduzida da última referência**, em destaque equilibrado.
 - Linha imediatamente abaixo `Novo recorde pessoal neste desafio`.
 - Onda suave, distância do desafio em destaque e a barra horizontal de tempo/data, alinhadas à posição correspondente no modelo de primeira conquista.
-- Estética verde-clara coerente com a arte final aprovada. **Não adicionar uma medalha de primeira conquista**: ela distingue o Modelo 1.
+- Estética verde-clara coerente com a arte final aprovada. **INCLUIR a medalha dourada de corrida com fita verde também no Story “Em um novo ritmo.”**, preservando o relevo do corredor e a distância do desafio. Esta decisão posterior substitui a orientação anterior de não adicionar medalha. Ajustar o espaço de forma a preservar o protagonismo da manchete com a fonte reduzida aprovada e a faixa de tempo/data na altura estabelecida; não alterar os outros elementos aprovados.
 - Selo de melhor marca **opcional no Story normal**, habilitado somente quando a nova tentativa superou de fato a **melhor performance anterior do mesmo desafio em condições comparáveis**. Uma tentativa pior ou sem comparação válida não habilita esse selo.
 - Para corridas, melhoria significa **menor tempo na mesma distância/percurso e nas condições comparáveis definidas pelo produto**. Não inferir recorde do simples término de uma sessão.
 
@@ -41,7 +41,7 @@
 
 1. Comparar prévia e PNG exportado com os dois modelos exatos aprovados, incluindo espaçamento, fontes, margens seguras, paleta, medalha e posicionamento de distância/tempo/data.
 2. O story de primeira conquista não inclui título `PRIMEIRA CONQUISTA` nem a pílula `Em outro ritmo`.
-3. O Story de novo recorde usa a versão de fonte **menor**, traz `DESAFIO CONCLUÍDO` e explicita `Novo recorde pessoal neste desafio`; sem a pílula `Em outro ritmo`.
+3. O Story de novo recorde usa a versão de fonte **menor**, traz `DESAFIO CONCLUÍDO`, medalha dourada de corrida com fita verde e explicita `Novo recorde pessoal neste desafio`; sem a pílula `Em outro ritmo`.
 4. Cada conclusão é de um desafio específico e pertence ao usuário autenticado; não há concessão de selo para tempo pior, outra distância ou tentativas incompletas.
 5. Dados de corrida são reais e preservados; sem edição manual de distância, tempo ou data no modelo de primeira conquista. Ocultação de tempo centraliza somente a data.
 6. Não apagar histórico nem realizar migrações ou deploy automático em resposta à aprovação de design.
