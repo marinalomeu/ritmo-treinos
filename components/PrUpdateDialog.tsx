@@ -1,17 +1,18 @@
 'use client';
 import { useMemo, useState } from 'react';
 import { Check, LoaderCircle, Trophy, X } from 'lucide-react';
-import type { SessionDetail } from '../lib/templates';
+import { prescribedDistanceMeters, type SessionDetail } from '../lib/templates';
 import { estimatedOneRM } from '../lib/personalRecords';
 
-export type PrSelection={exercise_key:string;weight_kg:number;repetitions:number};
-type Entry={key:string;name:string;unit:string;weight:string;reps:string;active:boolean;hasRecorded:boolean;partial:boolean};
+export type PrSelection={exercise_key:string;weight_kg:number;repetitions:number}|{exercise_key:string;distance_m:number;duration_seconds:number};
+type Entry={key:string;name:string;unit:string;weight:string;reps:string;distance:string;time:string;active:boolean;hasRecorded:boolean;partial:boolean};
 const toInput=(n:number|null)=>n===null?'':String(n);
 function candidate(detail:SessionDetail):Entry[]{
   const seen=new Map<string,Entry>();
   for(const s of detail.sets){
     if(seen.has(s.exercise_key))continue;
-    if(s.load_unit!=='kg'&&s.load_unit!=='none')continue;
+    const running=s.load_unit==='km/h'||/corrida/i.test(s.exercise_name);
+    if(s.load_unit!=='kg'&&s.load_unit!=='none'&&!running)continue;
     const records=detail.sets.filter(x=>x.exercise_key===s.exercise_key &&
       typeof x.weight_kg==='number' && x.weight_kg>0 &&
       x.actual_reps!==null && Number.isInteger(x.actual_reps) &&
@@ -21,6 +22,7 @@ function candidate(detail:SessionDetail):Entry[]{
     seen.set(s.exercise_key,{
       key:s.exercise_key,name:s.exercise_name,unit:s.load_unit,
       weight:toInput(best?.weight_kg??null),reps:toInput(best?.actual_reps??null),
+      distance:toInput(s.actual_distance_m??prescribedDistanceMeters(s.target_reps)),time:'',
       active:false,hasRecorded:!!best,partial:Boolean(best&&!best.completed)
     });
   }
@@ -41,6 +43,16 @@ export default function PrUpdateDialog({detail,includeTemplate,busy,onClose,onCo
   const save=async()=>{
     const selections:PrSelection[]=[];
     for(const e of entries.filter(x=>x.active)){
+      if(e.unit==='km/h'||/corrida/i.test(e.name)){
+        const meters=Number(e.distance.replace(',','.'));
+        const pieces=e.time.trim().split(':').map(Number);
+        const seconds=pieces.length===2?pieces[0]*60+pieces[1]:pieces.length===3?pieces[0]*3600+pieces[1]*60+pieces[2]:NaN;
+        if(!Number.isFinite(meters)||meters<=0||meters>1000000||Math.round(meters*100)!==meters*100||
+          !pieces.every(Number.isInteger)||pieces.some(x=>x<0)||pieces.at(-1)!>=60||seconds<1||seconds>864000){
+          setError('Corrida: informe a distância em metros e o tempo real em mm:ss ou hh:mm:ss.');return;
+        }
+        selections.push({exercise_key:e.key,distance_m:meters,duration_seconds:seconds});continue;
+      }
       const weight=Number(e.weight.replace(',','.')),repetitions=Number(e.reps);
       if(!e.weight.trim()||!e.reps.trim()||!Number.isFinite(weight)||weight<=0||weight>2000||
          Math.abs(weight*100-Math.round(weight*100))>1e-6||
@@ -68,9 +80,13 @@ export default function PrUpdateDialog({detail,includeTemplate,busy,onClose,onCo
             <input type="checkbox" checked={e.active} disabled={busy} onChange={ev=>update(e.key,{active:ev.target.checked})}/>
             <span><strong>{e.name}</strong><small>{e.hasRecorded?
               (e.partial?'Série parcial registrada · confira o resultado':'Série registrada · confira o resultado'):
-              'Sem medição: informe as repetições e a carga que realizou'}</small></span>
+              (e.unit==='km/h'||/corrida/i.test(e.name))?'Informe a distância e o tempo real desta corrida':'Sem medição: informe as repetições e a carga que realizou'}</small></span>
           </label>
-          {e.active&&<div className="pr-select-values">
+          {e.active&&(e.unit==='km/h'||/corrida/i.test(e.name))&&<div className="pr-select-values">
+            <label>Distância percorrida (m)<input inputMode="decimal" type="text" placeholder="Ex.: 5000" value={e.distance} onChange={ev=>update(e.key,{distance:ev.target.value})}/></label>
+            <label>Tempo realizado (mm:ss ou hh:mm:ss)<input inputMode="numeric" type="text" placeholder="Ex.: 28:30" value={e.time} onChange={ev=>update(e.key,{time:ev.target.value})}/></label>
+          </div>}
+          {e.active&&e.unit!=='km/h'&&!/corrida/i.test(e.name)&&<div className="pr-select-values">
             <label>Carga externa (kg)<input type="text" inputMode="decimal" value={e.weight} disabled={busy}
               placeholder="Ex.: 25" onChange={ev=>update(e.key,{weight:ev.target.value})}/></label>
             <label>Repetições feitas<input type="number" min="1" max="30" step="1" value={e.reps} disabled={busy}

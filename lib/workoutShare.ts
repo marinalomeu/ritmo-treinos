@@ -27,7 +27,7 @@ export const formatVolume=(value:number)=>new Intl.NumberFormat('pt-BR',{maximum
 export function workoutShareSummary(detail:SessionDetail):ShareSummary{
   const start=Date.parse(detail.session.started_at),finish=Date.parse(detail.session.finished_at||'');
   const elapsedSec=Number.isFinite(start)&&Number.isFinite(finish)?
-    Math.max(0,Math.floor((finish-start)/1000)):0;
+    Math.max(0,Math.floor((finish-start-(detail.session.paused_ms??0))/1000)):0;
   const elapsed=`${String(Math.floor(elapsedSec/3600)).padStart(2,'0')}:${String(Math.floor(elapsedSec%3600/60)).padStart(2,'0')}`;
   const ordered=[...detail.sets].sort((a,b)=>a.sort_order-b.sort_order||a.set_number-b.set_number);
   const exercises=new Map<string,ExerciseSummary>();
@@ -73,10 +73,32 @@ export const shareMetricValues=(summary:ShareSummary,options:ShareOptions)=>{
   }
   return entries;
 };
-export type ShareVisual='dark'|'light';
+export type ShareVisual='dark-green'|'light-green'|'mauve'|'light'|'dark';
+export type ShareComposition='training'|'pr'|'week'|'month'|'all';
+export type ShareEligibility={pr:boolean;prCount:number;week:boolean;month:boolean;weekCount:number;weekTarget:number;monthCount:number;monthTarget:number;challengeFirst?:boolean;challengeBest?:boolean;challengeId?:string|null};
+export const SHARE_PALETTES:{value:ShareVisual;label:string}[]=[{value:'dark-green',label:'Verde escura'},{value:'light-green',label:'Verde clara'},{value:'mauve',label:'Malva'},{value:'light',label:'Clara'},{value:'dark',label:'Escura'}];
+export const SHARE_COMPOSITIONS:{value:ShareComposition;label:string;requires:(keyof ShareEligibility)[]}[]=[{value:'training',label:'Só treino',requires:[]},{value:'pr',label:'PR batido',requires:['pr']},{value:'week',label:'Semana no ritmo',requires:['week']},{value:'month',label:'Mês no ritmo',requires:['month']},{value:'all',label:'PR + Semana + Mês',requires:['pr','week','month']}];
+export function shareAwardLabels(composition:ShareComposition,eligibility:ShareEligibility|null):string[]{
+  if(!eligibility)return [];
+  const badges:string[]=[];
+  if((composition==='pr'||composition==='all')&&eligibility.pr)badges.push('PR BATIDO');
+  if((composition==='week'||composition==='all')&&eligibility.week)badges.push('SEMANA NO RITMO · '+eligibility.weekCount+'/'+eligibility.weekTarget);
+  if((composition==='month'||composition==='all')&&eligibility.month)badges.push('MÊS NO RITMO · '+eligibility.monthCount+'/'+eligibility.monthTarget);
+  return badges;
+}
+
 export const SHARE_THEMES={
+  'dark-green':{
+    gradient:['#063524','#06432e','#063b2a'],ring:'rgba(242,250,241,.12)',logo:'#fafcf7',subtitle:'#d9e9dc',kicker:'#d9ecda',headline:'#fffdf7',secondary:'#e6f2e7',metricsBackground:'rgba(255,255,248,.14)',metricLabel:'#daecdf',metricValue:'#fffdf7',exerciseHeading:'#d4eadc',exerciseText:'#f8fff9',extra:'#deecdf',footer:'#ddf0e1'
+  },
+  'light-green':{
+    gradient:['#e4f8e3','#e1f4e0','#dcf2dc'],ring:'rgba(68,105,85,.15)',logo:'#315245',subtitle:'#648271',kicker:'#507764',headline:'#2d5442',secondary:'#476958',metricsBackground:'rgba(85,130,96,.10)',metricLabel:'#57785b',metricValue:'#315244',exerciseHeading:'#406e52',exerciseText:'#284934',extra:'#52785c',footer:'#587661'
+  },
+  mauve:{
+    gradient:['#775269','#785169','#745066'],ring:'rgba(255,237,247,.14)',logo:'#fff8fd',subtitle:'#f5e5f0',kicker:'#f4e0ee',headline:'#fff9fd',secondary:'#f9e8f5',metricsBackground:'rgba(255,240,250,.13)',metricLabel:'#f9eaf4',metricValue:'#fff9fd',exerciseHeading:'#f3e6ee',exerciseText:'#fff8fd',extra:'#f5d5e8',footer:'#f7e8f2'
+  },
   dark:{
-    gradient:['#463047','#684b62','#93738a'],
+    gradient:['#42273c','#46283f','#462a40'],
     ring:'rgba(255,255,255,.09)',logo:'#f9eff5',subtitle:'#d9bfd0',
     kicker:'#efdae7',headline:'#fffafc',secondary:'#e5d1dd',
     metricsBackground:'rgba(255,250,252,.10)',metricLabel:'#f1dce7',
@@ -84,7 +106,7 @@ export const SHARE_THEMES={
     exerciseText:'#fffafc',extra:'#ebd5e2',footer:'#ead3e1'
   },
   light:{
-    gradient:['#fffdfa','#f6f0f3','#eaddE6'],
+    gradient:['#f9eeee','#f8eded','#f8eeee'],
     ring:'rgba(98,70,93,.12)',logo:'#4b3547',subtitle:'#76586f',
     kicker:'#74556d',headline:'#28242d',secondary:'#664a60',
     metricsBackground:'rgba(103,76,98,.09)',metricLabel:'#74566f',

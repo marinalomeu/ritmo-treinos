@@ -27,24 +27,24 @@ export async function POST(request:Request){
     const sets=makeSets(template).map(s=>({
       exercise_key:s.exercise_key,exercise_name:s.exercise_name,sort_order:s.sort_order,
       block_number:s.block_number,set_number:s.set_number,target_reps:s.target_reps,
-      load_unit:s.load_unit,weight_kg:s.weight_kg
+      load_unit:s.load_unit,weight_kg:s.weight_kg,rest_seconds:s.rest_seconds
     }));
     const sql=db();
     const inserted=await sql`
-      INSERT INTO public.workout_sessions(user_id,template_id,template_name,performed_on)
-      VALUES (${user.id}::uuid,'challenge',${template.name},${date}::date)
+      INSERT INTO public.workout_sessions(user_id,template_id,template_name,performed_on,challenge_id,challenge_division)
+      VALUES (${user.id}::uuid,'challenge',${template.name},${date}::date,${challenge.id},${division})
       RETURNING id::text AS id
     `;
     const sessionId=inserted[0].id as string;
     try{
       await sql`
         INSERT INTO public.session_sets
-          (session_id,exercise_key,exercise_name,sort_order,block_number,set_number,target_reps,load_unit,weight_kg)
+          (session_id,exercise_key,exercise_name,sort_order,block_number,set_number,target_reps,load_unit,weight_kg,rest_seconds)
         SELECT ${sessionId}::uuid,e.exercise_key,e.exercise_name,e.sort_order,e.block_number,
-          e.set_number,e.target_reps,e.load_unit,e.weight_kg
+          e.set_number,e.target_reps,e.load_unit,e.weight_kg,e.rest_seconds
         FROM jsonb_to_recordset(${JSON.stringify(sets)}::jsonb) AS e(
           exercise_key text,exercise_name text,sort_order smallint,block_number smallint,
-          set_number smallint,target_reps text,load_unit text,weight_kg numeric
+          set_number smallint,target_reps text,load_unit text,weight_kg numeric,rest_seconds smallint
         )
       `;
     }catch(error){

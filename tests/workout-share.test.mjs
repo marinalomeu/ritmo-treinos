@@ -90,7 +90,7 @@ test('os dois visuais preservam composição, mas têm contraste invertido',()=>
   assert.notEqual(SHARE_THEMES.dark.gradient[0],SHARE_THEMES.light.gradient[0]);
   assert.equal(SHARE_THEMES.dark.headline,'#fffafc');
   assert.equal(SHARE_THEMES.light.headline,'#28242d');
-  assert.equal(SHARE_THEMES.light.gradient[0],'#fffdfa');
+  assert.equal(SHARE_THEMES.light.gradient[0],'#f9eeee');
   assert.equal(SHARE_THEMES.light.metricValue,'#302733');
   assert.equal(SHARE_THEMES.light.exerciseText,'#362b38');
 });

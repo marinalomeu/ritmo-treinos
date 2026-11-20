@@ -22,6 +22,6 @@ jobs:
       - name: TypeScript
         run: npm run typecheck
       - name: Security and regression contracts
-        run: node --experimental-strip-types --test tests/security-contract.test.mjs tests/goal.test.mjs tests/workout-share.test.mjs
+        run: node --experimental-strip-types --test tests/security-contract.test.mjs tests/goal.test.mjs tests/workout-share.test.mjs tests/whoop-foundation.test.mjs tests/approved-improvements.test.mjs
       - name: Production build without deployment
         run: npm run build
