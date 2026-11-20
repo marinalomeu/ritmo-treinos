@@ -384,3 +384,22 @@ test('academia opcional é salva com ownership e não é publicada automaticamen
   assert.ok(app.includes('saveSessionGym'));
   assert.ok(app.includes('ACADEMIA / LOCAL'));
 });
+
+test('atualizar ficha exige escolha individual de exercícios e cargas, incluindo fluxo combinado',()=>{
+  const modal=source('components/TemplateLoadDialog.tsx');
+  const app=source('components/WorkoutApp.tsx');
+  const api=source('app/api/sessions/[id]/apply/route.ts');
+  assert.ok(modal.includes('checked:false'),'nenhuma carga é marcada automaticamente');
+  assert.ok(modal.includes('set.completed'),'somente séries concluídas são elegíveis');
+  assert.ok(modal.includes('Nova carga planejada'),'cargas editáveis por exercício');
+  assert.ok(app.includes("setTemplateUpdateMode('template')"));
+  assert.ok(app.includes("setTemplateUpdateMode('both')"));
+  assert.ok(app.includes('pendingTemplateLoads'),'fluxo combinado preserva escolhas de ficha');
+  assert.ok(app.includes('template_selections:loads'),'payload de ficha selecionada');
+  assert.ok(!app.includes("window.confirm('Atualizar as cargas planejadas"),'sem confirmação genérica');
+  assert.ok(api.includes('payload.template_selections'),'servidor valida escolhas');
+  assert.ok(api.includes('requestedLoads.has(e.key)'),'somente cargas escolhidas mudam');
+  assert.ok(api.includes('matching!==requestedLoads.size'),'rejeita exercícios alheios');
+  assert.ok(api.includes('const completedSets=sets.filter(s=>s.completed)'),'não aceita cargas de séries incompletas');
+  assert.ok(!api.includes('UPDATE public.session_sets'),'histórico continua imutável');
+});

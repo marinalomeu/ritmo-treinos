@@ -72,20 +72,37 @@ export async function POST(request:Request,context:Ctx){
         WHERE user_id=${user.id}::uuid AND id=${targetId} LIMIT 1
       `;
       if(!templates.length)return NextResponse.json({error:'Ficha de destino não encontrada.'},{status:404});
+      const selections=payload.template_selections;
+      if(!Array.isArray(selections)||selections.length<1||selections.length>40)
+        return NextResponse.json({error:'Selecione quais cargas da ficha atualizar.'},{status:400});
       const last=new Map<string,CompletedSet>();
       for(const s of completedSets){
         if(s.weight_kg===null||!Number.isFinite(s.weight_kg)||s.weight_kg<0||s.weight_kg>2000 ||
           (s.load_unit!=='kg'&&s.load_unit!=='assist_kg'))continue;
         last.set(s.exercise_key,s);
       }
+      const requestedLoads=new Map<string,number>();
+      for(const raw of selections as unknown[]){
+        if(!raw||typeof raw!=='object')return NextResponse.json({error:'Carga inválida.'},{status:422});
+        const row=raw as Record<string,unknown>;
+        if(typeof row.exercise_key!=='string'||!templateKey.test(row.exercise_key)||
+          requestedLoads.has(row.exercise_key)||typeof row.weight_kg!=='number'||
+          !Number.isFinite(row.weight_kg)||row.weight_kg<0||row.weight_kg>2000||
+          Math.abs(row.weight_kg*100-Math.round(row.weight_kg*100))>1e-6)
+          return NextResponse.json({error:'Seleção ou carga inválida.'},{status:422});
+        requestedLoads.set(row.exercise_key,row.weight_kg);
+      }
       templateExercises=(templates[0].exercises as Template['exercises']).map(e=>{
+        if(!requestedLoads.has(e.key))return e;
         const series=last.get(e.key);
         if(!series||series.load_unit!==e.unit)return e;
         matching++;
-        if(series.weight_kg!==e.defaultLoad)changed++;
-        return {...e,defaultLoad:series.weight_kg};
+        const value=requestedLoads.get(e.key)!;
+        if(value!==e.defaultLoad)changed++;
+        return {...e,defaultLoad:value};
       });
-      if(!matching)return NextResponse.json({error:'A ficha selecionada não possui exercícios com cargas compatíveis com este treino.'},{status:422});
+      if(matching!==requestedLoads.size)
+        return NextResponse.json({error:'Algum exercício selecionado não tem série concluída compatível com esta ficha.'},{status:422});
     }
     // Atualiza os dois destinos em uma ÚNICA instrução SQL transacional.
     // PRs só melhoram (Epley, medições selecionadas manualmente). A ficha
