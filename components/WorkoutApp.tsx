@@ -3,7 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Activity, ArrowLeft, ArrowRight, BarChart3, CalendarDays, Check, CheckCircle2, ChevronRight, Circle, Clock3, Cloud, Dumbbell, Footprints, History, LoaderCircle, LogOut, Plus, RefreshCw, Sparkles, Trash2, TrendingUp, WifiOff, Settings2 } from 'lucide-react';
 import { TEMPLATES, type HistoryData, type SessionDetail, type StoredSet, type Template, type Unit } from '../lib/templates';
 import { DEMO_TEMPLATES } from '../lib/demoTemplates';
-import { createSession, deleteSession, finishSession, getSession, listData, saveSet, saveGoal, type Mode } from '../lib/clientStore';
+import { createAdhocSession, createSession, deleteSession, finishSession, getSession, listData, saveSet, saveGoal, type Mode } from '../lib/clientStore';
 import { DEFAULT_GOAL, SHOWCASE_GOAL, goalProgress, isValidGoal, type TrainingGoal } from '../lib/goal';
 import TemplateDialog from './TemplateDialog';
 import ExerciseMultiSelect from './ExerciseMultiSelect';
@@ -23,6 +23,7 @@ export default function WorkoutApp({mode}:{mode:Mode}) {
   const visibleTemplates=data.templates??(mode==='showcase'?DEMO_TEMPLATES:TEMPLATES);
   const [inspectedTemplateId,setInspectedTemplateId]=useState<string|null>(null);
   const [creatingTemplate,setCreatingTemplate]=useState(false);
+  const [creatingAdhoc,setCreatingAdhoc]=useState(false);
   const inspectedTemplate=visibleTemplates.find(t=>t.id===inspectedTemplateId)||null;
   const openStartFor=(id:string)=>{
     setActiveTemplate(id);setInspectedTemplateId(null);setShowNew(true);
@@ -54,6 +55,7 @@ export default function WorkoutApp({mode}:{mode:Mode}) {
   },[]);
   const alertError=(e:unknown)=>setError(e instanceof Error?e.message:'Ocorreu um erro.');
   const openWorkout=async(id:string)=>{setBusy(true);setError('');try{const r=await getSession(mode,id);setDetail(r);setView('workout');setShowNew(false);}catch(e){alertError(e);}finally{setBusy(false);}};
+  const startAdhoc=async(template:Template)=>{setBusy(true);setError('');try{const id=await createAdhocSession(mode,template,date);setCreatingAdhoc(false);await openWorkout(id);await refresh();}catch(e){alertError(e);throw e;}finally{setBusy(false);}};
   const startWorkout=async()=>{setBusy(true);setError('');try{const id=await createSession(mode,activeTemplate,date);await openWorkout(id);await refresh();}catch(e){alertError(e);}finally{setBusy(false);}};
   const patchSet=async(id:string,changes:Partial<StoredSet>)=>{
     if(!detail)return;const before=detail.sets.find(s=>s.id===id);if(!before)return;
@@ -131,7 +133,8 @@ export default function WorkoutApp({mode}:{mode:Mode}) {
     {(creatingTemplate||inspectedTemplate)&&<TemplateDialog key={creatingTemplate?'new-template':inspectedTemplate!.id} template={creatingTemplate?null:inspectedTemplate} mode={mode} availableTemplates={visibleTemplates}
       onClose={()=>{setCreatingTemplate(false);setInspectedTemplateId(null);}}
       onChanged={refresh} onStart={openStartFor}/>}
-    {showNew&&<div className="modal-backdrop" onMouseDown={e=>{if(e.target===e.currentTarget)setShowNew(false);}}><div className="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title"><div className="modal-head"><div><p className="overline">NOVA SESSÃO</p><h2 id="modal-title">Qual treino vamos fazer?</h2></div><button className="close-btn" onClick={()=>setShowNew(false)} aria-label="Fechar">×</button></div><div className="modal-templates">{visibleTemplates.map(t=><button key={t.id} className={`modal-option ${activeTemplate===t.id?'selected':''}`} onClick={()=>setActiveTemplate(t.id)}><span className="template-letter">{/^[A-Z]$/.test(t.id)?t.id:t.name.slice(0,1).toUpperCase()}</span><span><strong>{t.name}</strong><small>{t.days}</small></span>{activeTemplate===t.id?<CheckCircle2 size={20}/>:<Circle size={20}/>}</button>)}</div><label className="input-label" htmlFor="new-date">DATA DO TREINO</label><input className="date-input" id="new-date" type="date" value={date} onChange={e=>setDate(e.target.value)}/><button className="btn btn-primary full" disabled={busy||!date||visibleTemplates.length===0} onClick={()=>void startWorkout()}>{busy?<LoaderCircle className="spin" size={17}/>:<ArrowRight size={17}/>} Começar ficha {activeTemplate}</button></div></div>}
+    {creatingAdhoc&&<TemplateDialog key="ad-hoc" template={null} mode={mode} sessionOnly availableTemplates={visibleTemplates} onClose={()=>setCreatingAdhoc(false)} onChanged={refresh} onStart={openStartFor} onSessionCreated={startAdhoc}/>}
+    {showNew&&<div className="modal-backdrop" onMouseDown={e=>{if(e.target===e.currentTarget)setShowNew(false);}}><div className="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title"><div className="modal-head"><div><p className="overline">NOVA SESSÃO</p><h2 id="modal-title">Qual treino vamos fazer?</h2></div><button className="close-btn" onClick={()=>setShowNew(false)} aria-label="Fechar">×</button></div><div className="modal-templates">{visibleTemplates.map(t=><button key={t.id} className={`modal-option ${activeTemplate===t.id?'selected':''}`} onClick={()=>setActiveTemplate(t.id)}><span className="template-letter">{/^[A-Z]$/.test(t.id)?t.id:t.name.slice(0,1).toUpperCase()}</span><span><strong>{t.name}</strong><small>{t.days}</small></span>{activeTemplate===t.id?<CheckCircle2 size={20}/>:<Circle size={20}/>}</button>)}</div><button type="button" className="btn btn-outline-template full" onClick={()=>{setShowNew(false);setCreatingAdhoc(true);}}><Plus size={15}/> Montar treino avulso</button><label className="input-label" htmlFor="new-date">DATA DO TREINO</label><input className="date-input" id="new-date" type="date" value={date} onChange={e=>setDate(e.target.value)}/><button className="btn btn-primary full" disabled={busy||!date||visibleTemplates.length===0} onClick={()=>void startWorkout()}>{busy?<LoaderCircle className="spin" size={17}/>:<ArrowRight size={17}/>} Começar ficha {activeTemplate}</button></div></div>}
   </div>;
 }
 function TemplateCard({t,onClick}:{t:Template;onClick:()=>void}){return <button className="template-card" onClick={onClick}><div className="template-top"><span className={`template-letter ${t.id==='D'?'lilac':''}`}>{/^[A-Z]$/.test(t.id)?t.id:t.name.slice(0,1).toUpperCase()}</span><span className="template-type">{t.category}</span></div><h3>{t.name}</h3><p>{t.days}</p><div className="template-footer"><span>{t.exercises.length} exercícios · Ver ficha</span><ArrowRight size={17}/></div></button>;}
