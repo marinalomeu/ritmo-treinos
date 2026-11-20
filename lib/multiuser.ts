@@ -57,6 +57,14 @@ export async function currentProfile(): Promise<Profile | null> {
       )
       SELECT id::text,email,role FROM linked LIMIT 1
     `;
+    if(claimed.length){
+      await sql`UPDATE public.app_invitations i
+        SET accepted_by=${id}::uuid
+        WHERE i.email=${email} AND i.status='accepted'
+          AND i.accepted_by IS NULL
+          AND EXISTS (SELECT 1 FROM public.app_profiles p
+            WHERE p.id=${id}::uuid AND p.email=${email})`;
+    }
     return claimed.length ? claimed[0] as Profile : null;
   } catch (error) {
     console.error('[ritmo] Sessão não validada', error);
