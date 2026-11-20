@@ -15,7 +15,7 @@ export async function GET(_request:Request,context:Ctx){
     const sql=db();
     const rows=await sql`
       SELECT ws.id::text AS id,ws.template_id,ws.template_name,ws.gym_name,ws.performed_on::text AS performed_on,
-        ws.started_at::text AS started_at,ws.finished_at::text AS finished_at,ws.status,
+        ws.started_at::text AS started_at,ws.finished_at::text AS finished_at,ws.status,ws.challenge_id,ws.challenge_division,
         COUNT(ss.id)::int AS total_sets,COUNT(ss.id) FILTER(WHERE ss.completed)::int AS completed_sets
       FROM public.workout_sessions ws LEFT JOIN public.session_sets ss ON ws.id=ss.session_id
       WHERE ws.id=${id}::uuid AND ws.user_id=${user.id}::uuid GROUP BY ws.id

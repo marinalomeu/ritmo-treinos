@@ -31,8 +31,8 @@ export async function POST(request:Request){
     }));
     const sql=db();
     const inserted=await sql`
-      INSERT INTO public.workout_sessions(user_id,template_id,template_name,performed_on)
-      VALUES (${user.id}::uuid,'challenge',${template.name},${date}::date)
+      INSERT INTO public.workout_sessions(user_id,template_id,template_name,performed_on,challenge_id,challenge_division)
+      VALUES (${user.id}::uuid,'challenge',${template.name},${date}::date,${challenge.id},${division})
       RETURNING id::text AS id
     `;
     const sessionId=inserted[0].id as string;

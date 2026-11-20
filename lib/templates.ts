@@ -46,6 +46,8 @@ export type WorkoutSession = {
   id: string;
   template_id: string;
   template_name: string;
+  challenge_id?: string | null;
+  challenge_division?: string | null;
   performed_on: string;
   gym_name?: string | null;
   started_at: string;
