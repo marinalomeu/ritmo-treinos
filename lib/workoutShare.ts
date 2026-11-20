@@ -73,7 +73,22 @@ export const shareMetricValues=(summary:ShareSummary,options:ShareOptions)=>{
   }
   return entries;
 };
-export type ShareVisual='dark'|'light';
+export type ShareVisual='verde-escura'|'verde-clara'|'malva'|'clara'|'escura';
+export type ShareLayout='treino'|'pr'|'semana'|'mes'|'todas';
+export const SHARE_PALETTES=[
+  {key:'verde-escura',label:'Verde escura'},
+  {key:'verde-clara',label:'Verde clara'},
+  {key:'malva',label:'Malva'},
+  {key:'clara',label:'Clara'},
+  {key:'escura',label:'Escura'}
+] as const;
+export const SHARE_LAYOUTS=[
+  {key:'treino',label:'Só treino'},
+  {key:'pr',label:'PR batido'},
+  {key:'semana',label:'Semana no ritmo'},
+  {key:'mes',label:'Mês no ritmo'},
+  {key:'todas',label:'PR, semana e mês'}
+] as const;
 export const SHARE_THEMES={
   dark:{
     gradient:['#463047','#684b62','#93738a'],
@@ -90,7 +105,38 @@ export const SHARE_THEMES={
     metricsBackground:'rgba(103,76,98,.09)',metricLabel:'#74566f',
     metricValue:'#302733',exerciseHeading:'#664a60',
     exerciseText:'#362b38',extra:'#75586d',footer:'#71586c'
+  },
+  'verde-escura':{
+    gradient:["#1d4238","#356552","#62806c"],ring:'rgba(241,252,245,.13)',logo:'#f8f6ed',subtitle:'#d4e5da',
+    kicker:'#d4e5da',headline:'#f8f6ed',secondary:'#d4e5da',metricsBackground:'rgba(250,255,249,.13)',
+    metricLabel:'#d4e5da',metricValue:'#f8f6ed',exerciseHeading:'#d4e5da',
+    exerciseText:'#f8f6ed',extra:'#d4e5da',footer:'#d4e5da'
+  },
+  'verde-clara':{
+    gradient:["#edf5e9","#d4e5d5","#b9d3c1"],ring:'rgba(35,86,68,.13)',logo:'#244c3e',subtitle:'#487262',
+    kicker:'#487262',headline:'#244c3e',secondary:'#487262',metricsBackground:'rgba(40,93,72,.10)',
+    metricLabel:'#487262',metricValue:'#244c3e',exerciseHeading:'#487262',
+    exerciseText:'#244c3e',extra:'#487262',footer:'#487262'
+  },
+  malva:{
+    gradient:["#684c67","#866983","#a78a9e"],ring:'rgba(255,255,255,.13)',logo:'#fff6fb',subtitle:'#f0dce9',
+    kicker:'#f0dce9',headline:'#fff6fb',secondary:'#f0dce9',metricsBackground:'rgba(255,255,255,.13)',
+    metricLabel:'#f0dce9',metricValue:'#fff6fb',exerciseHeading:'#f0dce9',
+    exerciseText:'#fff6fb',extra:'#f0dce9',footer:'#f0dce9'
+  },
+  clara:{
+    gradient:["#fffdfa","#f1e9e3","#e8d8ce"],ring:'rgba(82,57,68,.13)',logo:'#4f3e45',subtitle:'#856775',
+    kicker:'#856775',headline:'#4f3e45',secondary:'#856775',metricsBackground:'rgba(104,72,88,.10)',
+    metricLabel:'#856775',metricValue:'#4f3e45',exerciseHeading:'#856775',
+    exerciseText:'#4f3e45',extra:'#856775',footer:'#856775'
+  },
+  escura:{
+    gradient:["#463047","#684b62","#93738a"],ring:'rgba(255,255,255,.11)',logo:'#fffafc',subtitle:'#e9d5e3',
+    kicker:'#e9d5e3',headline:'#fffafc',secondary:'#e9d5e3',metricsBackground:'rgba(255,250,252,.10)',
+    metricLabel:'#e9d5e3',metricValue:'#fffafc',exerciseHeading:'#e9d5e3',
+    exerciseText:'#fffafc',extra:'#e9d5e3',footer:'#e9d5e3'
   }
+
 } as const;
 export function visibleShareExercises(summary:ShareSummary,metricsCount:number){
   // Layout exclusivamente vertical (9:16), preserva a sequência do WOD.
@@ -107,4 +153,52 @@ export function shareSelectionCount(options:ShareOptions):number{
 export function numericShareTarget(value:string):string|null{
   const match=value.match(/\d+(?:[,.]\d+)?(?:\s*[-x×]\s*\d+(?:[,.]\d+)?)*/i);
   return match?match[0].replace(/\s*[x×]\s*/gi,'×').replace(/\s*-\s*/g,'-'):null;
+}
+
+export type ShareAchievement={label:string;value:string};
+export type ShareAchievements={pr:ShareAchievement|null;semana:ShareAchievement|null;mes:ShareAchievement|null};
+/** Só os registros privados do usuário, já filtrados pelo servidor, contam para conquistas. */
+export function workoutShareAchievements(detail:SessionDetail,history:import('./templates').HistoryData,weeklyGoal:number):ShareAchievements{
+  const day=detail.session.performed_on;
+  const [year,month,date]=day.split('-').map(Number);
+  const at=Date.UTC(year,month-1,date);
+  const weekday=new Date(at).getUTCDay();
+  const monday=new Date(at-((weekday+6)%7)*86400000).toISOString().slice(0,10);
+  const weekEnd=new Date(at+(6-(weekday+6)%7)*86400000).toISOString().slice(0,10);
+  const finished=new Map((history.sessions||[]).filter(s=>s.status==='finished'&&s.performed_on<=day).map(s=>[s.id,s]));
+  if(detail.session.status==='finished')finished.set(detail.session.id,detail.session);
+  const week=[...finished.values()].filter(s=>s.performed_on>=monday&&s.performed_on<=weekEnd).length;
+  const monthCount=[...finished.values()].filter(s=>s.performed_on.slice(0,7)===day.slice(0,7)).length;
+  const frequency=Number.isInteger(weeklyGoal)&&weeklyGoal>=1&&weeklyGoal<=7?weeklyGoal:0;
+  const prior=new Set((history.sessions||[]).filter(s=>Date.parse(s.started_at)<Date.parse(detail.session.started_at)).map(s=>s.id));
+  let personalRecord:ShareAchievement|null=null;
+  for(const set of detail.sets){
+    if(!set.completed||set.actual_reps===null||set.actual_reps<=0||
+       !['kg','assist_kg'].includes(set.load_unit)||set.weight_kg===null||set.weight_kg<=0)continue;
+    const previous=(history.progress||[]).filter(p=>p.exercise_key===set.exercise_key&&
+      p.load_unit===set.load_unit&&prior.has(p.session_id));
+    if(!previous.length)continue;
+    const best=set.load_unit==='assist_kg'?Math.min(...previous.map(p=>p.weight_kg)):
+      Math.max(...previous.map(p=>p.weight_kg));
+    if((set.load_unit==='assist_kg'&&set.weight_kg<best)||
+      (set.load_unit==='kg'&&set.weight_kg>best)){
+      personalRecord={label:'PR BATIDO',value:set.exercise_name+' · '+set.weight_kg.toLocaleString('pt-BR')+' kg'};
+      break;
+    }
+  }
+  return {
+    pr:personalRecord,
+    semana:frequency&&week>=frequency?{label:'SEMANA NO RITMO',value:week+' treinos na semana'}:null,
+    mes:frequency&&monthCount>=frequency*4?{label:'MÊS NO RITMO',value:monthCount+' treinos no mês'}:null
+  };
+}
+export function layoutAchievements(layout:ShareLayout,values:ShareAchievements):ShareAchievement[]{
+  const keys:('pr'|'semana'|'mes')[]=layout==='treino'?[]:
+    layout==='todas'?['pr','semana','mes']:[layout];
+  return keys.flatMap(key=>values[key]?[values[key]]:[]);
+}
+export function availableShareLayout(layout:ShareLayout,values:ShareAchievements):boolean{
+  if(layout==='treino')return true;
+  if(layout==='todas')return Boolean(values.pr&&values.semana&&values.mes);
+  return Boolean(values[layout]);
 }
