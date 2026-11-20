@@ -514,3 +514,9 @@ test('descanso configuravel preservado no snapshot da serie',()=>{
  assert.ok(source('app/api/sessions/route.ts').includes('rest_seconds'));
  assert.ok(source('components/WorkoutApp.tsx').includes('sessionStorage.setItem'));
 });
+
+test('distancias realizadas ficam em coluna propria, separadas de reps',()=>{
+ assert.ok(source('lib/templates.ts').includes('function prescribedDistanceMeters'));
+ assert.ok(source('app/api/sets/[id]/route.ts').includes('actual_distance_m'));
+ assert.ok(source('components/WorkoutApp.tsx').includes('metros feitos'));
+});

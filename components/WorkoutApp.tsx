@@ -1,7 +1,7 @@
 'use client';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Activity, ArrowLeft, ArrowRight, BarChart3, CalendarDays, Check, CheckCircle2, ChevronRight, Circle, Clock3, Cloud, Dumbbell, Footprints, History, LoaderCircle, LogOut, Plus, RefreshCw, Sparkles, Trash2, TrendingUp, WifiOff, Settings2, Trophy } from 'lucide-react';
-import { TEMPLATES, type HistoryData, type SessionDetail, type StoredSet, type Template, type Unit, prescribedReps } from '../lib/templates';
+import { TEMPLATES, type HistoryData, type SessionDetail, type StoredSet, type Template, type Unit, prescribedDistanceMeters, prescribedReps } from '../lib/templates';
 import { DEMO_TEMPLATES } from '../lib/demoTemplates';
 import { createSession, deleteSession, finishSession, getSession, listData, saveSet, saveSessionGym, saveGoal, type Mode } from '../lib/clientStore';
 import { DEFAULT_GOAL, SHOWCASE_GOAL, defaultMemberGoal, goalProgress, isValidGoal, type TrainingGoal } from '../lib/goal';
@@ -104,15 +104,17 @@ export default function WorkoutApp({mode,isOwner=false}:{mode:Mode;isOwner?:bool
   const patchSet=async(id:string,changes:Partial<StoredSet>)=>{
     if(!detail)return;const before=detail.sets.find(s=>s.id===id);if(!before)return;
     const next={...before,...changes};
-    if(changes.completed===true&&!before.completed&&next.actual_reps===null){
-      next.actual_reps=prescribedReps(next.target_reps);
+    if(changes.completed===true&&!before.completed){
+      const distance=prescribedDistanceMeters(next.target_reps);
+      if(distance!==null){if(next.actual_distance_m==null)next.actual_distance_m=distance;next.actual_reps=null;}
+      else if(next.actual_reps===null)next.actual_reps=prescribedReps(next.target_reps);
     }
     next.completed_at=next.completed?(before.completed_at??new Date().toISOString()):null;
     const finalWeight=next.weight_kg;
     if(next.actual_reps!=null&&(!Number.isInteger(next.actual_reps)||next.actual_reps<0||next.actual_reps>10000)){setError('Confira as repetições realizadas.');return;}
     if(finalWeight!==null&&(!Number.isFinite(finalWeight)||finalWeight<0||finalWeight>2000)){setError('Confira a carga ou a velocidade informada.');return;}
     setDetail(d=>d?{...d,sets:d.sets.map(s=>s.id===id?next:s)}:d);setSaving(s=>[...s,id]);setError('');
-    try{await saveSet(mode,id,next.completed,finalWeight,next.actual_reps??null);await refresh();
+    try{await saveSet(mode,id,next.completed,finalWeight,next.actual_reps??null,next.actual_distance_m??null);await refresh();
       if(changes.completed===true&&!before.completed&&typeof next.rest_seconds==='number'&&next.rest_seconds>0){
         const pending=detail.sets.some(s=>s.exercise_key===next.exercise_key&&!s.completed&&s.id!==id);
         if(pending){const state={setId:id,until:Date.now()+next.rest_seconds*1000,skipped:false};setRestState(state);
@@ -127,6 +129,8 @@ export default function WorkoutApp({mode,isOwner=false}:{mode:Mode;isOwner?:bool
   const saveEditedWeight=(id:string)=>{const s=detail?.sets.find(s=>s.id===id);if(s)void patchSet(id,{weight_kg:s.weight_kg});};
   const updateLocalReps=(id:string,value:string)=>setDetail(d=>d?{...d,sets:d.sets.map(s=>s.id===id?{...s,actual_reps:value===''?null:Number(value)}:s)}:d);
   const saveEditedReps=(id:string)=>{const s=detail?.sets.find(s=>s.id===id);if(s)void patchSet(id,{actual_reps:s.actual_reps});};
+  const updateLocalDistance=(id:string,value:string)=>setDetail(d=>d?{...d,sets:d.sets.map(s=>s.id===id?{...s,actual_distance_m:value===''?null:Number(value)}:s)}:d);
+  const saveEditedDistance=(id:string)=>{const s=detail?.sets.find(s=>s.id===id);if(s)void patchSet(id,{actual_distance_m:s.actual_distance_m});};
   const saveGym=async()=>{
     if(!detail)return;
     setGymSaving(true);setError('');
@@ -292,7 +296,7 @@ export default function WorkoutApp({mode,isOwner=false}:{mode:Mode;isOwner?:bool
         <div className="completion-card"><div><strong>{detail.sets.filter(s=>s.completed).length} de {detail.sets.length} séries</strong><span>concluídas nesta sessão</span></div><span className="completion-pct">{Math.round(100*detail.sets.filter(s=>s.completed).length/Math.max(detail.sets.length,1))}%</span><div className="progress-track"><div style={{width:`${100*detail.sets.filter(s=>s.completed).length/Math.max(detail.sets.length,1)}%`}}/></div></div>
         {mode!=='showcase'&&detail.session.template_name==='HYROX adaptado'&&detail.sets.some(s=>s.load_unit==='km/h')&&<div className="hyrox-info"><Footprints size={18}/><div><strong>6 blocos de 500 m</strong><span>Velocidade-alvo de 10 km/h, com pausas conforme necessário. Faça cada estação após sua corrida.</span></div></div>}
         {detail.session.status==='active'&&restState&&!restState.skipped&&restState.until>clockNow&&detail.sets.some(s=>s.id===restState.setId&&s.completed)&&<div className="rest-timer"><Clock3 size={18}/><strong>Descanso: {Math.ceil((restState.until-clockNow)/1000)}s</strong><button type="button" onClick={()=>{const n={...restState,skipped:true};setRestState(n);try{sessionStorage.setItem(`ritmo-rest:${detail.session.id}`,JSON.stringify(n));}catch{}}}>Pular</button><button type="button" onClick={()=>{const n={...restState,until:restState.until+30000};setRestState(n);try{sessionStorage.setItem(`ritmo-rest:${detail.session.id}`,JSON.stringify(n));}catch{}}}>+30s</button></div>}
-        <WorkoutSets detail={detail} template={findVisibleTemplate(detail.session.template_id)} saving={saving} patchSet={patchSet} updateLocalWeight={updateLocalWeight} saveEditedWeight={saveEditedWeight} updateLocalReps={updateLocalReps} saveEditedReps={saveEditedReps}/>
+        <WorkoutSets detail={detail} template={findVisibleTemplate(detail.session.template_id)} saving={saving} patchSet={patchSet} updateLocalWeight={updateLocalWeight} saveEditedWeight={saveEditedWeight} updateLocalReps={updateLocalReps} saveEditedReps={saveEditedReps} updateLocalDistance={updateLocalDistance} saveEditedDistance={saveEditedDistance}/>
 
         {detail.session.status==='finished'&&<div className="post-workout-share-invite">
           <div><p className="overline">COMPARTILHE SUA CONQUISTA</p>
@@ -388,7 +392,7 @@ function SessionRow({s,onClick,showcase}:{s:HistoryData['sessions'][number];onCl
 }
 function EmptyState({title,text}:{title:string;text:string}){return <div className="empty-state"><div><Clock3 size={22}/></div><strong>{title}</strong><p>{text}</p></div>;}
 function PageHeading({label,title,description}:{label:string;title:string;description:string}){return <div className="page-heading"><p className="overline">{label}</p><h1>{title}</h1><p>{description}</p></div>;}
-function WorkoutSets({detail,template,saving,patchSet,updateLocalWeight,saveEditedWeight,updateLocalReps,saveEditedReps}:{detail:SessionDetail;template:Template|undefined;saving:string[];patchSet:(id:string,c:Partial<StoredSet>)=>Promise<void>;updateLocalWeight:(id:string,v:string)=>void;saveEditedWeight:(id:string)=>void;updateLocalReps:(id:string,v:string)=>void;saveEditedReps:(id:string)=>void}){
+function WorkoutSets({detail,template,saving,patchSet,updateLocalWeight,saveEditedWeight,updateLocalReps,saveEditedReps,updateLocalDistance,saveEditedDistance}:{detail:SessionDetail;template:Template|undefined;saving:string[];patchSet:(id:string,c:Partial<StoredSet>)=>Promise<void>;updateLocalWeight:(id:string,v:string)=>void;saveEditedWeight:(id:string)=>void;updateLocalReps:(id:string,v:string)=>void;saveEditedReps:(id:string)=>void;updateLocalDistance:(id:string,v:string)=>void;saveEditedDistance:(id:string)=>void}){
   const group=detail.sets.reduce<{key:string;name:string;block:number|null;sets:StoredSet[]}[]>((acc,s)=>{let g=acc.find(x=>x.key===s.exercise_key);if(!g){g={key:s.exercise_key,name:s.exercise_name,block:s.block_number,sets:[]};acc.push(g);}g.sets.push(s);return acc;},[]);
   return <div className="exercise-list">{group.map((g,i)=>{
     const first=g.sets[0];const isRun=first.load_unit==='km/h';const allDone=g.sets.every(s=>s.completed);
@@ -400,7 +404,7 @@ function WorkoutSets({detail,template,saving,patchSet,updateLocalWeight,saveEdit
         <button className={`check-square ${s.completed?'checked':''}`} aria-label={`Marcar série ${s.set_number} de ${s.exercise_name}`} aria-pressed={s.completed} disabled={saving.includes(s.id)} onClick={()=>void patchSet(s.id,{completed:!s.completed})}>{saving.includes(s.id)?<LoaderCircle size={15} className="spin"/>:s.completed?<Check size={17}/>:null}</button>
         <span className="set-number">Série {s.set_number}</span>
         <span className="set-target">{s.target_reps}</span>
-        <label className="reps-field"><input type="number" min="0" max="10000" step="1" inputMode="numeric" aria-label={`Repetições realizadas da série ${s.set_number} de ${s.exercise_name}`} value={s.actual_reps??(s.completed?'':prescribedReps(s.target_reps)??'')} placeholder="—" onChange={e=>updateLocalReps(s.id,e.target.value)} onBlur={()=>saveEditedReps(s.id)} /><span>reps feitas</span></label>
+        {prescribedDistanceMeters(s.target_reps)!==null?<label className="reps-field"><input type="number" min="0" max="1000000" step="0.01" inputMode="decimal" aria-label={'Metros realizados da série '+s.set_number+' de '+s.exercise_name} value={s.actual_distance_m??(s.completed?'':prescribedDistanceMeters(s.target_reps)??'')} onChange={e=>updateLocalDistance(s.id,e.target.value)} onBlur={()=>saveEditedDistance(s.id)} /><span>metros feitos</span></label>:<label className="reps-field"><input type="number" min="0" max="10000" step="1" inputMode="numeric" aria-label={'Repetições realizadas da série '+s.set_number+' de '+s.exercise_name} value={s.actual_reps??(s.completed?'':prescribedReps(s.target_reps)??'')} placeholder="—" onChange={e=>updateLocalReps(s.id,e.target.value)} onBlur={()=>saveEditedReps(s.id)} /><span>reps feitas</span></label>}
         {s.load_unit==='none'?<span className="bodyweight-label">Peso corporal</span>:<label className="load-field"><input type="number" min="0" max="2000" step="0.5" inputMode="decimal" aria-label={`${s.load_unit==='km/h'?'Velocidade':'Carga'} da série ${s.set_number} de ${s.exercise_name}`} value={s.weight_kg??''} placeholder="—" onChange={e=>updateLocalWeight(s.id,e.target.value)} onBlur={()=>saveEditedWeight(s.id)} /><span>{s.load_unit==='assist_kg'?'kg assist.':s.load_unit}</span></label>}
       </div>)}</div>
     </div>;
