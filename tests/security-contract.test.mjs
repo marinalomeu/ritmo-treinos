@@ -484,3 +484,10 @@ test('ativacao da proprietaria exige verificacao e senha antes de habilitar perf
   assert.ok(activation.includes('u."emailVerified"=true'),'exigir verificacao no provider');
   assert.ok(activation.includes('a.password IS NOT NULL'),'exigir credencial com senha');
 });
+
+test('grafico composto permite selecao de todos os exercicios disponiveis',()=>{
+ const app=source('components/WorkoutApp.tsx');
+ assert.ok(app.includes('max={Math.max(1,filteredProgress.length)}'));
+ assert.ok(!app.includes('old.length>=8?old:[...old,key]'));
+ assert.ok(app.includes('<ProgressComparisonGraph series={comparisonSeries}'));
+});
