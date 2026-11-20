@@ -1,7 +1,7 @@
 'use client';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Activity, ArrowLeft, ArrowRight, BarChart3, CalendarDays, Check, CheckCircle2, ChevronRight, Circle, Clock3, Cloud, Dumbbell, Footprints, History, LoaderCircle, LogOut, Plus, RefreshCw, Sparkles, Trash2, TrendingUp, WifiOff, Settings2, Trophy } from 'lucide-react';
-import { TEMPLATES, type HistoryData, type SessionDetail, type StoredSet, type Template, type Unit } from '../lib/templates';
+import { TEMPLATES, type HistoryData, type SessionDetail, type StoredSet, type Template, type Unit, prescribedReps } from '../lib/templates';
 import { DEMO_TEMPLATES } from '../lib/demoTemplates';
 import { createSession, deleteSession, finishSession, getSession, listData, saveSet, saveSessionGym, saveGoal, type Mode } from '../lib/clientStore';
 import { DEFAULT_GOAL, SHOWCASE_GOAL, defaultMemberGoal, goalProgress, isValidGoal, type TrainingGoal } from '../lib/goal';
@@ -50,8 +50,16 @@ export default function WorkoutApp({mode,isOwner=false}:{mode:Mode;isOwner?:bool
   const [gymSaving,setGymSaving]=useState(false);
   const [sessionGymOverride,setSessionGymOverride]=useState('');
   const inspectedTemplate=visibleTemplates.find(t=>t.id===inspectedTemplateId)||null;
-  const openStartFor=(id:string)=>{
-    setActiveTemplate(id);setSessionGymOverride(visibleTemplates.find(t=>t.id===id)?.gym_name??'');setInspectedTemplateId(null);setShowNew(true);
+  const openStartFor=async(id:string)=>{
+    if(busy)return;
+    const template=visibleTemplates.find(t=>t.id===id);
+    if(!template){setError('Ficha não encontrada.');return;}
+    setInspectedTemplateId(null);setShowNew(false);
+    setBusy(true);setError('');
+    try{
+      const sessionId=await createSession(mode,id,todayLocal(),template.gym_name??'');
+      await openWorkout(sessionId);await refresh();
+    }catch(e){alertError(e);}finally{setBusy(false);}
   };
   const ensureStart=()=>{
     if(!visibleTemplates.length){setCreatingTemplate(true);return;}
@@ -92,7 +100,11 @@ export default function WorkoutApp({mode,isOwner=false}:{mode:Mode;isOwner?:bool
   const startWorkout=async()=>{setBusy(true);setError('');try{const id=await createSession(mode,activeTemplate,date,sessionGymOverride);await openWorkout(id);await refresh();}catch(e){alertError(e);}finally{setBusy(false);}};
   const patchSet=async(id:string,changes:Partial<StoredSet>)=>{
     if(!detail)return;const before=detail.sets.find(s=>s.id===id);if(!before)return;
-    const next={...before,...changes};const finalWeight=next.weight_kg;
+    const next={...before,...changes};
+    if(changes.completed===true&&!before.completed&&next.actual_reps===null){
+      next.actual_reps=prescribedReps(next.target_reps);
+    }
+    const finalWeight=next.weight_kg;
     if(next.actual_reps!=null&&(!Number.isInteger(next.actual_reps)||next.actual_reps<0||next.actual_reps>10000)){setError('Confira as repetições realizadas.');return;}
     if(finalWeight!==null&&(!Number.isFinite(finalWeight)||finalWeight<0||finalWeight>2000)){setError('Confira a carga ou a velocidade informada.');return;}
     setDetail(d=>d?{...d,sets:d.sets.map(s=>s.id===id?next:s)}:d);setSaving(s=>[...s,id]);setError('');
@@ -362,7 +374,7 @@ function WorkoutSets({detail,template,saving,patchSet,updateLocalWeight,saveEdit
         <button className={`check-square ${s.completed?'checked':''}`} aria-label={`Marcar série ${s.set_number} de ${s.exercise_name}`} aria-pressed={s.completed} disabled={saving.includes(s.id)} onClick={()=>void patchSet(s.id,{completed:!s.completed})}>{saving.includes(s.id)?<LoaderCircle size={15} className="spin"/>:s.completed?<Check size={17}/>:null}</button>
         <span className="set-number">Série {s.set_number}</span>
         <span className="set-target">{s.target_reps}</span>
-        <label className="reps-field"><input type="number" min="0" max="10000" step="1" inputMode="numeric" aria-label={`Repetições realizadas da série ${s.set_number} de ${s.exercise_name}`} value={s.actual_reps??''} placeholder="—" onChange={e=>updateLocalReps(s.id,e.target.value)} onBlur={()=>saveEditedReps(s.id)} /><span>reps feitas</span></label>
+        <label className="reps-field"><input type="number" min="0" max="10000" step="1" inputMode="numeric" aria-label={`Repetições realizadas da série ${s.set_number} de ${s.exercise_name}`} value={s.actual_reps??(s.completed?'':prescribedReps(s.target_reps)??'')} placeholder="—" onChange={e=>updateLocalReps(s.id,e.target.value)} onBlur={()=>saveEditedReps(s.id)} /><span>reps feitas</span></label>
         {s.load_unit==='none'?<span className="bodyweight-label">Peso corporal</span>:<label className="load-field"><input type="number" min="0" max="2000" step="0.5" inputMode="decimal" aria-label={`${s.load_unit==='km/h'?'Velocidade':'Carga'} da série ${s.set_number} de ${s.exercise_name}`} value={s.weight_kg??''} placeholder="—" onChange={e=>updateLocalWeight(s.id,e.target.value)} onBlur={()=>saveEditedWeight(s.id)} /><span>{s.load_unit==='assist_kg'?'kg assist.':s.load_unit}</span></label>}
       </div>)}</div>
     </div>;

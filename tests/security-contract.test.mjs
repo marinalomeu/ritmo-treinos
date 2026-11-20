@@ -491,3 +491,18 @@ test('grafico composto permite selecao de todos os exercicios disponiveis',()=>{
  assert.ok(!app.includes('old.length>=8?old:[...old,key]'));
  assert.ok(app.includes('<ProgressComparisonGraph series={comparisonSeries}'));
 });
+
+test('repeticoes previstas aparecem e viram registro apenas na conclusao da serie',()=>{
+ const app=source('components/WorkoutApp.tsx');
+ const core=source('lib/templates.ts');
+ assert.ok(core.includes('function prescribedReps(target:string)'));
+ assert.ok(app.includes('changes.completed===true&&!before.completed'));
+ assert.ok(app.includes('prescribedReps(next.target_reps)'));
+ assert.ok(app.includes("s.actual_reps??(s.completed?'':prescribedReps(s.target_reps)??'')"));
+});
+test('inicio contextual da ficha nao reabre seletor de treinos',()=>{
+ const app=source('components/WorkoutApp.tsx');
+ const context=app.split('const openStartFor=async(id:string)=>')[1].split('const ensureStart=')[0];
+ assert.ok(context.includes('createSession(mode,id,todayLocal()'));
+ assert.ok(!context.includes('setShowNew(true)'));
+});

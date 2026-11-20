@@ -56,7 +56,10 @@
 @media(max-width:370px){.template-input-grid{grid-template-columns:1fr}}
 
 /* Recordes individuais, intensidade de cargas e modalidades */
-.progress-filters{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,2fr);gap:14px;align-items:end}
+.progress-filters{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,2fr);gap:14px;align-items:start}
+.progress-filters>.input-label,.progress-filters>.multi-exercise-select{align-self:start;margin:0}
+.progress-filters .multi-exercise-select{display:grid;gap:7px}
+.progress-filters .multi-exercise-select .multi-exercise-chips{grid-column:1/-1}
 .progress-filters .input-label{display:grid;gap:7px}
 .progress-filters .select-input{max-width:unset}
 .prs-page{display:grid;gap:18px}
