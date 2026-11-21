@@ -528,3 +528,83 @@
 }
 
 @media(max-width:760px){.mobile-drawer-invites{display:flex;align-items:center;gap:16px;padding:14px 15px;margin-top:16px;border-top:1px solid var(--border);color:var(--plum);font-size:13px;font-weight:700;text-decoration:none;min-height:52px}.mobile-drawer-invites svg{flex-shrink:0}}
+
+
+/* Ritmo — Malva & Soft Green v1.0 · design aprovado em 21/11/2026.
+   Visual-only: affects both demo and authenticated views; no business logic changes. */
+:root{
+  --ritmo-green-button:#e4f8e3;
+  --ritmo-green-card:#f0f8ee;
+  --ritmo-green-progress:#648c70;
+  --ritmo-green-ink:#315245;
+  --ritmo-green-track:#e5f0e5;
+  --ritmo-green-border:#d3e6d5;
+  --ritmo-mauve-selected:#f3eaf1;
+}
+/* Buttons: soft green, dark text, subtle feedback. Destructive actions keep red. */
+.btn-primary,
+.hero-actions .btn-light{
+  color:var(--ritmo-green-ink);
+  background:var(--ritmo-green-button);
+  border-color:#cde5d0;
+}
+.btn-primary:hover:not(:disabled),
+.hero-actions .btn-light:hover:not(:disabled){background:#d7efd8;border-color:#bcdabe}
+.btn-primary:active:not(:disabled),
+.hero-actions .btn-light:active:not(:disabled){background:#cce8ce}
+.btn-primary svg,.hero-actions .btn-light svg{color:inherit}
+/* Hero B: the mauve banner remains the brand anchor. */
+.hero{background:linear-gradient(112deg,#553d52 0%,#775b71 100%)}
+.hero .dot{background:#d9e9dc}
+/* The left navigation and mobile menu remain mauve by design. */
+.nav-item.active{background:var(--ritmo-mauve-selected);color:var(--plum)}
+/* Neutral cards alternate with creamy green. Green is decoration, not a health judgment. */
+.stats-grid .metric-card:nth-child(4n+2),
+.stats-grid .metric-card:nth-child(4n+3),
+.body-summary-card:nth-child(4n+2),
+.body-summary-card:nth-child(4n+3),
+.chart-stats>div:nth-child(4n+2),
+.chart-stats>div:nth-child(4n+3),
+.carnival-counter:nth-child(even),
+.body-goal-card:nth-child(even){
+  background:var(--ritmo-green-card);
+  border-color:var(--ritmo-green-border);
+}
+.stats-grid .metric-card:nth-child(4n+2) .metric-icon,
+.stats-grid .metric-card:nth-child(4n+3) .metric-icon{
+  background:#deeddf;
+  color:var(--ritmo-green-ink);
+}
+.stats-grid .metric-card:nth-child(4n+2) strong,
+.stats-grid .metric-card:nth-child(4n+3) strong,
+.body-summary-card:nth-child(4n+2) strong,
+.body-summary-card:nth-child(4n+3) strong,
+.chart-stats>div:nth-child(4n+2) strong,
+.chart-stats>div:nth-child(4n+3) strong,
+.carnival-counter:nth-child(even) strong{color:var(--ritmo-green-ink)}
+/* Exercise cards and headers stay white. Only completed set rows are colored. */
+.exercise-card,.exercise-head{background:var(--surface)}
+.set-line{
+  border-radius:9px;
+  transition:background-color 200ms ease,border-color 200ms ease,color 200ms ease;
+}
+.set-line.checked{background:var(--ritmo-green-card);color:var(--ritmo-green-ink);border-bottom-color:var(--ritmo-green-border)}
+.check-square{transition:background-color 200ms ease,border-color 200ms ease}
+.check-square.checked{background:var(--ritmo-green-progress);border-color:var(--ritmo-green-progress)}
+.set-line.checked .set-number{color:var(--ritmo-green-ink)}
+.set-line.checked .load-field,
+.set-line.checked .reps-field{background:#fffdfa;border-color:#d5e3d5}
+/* Uniform green progress bars: never imply a body metric is inherently good/bad. */
+.progress-track,.body-progress-track{background:var(--ritmo-green-track)}
+.progress-track>div,.body-progress-track>div{background:var(--ritmo-green-progress)}
+.completion-card .completion-pct{color:var(--ritmo-green-ink)}
+.progress-track>div{transition:width 200ms ease}
+/* Comparisons and dropdowns retain mauve for active selection. */
+.multi-exercise-chip{background:var(--ritmo-mauve-selected);border-color:#e7d5e1;color:var(--plum)}
+.multi-exercise-option.is-selected{background:var(--ritmo-mauve-selected)}
+.progress-filters .select-input:focus,
+.progress-filters .multi-exercise-trigger[aria-expanded="true"]{border-color:var(--plum)}
+/* Mobile/desktop: respect accessibility preferences and prevent motion-only feedback. */
+@media(prefers-reduced-motion:reduce){
+  .set-line,.check-square,.progress-track>div{transition:none!important}
+}

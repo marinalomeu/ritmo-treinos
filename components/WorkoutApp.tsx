@@ -464,7 +464,7 @@ function ProgressComparisonGraph({series}:{series:{key:string;name:string;unit:U
   const active=series.filter(s=>s.points.length>0);
   if(!series.length)return <div className="chart-empty"><BarChart3 size={29}/><strong>Escolha exercícios para comparar</strong><p>Abra o seletor acima e marque até oito exercícios.</p></div>;
   if(!active.length)return <div className="chart-empty"><BarChart3 size={29}/><strong>Sem cargas registradas</strong><p>Escolha exercícios com séries concluídas para visualizar a progressão.</p></div>;
-  const colors=['#78506f','#4a7885','#b08252','#778a64','#a45b7e','#5f659f','#bc806e','#567d75'];
+  const colors=['#62445d','#648c70','#b08252','#4a7885','#a45b7e','#5f659f','#bc806e','#567d75'];
   const times=active.flatMap(s=>s.points.map(p=>Date.parse(p.performed_on+'T12:00:00Z'))).filter(Number.isFinite);
   const minTime=Math.min(...times),maxTime=Math.max(...times);
   const withBase=active.map(s=>{
