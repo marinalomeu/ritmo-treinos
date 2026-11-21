@@ -496,3 +496,11 @@
  .progress-filters{grid-template-columns:minmax(0,1fr)!important}}
 @media(max-width:460px){.body-form-grid{grid-template-columns:1fr}.body-chart-controls{grid-template-columns:1fr}.body-segments{grid-column:auto}
  .body-custom-fields{grid-template-columns:1fr}.body-summary-card{padding:12px}.body-summary-card strong{font-size:19px}}
+
+/* Shared filter geometry: native select and multiselect align on the same baseline. */
+.progress-filters{grid-template-columns:repeat(2,minmax(0,1fr))!important;align-items:start!important;gap:17px}
+.progress-filters>.input-label,.progress-filters>.multi-exercise{display:flex;flex-direction:column;gap:8px;margin:0!important;min-width:0;align-self:start}
+.progress-filters>.input-label{font-size:10px}
+.progress-filters>.input-label .select-input,.progress-filters .multi-exercise-trigger{box-sizing:border-box;width:100%;max-width:none;min-height:46px;height:46px;margin:0;padding:0 15px;border:1px solid #d6c6d1;border-radius:12px;background:#fffdfa;font:700 13px 'Manrope',sans-serif;line-height:normal}
+.progress-filters .multi-exercise .input-label{margin:0!important;line-height:normal}
+@media(max-width:760px){.progress-filters{grid-template-columns:minmax(0,1fr)!important}}
