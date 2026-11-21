@@ -72,7 +72,7 @@ export async function POST(request:Request){
       if(expected&&old.status!==expected||action==='goal.close'&&old.status==='closed')return fail('Estado da meta incompatível.',409);
       before={...old};old.status=action==='goal.pause'?'paused':action==='goal.resume'?'active':'closed';old.updated_at=now;after={...old};recordId=id;
     }else return fail('Operação desconhecida.');
-    const audit={id:randomUUID(),record_type:event.startsWith('evaluation.')?'evaluation':event.startsWith('metric.')?'metric':'goal',
+    const audit:BodyData['audit'][number]={id:randomUUID(),record_type:event.startsWith('evaluation.')?'evaluation':event.startsWith('metric.')?'metric':'goal',
       record_id:recordId,action:event,occurred_at:now,before,after};
     state.audit=[audit,...state.audit].slice(0,300);
     const sql=db();
