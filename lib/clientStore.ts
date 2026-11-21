@@ -10,6 +10,7 @@ const STORAGE_KEY = 'ritmo_treinos_demo_v1';
 let showcaseExercises:CatalogExercise[]=[];
 let showcaseTemplates:Template[]|null=null;
 let showcaseSessions:SessionDetail[]|null=null;
+let showcaseGoal:TrainingGoal|null=null;
 const customKey=(mode:Mode)=>mode==='showcase'?'ritmo_showcase_custom_exercises_v1':'ritmo_demo_custom_exercises_v1';
 const readCustom=(mode:Mode):CatalogExercise[]=>{if(mode==='showcase')return [...showcaseExercises];try{return JSON.parse(localStorage.getItem(customKey(mode))||'[]') as CatalogExercise[];}catch{return [];}};
 const SHOWCASE_KEY = 'ritmo_showcase_v2';
@@ -71,7 +72,7 @@ export async function listData(mode:Mode):Promise<HistoryData> {
     map.forEach(s=>progress.push({exercise_key:s.exercise_key,exercise_name:s.exercise_name,load_unit:s.load_unit,performed_on:d.session.performed_on,weight_kg:s.weight_kg!,session_id:d.session.id}));
   });
   const historicalExercises=[...new Map(progress.map(p=>[p.exercise_key,{key:p.exercise_key,name:p.exercise_name,unit:p.load_unit}])).values()];
-  return {sessions:details.map(d=>d.session),progress,goal:mode==='showcase'?SHOWCASE_GOAL:undefined,templates:localTemplates(mode),historicalExercises,customExercises:readCustom(mode)};
+  return {sessions:details.map(d=>d.session),progress,goal:mode==='showcase'?(showcaseGoal??SHOWCASE_GOAL):undefined,templates:localTemplates(mode),historicalExercises,customExercises:readCustom(mode)};
 }
 export async function createCustomExercise(mode:Mode,name:string,unit:Unit,modality:Modality):Promise<CatalogExercise>{
   if(mode==='cloud')return parseResponse<CatalogExercise>(await fetch('/api/exercises',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,unit,modality})}));
@@ -123,6 +124,7 @@ export async function deleteSession(mode:Mode,id:string):Promise<void> {
 }
 
 export async function saveGoal(mode:Mode, goal:TrainingGoal):Promise<TrainingGoal>{
+  if(mode==='showcase'){showcaseGoal={...goal};return {...showcaseGoal};}
   if(mode!=='cloud') throw new Error('A meta só pode ser atualizada no perfil real.');
   return parseResponse<TrainingGoal>(await fetch('/api/goal',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(goal)}));
 }
