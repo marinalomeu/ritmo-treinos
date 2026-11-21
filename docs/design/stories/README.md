@@ -15,3 +15,10 @@ Referência visual oficial aprovada em 19 de novembro de 2026. As lâminas usam 
 - Preserve a escala e a posição do bloco de treino das pranchas em todas as paletas.
 - As conquistas ocupam a faixa abaixo do título. Na versão combinada, o PR fica à esquerda, com semana e mês empilhados à direita.
 - Os 25 PNGs são modelos visuais para orientar a implementação dos Stories.
+
+## Lâminas de instruções de instalação
+
+Artes oficiais em formato Stories (9:16), com fundo roxo e detalhes em verde.
+
+- [iPhone · Safari](instalacao/iphone-safari.png)
+- [Android · Chrome](instalacao/android-chrome.png)
