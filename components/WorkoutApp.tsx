@@ -14,6 +14,8 @@ import PrUpdateDialog, { type PrSelection } from './PrUpdateDialog';
 import TemplateLoadDialog, {type TemplateLoadSelection} from './TemplateLoadDialog';
 import WorkoutShareCard from './WorkoutShareCard';
 import PersonalRecords from './PersonalRecords';
+import NumericField from './NumericField';
+import { loadForDisplay, loadForStorage } from '../lib/weightUnits';
 import BodyDashboard from './BodyDashboard';
 import { MODALITIES } from '../lib/personalRecords';
 import { BASE_EXERCISES, mergedExerciseCatalog, type CatalogExercise } from '../lib/exerciseCatalog';
@@ -129,9 +131,9 @@ export default function WorkoutApp({mode,isOwner=false}:{mode:Mode;isOwner?:bool
     catch(e){setDetail(d=>d?{...d,sets:d.sets.map(s=>s.id===id?before:s)}:d);alertError(e);}
     finally{setSaving(s=>s.filter(x=>x!==id));}
   };
-  const updateLocalWeight=(id:string,value:string)=>setDetail(d=>d?{...d,sets:d.sets.map(s=>s.id===id?{...s,weight_kg:value===''?null:Number(value)}:s)}:d);
+  const updateLocalWeight=(id:string,value:number|null)=>setDetail(d=>d?{...d,sets:d.sets.map(s=>s.id===id?{...s,weight_kg:loadForStorage(value,s.load_unit)}:s)}:d);
   const saveEditedWeight=(id:string)=>{const s=detail?.sets.find(s=>s.id===id);if(s)void patchSet(id,{weight_kg:s.weight_kg});};
-  const updateLocalReps=(id:string,value:string)=>setDetail(d=>d?{...d,sets:d.sets.map(s=>s.id===id?{...s,actual_reps:value===''?null:Number(value)}:s)}:d);
+  const updateLocalReps=(id:string,value:number|null)=>setDetail(d=>d?{...d,sets:d.sets.map(s=>s.id===id?{...s,actual_reps:value}:s)}:d);
   const saveEditedReps=(id:string)=>{const s=detail?.sets.find(s=>s.id===id);if(s)void patchSet(id,{actual_reps:s.actual_reps});};
   const updateLocalDistance=(id:string,value:string)=>setDetail(d=>d?{...d,sets:d.sets.map(s=>s.id===id?{...s,actual_distance_m:value===''?null:Number(value)}:s)}:d);
   const saveEditedDistance=(id:string)=>{const s=detail?.sets.find(s=>s.id===id);if(s)void patchSet(id,{actual_distance_m:s.actual_distance_m});};
@@ -233,9 +235,9 @@ export default function WorkoutApp({mode,isOwner=false}:{mode:Mode;isOwner?:bool
   const nav=[{id:'home' as View,label:'Visão geral',Icon:Activity},{id:'history' as View,label:'Histórico',Icon:History},{id:'progress' as View,label:'Evolução',Icon:BarChart3},{id:'prs' as View,label:'PRs',Icon:Trophy},{id:'body' as View,label:'Bioimpedância',Icon:Activity},{id:'challenges' as View,label:'Em Outro Ritmo',Icon:Footprints}];
   const allProgress=useMemo(()=>{
     const keys=new Map<string,{key:string;name:string;unit:Unit}>();
-    visibleTemplates.forEach(t=>t.exercises.filter(e=>e.unit!=='none').forEach(e=>{if(!keys.has(e.key))keys.set(e.key,{key:e.key,name:e.name,unit:e.unit});}));
+    visibleTemplates.forEach(t=>t.exercises.filter(e=>e.unit!=='none').forEach(e=>{if(!keys.has(e.key))keys.set(e.key,{key:e.key,name:e.name,unit:e.unit==='lb'?'kg':e.unit});}));
     (data.historicalExercises||data.progress.map(p=>({key:p.exercise_key,name:p.exercise_name,unit:p.load_unit}))).forEach(e=>{
-      if(!keys.has(e.key))keys.set(e.key,{key:e.key,name:e.name+' (histórico)',unit:e.unit});
+      if(!keys.has(e.key))keys.set(e.key,{key:e.key,name:e.name+' (histórico)',unit:e.unit==='lb'?'kg':e.unit});
     });
     return [...keys.values()];
   },[visibleTemplates,data.historicalExercises,data.progress]);
@@ -428,7 +430,7 @@ function SessionRow({s,onClick,showcase}:{s:HistoryData['sessions'][number];onCl
 }
 function EmptyState({title,text}:{title:string;text:string}){return <div className="empty-state"><div><Clock3 size={22}/></div><strong>{title}</strong><p>{text}</p></div>;}
 function PageHeading({label,title,description}:{label:string;title:string;description:string}){return <div className="page-heading"><p className="overline">{label}</p><h1>{title}</h1><p>{description}</p></div>;}
-function WorkoutSets({detail,template,saving,patchSet,updateLocalWeight,saveEditedWeight,updateLocalReps,saveEditedReps,updateLocalDistance,saveEditedDistance}:{detail:SessionDetail;template:Template|undefined;saving:string[];patchSet:(id:string,c:Partial<StoredSet>)=>Promise<void>;updateLocalWeight:(id:string,v:string)=>void;saveEditedWeight:(id:string)=>void;updateLocalReps:(id:string,v:string)=>void;saveEditedReps:(id:string)=>void;updateLocalDistance:(id:string,v:string)=>void;saveEditedDistance:(id:string)=>void}){
+function WorkoutSets({detail,template,saving,patchSet,updateLocalWeight,saveEditedWeight,updateLocalReps,saveEditedReps,updateLocalDistance,saveEditedDistance}:{detail:SessionDetail;template:Template|undefined;saving:string[];patchSet:(id:string,c:Partial<StoredSet>)=>Promise<void>;updateLocalWeight:(id:string,v:number|null)=>void;saveEditedWeight:(id:string)=>void;updateLocalReps:(id:string,v:number|null)=>void;saveEditedReps:(id:string)=>void;updateLocalDistance:(id:string,v:string)=>void;saveEditedDistance:(id:string)=>void}){
   const group=detail.sets.reduce<{key:string;name:string;block:number|null;sets:StoredSet[]}[]>((acc,s)=>{let g=acc.find(x=>x.key===s.exercise_key);if(!g){g={key:s.exercise_key,name:s.exercise_name,block:s.block_number,sets:[]};acc.push(g);}g.sets.push(s);return acc;},[]);
   return <div className="exercise-list">{group.map((g,i)=>{
     const first=g.sets[0];const isRun=first.load_unit==='km/h';const allDone=g.sets.every(s=>s.completed);
@@ -440,8 +442,8 @@ function WorkoutSets({detail,template,saving,patchSet,updateLocalWeight,saveEdit
         <button className={`check-square ${s.completed?'checked':''}`} aria-label={`Marcar série ${s.set_number} de ${s.exercise_name}`} aria-pressed={s.completed} disabled={saving.includes(s.id)} onClick={()=>void patchSet(s.id,{completed:!s.completed})}>{saving.includes(s.id)?<LoaderCircle size={15} className="spin"/>:s.completed?<Check size={17}/>:null}</button>
         <span className="set-number">Série {s.set_number}</span>
         <span className="set-target">{s.target_reps}</span>
-        {prescribedDistanceMeters(s.target_reps)!==null?<label className="reps-field"><input type="number" min="0" max="1000000" step="0.01" inputMode="decimal" aria-label={'Metros realizados da série '+s.set_number+' de '+s.exercise_name} value={s.actual_distance_m??(s.completed?'':prescribedDistanceMeters(s.target_reps)??'')} onChange={e=>updateLocalDistance(s.id,e.target.value)} onBlur={()=>saveEditedDistance(s.id)} /><span>metros feitos</span></label>:<label className="reps-field"><input type="number" min="0" max="10000" step="1" inputMode="numeric" aria-label={'Repetições realizadas da série '+s.set_number+' de '+s.exercise_name} value={s.actual_reps??(s.completed?'':prescribedReps(s.target_reps)??'')} placeholder="—" onChange={e=>updateLocalReps(s.id,e.target.value)} onBlur={()=>saveEditedReps(s.id)} /><span>reps feitas</span></label>}
-        {s.load_unit==='none'?<span className="bodyweight-label">Peso corporal</span>:<label className="load-field"><input type="number" min="0" max="2000" step="0.5" inputMode="decimal" aria-label={`${s.load_unit==='km/h'?'Velocidade':'Carga'} da série ${s.set_number} de ${s.exercise_name}`} value={s.weight_kg??''} placeholder="—" onChange={e=>updateLocalWeight(s.id,e.target.value)} onBlur={()=>saveEditedWeight(s.id)} /><span>{s.load_unit==='assist_kg'?'kg assist.':s.load_unit}</span></label>}
+        {prescribedDistanceMeters(s.target_reps)!==null?<label className="reps-field"><input type="number" min="0" max="1000000" step="0.01" inputMode="decimal" aria-label={'Metros realizados da série '+s.set_number+' de '+s.exercise_name} value={s.actual_distance_m??(s.completed?'':prescribedDistanceMeters(s.target_reps)??'')} onChange={e=>updateLocalDistance(s.id,e.target.value)} onBlur={()=>saveEditedDistance(s.id)} /><span>metros feitos</span></label>:<label className="reps-field"><NumericField maxLength={5} aria-label={'Repetições realizadas da série '+s.set_number+' de '+s.exercise_name} value={s.actual_reps??(s.completed?null:prescribedReps(s.target_reps))} placeholder="—" onValue={value=>updateLocalReps(s.id,value)} onCommit={()=>saveEditedReps(s.id)} /><span>reps feitas</span></label>}
+        {s.load_unit==='none'?<span className="bodyweight-label">Peso corporal</span>:<label className="load-field"><NumericField decimal maxLength={7} aria-label={`${s.load_unit==='km/h'?'Velocidade':'Carga'} da série ${s.set_number} de ${s.exercise_name}`} value={loadForDisplay(s.weight_kg,s.load_unit)} placeholder="—" onValue={value=>updateLocalWeight(s.id,value)} onCommit={()=>saveEditedWeight(s.id)} /><span>{s.load_unit==='assist_kg'?'kg assist.':s.load_unit}</span></label>}
       </div>)}</div>
     </div>;
   })}</div>;

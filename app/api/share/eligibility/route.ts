@@ -29,7 +29,7 @@ export async function GET(request:NextRequest){
    sql`SELECT ss.exercise_key,ss.weight_kg::float8 AS weight_kg,ss.actual_reps,ws.id::text AS session_id,
       ws.finished_at::text AS finished_at,ss.completed_at::text AS completed_at
       FROM public.session_sets ss JOIN public.workout_sessions ws ON ws.id=ss.session_id
-      WHERE ws.user_id=${user.id}::uuid AND ss.completed=true AND ss.load_unit='kg'
+      WHERE ws.user_id=${user.id}::uuid AND ss.completed=true AND ss.load_unit IN ('kg','lb')
       AND ss.weight_kg>0 AND ss.actual_reps BETWEEN 1 AND 30
       AND ws.status='finished' AND ws.finished_at<=${current.finished_at}::timestamptz`
   ]);

@@ -18,8 +18,8 @@ CREATE TABLE IF NOT EXISTS session_sets (
   block_number SMALLINT,
   set_number SMALLINT NOT NULL CHECK (set_number > 0),
   target_reps TEXT NOT NULL,
-  load_unit TEXT NOT NULL CHECK (load_unit IN ('kg','assist_kg','km/h','none')),
-  weight_kg NUMERIC(8,2),
+  load_unit TEXT NOT NULL CHECK (load_unit IN ('kg','lb','assist_kg','km/h','none')),
+  weight_kg NUMERIC(14,8),
   completed BOOLEAN NOT NULL DEFAULT FALSE,
   completed_at TIMESTAMPTZ,
   UNIQUE(session_id, exercise_key, set_number)

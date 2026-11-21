@@ -478,6 +478,11 @@
 .body-form-tabs button{background:transparent;border:0;border-radius:8px;padding:11px;font-size:12px;color:#8a7885;font-weight:700}
 .body-form-tabs button.active{background:white;color:#63475e;box-shadow:0 2px 8px #33212f11}
 .body-form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}.body-form-grid label{font-size:11px;font-weight:800;color:#786878;display:grid;gap:7px}
+.body-weight-fields{display:grid;grid-template-columns:minmax(0,1fr) minmax(100px,.7fr);gap:8px;min-width:0}
+.body-details-fields{grid-template-columns:minmax(0,1fr)}
+.body-form-grid label,.body-form-grid input,.body-form-grid select,.body-form-grid textarea{min-width:0}
+.body-form-grid input,.body-form-grid select,.body-form-grid textarea{box-sizing:border-box;max-width:100%}
+.body-form-grid input[type=date]::-webkit-date-and-time-value{text-align:left}
 .body-form-grid label.wide{grid-column:1/-1}.body-form-grid textarea{resize:vertical}
 .body-modal footer{display:flex;justify-content:flex-end;gap:10px;border-top:1px solid #eee5eb;padding-top:16px}
 .body-custom{padding:17px;border-radius:12px;background:#f7f2f5}.body-custom h3{font-size:13px;margin-bottom:10px}

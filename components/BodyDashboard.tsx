@@ -2,13 +2,15 @@
 import {useEffect,useMemo,useState} from 'react';
 import {Activity,ArrowLeft,CheckCircle2,ChevronDown,ClipboardList,History,Plus,RotateCcw,Ruler,Target,Trash2,TrendingUp,X} from 'lucide-react';
 import {STANDARD_METRICS,demoBodyData,firstAchievement,latestForMetric,validDate,validMetric,validateEvaluation,type BodyData,type BodyEvaluation,type BodyGoal,type BodyMetric} from '../lib/bodyMetrics';
+import {loadForDisplay,loadForStorage} from '../lib/weightUnits';
+import NumericField from './NumericField';
 import type {Mode} from '../lib/clientStore';
 const today=()=>{const d=new Date();return [d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-');};
 const asNumber=(s:string)=>Number(s.trim().replace(',','.'));
 const fmt=(n:number,unit='')=>n.toLocaleString('pt-BR',{maximumFractionDigits:2})+(unit?' '+unit:'');
 const dateBR=(s:string)=>s.slice(0,10).split('-').reverse().join('/');
 const emptyBody=():BodyData=>({evaluations:[],metrics:[...STANDARD_METRICS],goals:[],audit:[]});
-type Draft={id?:string;measured_on:string;method:string;notes:string;values:Record<string,string>};
+type Draft={id?:string;measured_on:string;method:string;notes:string;weight_unit?:'kg'|'lb';values:Record<string,string>};
 const blank=():Draft=>({measured_on:today(),method:'',notes:'',values:{}});
 const toDraft=(e:BodyEvaluation):Draft=>({...e,values:Object.fromEntries(Object.entries(e.values).map(([k,v])=>[k,String(v)]))});
 export default function BodyDashboard({mode}:{mode:Mode}){
@@ -78,7 +80,7 @@ export default function BodyDashboard({mode}:{mode:Mode}){
     if(!editor)return;
     const values:Record<string,number>={};
     for(const [k,s] of Object.entries(editor.values)){if(!s.trim())continue;const n=asNumber(s);if(!Number.isFinite(n)){setError('Digite apenas medidas numéricas válidas.');return;}values[k]=n;}
-    const item:BodyEvaluation={id:editor.id??crypto.randomUUID(),measured_on:editor.measured_on,method:editor.method,notes:editor.notes,values,
+    const item:BodyEvaluation={id:editor.id??crypto.randomUUID(),measured_on:editor.measured_on,method:editor.method,notes:editor.notes,weight_unit:editor.weight_unit??'kg',values,
       created_at:new Date().toISOString(),updated_at:new Date().toISOString()};
     if(!validateEvaluation(item,data.metrics)){setError('Informe uma data válida e pelo menos uma medida. Confira os valores e unidades.');return;}
     try{await mutate('evaluation.save',{evaluation:item});setEditor(null);}catch{}
@@ -147,11 +149,18 @@ export default function BodyDashboard({mode}:{mode:Mode}){
     {editor&&<div className="body-modal-backdrop" role="presentation" onMouseDown={e=>{if(e.target===e.currentTarget)setEditor(null);}}><div className="body-modal" role="dialog" aria-modal="true" aria-label="Nova avaliação corporal">
       <header><div><p className="overline">REGISTRO CORPORAL</p><h2>{editor.id?'Editar avaliação':'Nova avaliação'}</h2></div><button aria-label="Fechar" onClick={()=>setEditor(null)}><X size={21}/></button></header>
       <div className="body-form-tabs"><button className={formTab==='composition'?'active':''} onClick={()=>setFormTab('composition')}>Composição</button><button className={formTab==='measurements'?'active':''} onClick={()=>setFormTab('measurements')}>Medidas</button><button className={formTab==='details'?'active':''} onClick={()=>setFormTab('details')}>Detalhes</button></div>
-      {formTab==='details'?<div className="body-form-grid"><label>Data da avaliação *<input type="date" value={editor.measured_on} onChange={e=>setEditor({...editor,measured_on:e.target.value})}/></label>
+      {formTab==='details'?<div className="body-form-grid body-details-fields"><label>Data da avaliação *<input type="date" value={editor.measured_on} onChange={e=>setEditor({...editor,measured_on:e.target.value})}/></label>
         <label>Método ou equipamento<input maxLength={120} value={editor.method} onChange={e=>setEditor({...editor,method:e.target.value})} placeholder="Ex.: Balança de bioimpedância / fita métrica"/></label>
         <label className="wide">Observações<textarea maxLength={1000} value={editor.notes} onChange={e=>setEditor({...editor,notes:e.target.value})} rows={3}/></label></div>:
         <><p className="body-muted">Preencha apenas as medidas realizadas. Campos em branco não são salvos como zero.</p>
-        <div className="body-form-grid">{data.metrics.filter(m=>m.group===formTab).map(m=><label key={m.key}>{m.name} ({m.unit})<input inputMode="decimal" placeholder="—" value={editor.values[m.key]??''} onChange={e=>setEditor(old=>old?{...old,values:{...old.values,[m.key]:e.target.value}}:old)}/></label>)}</div>
+        <div className="body-form-grid">{data.metrics.filter(m=>m.group===formTab).map(m=>m.key==='weight_kg'?<div className="body-weight-fields" key={m.key}>
+          <label>Peso<NumericField decimal placeholder="—" maxLength={7}
+            value={loadForDisplay(editor.values[m.key]?asNumber(editor.values[m.key]):null,editor.weight_unit??'kg')}
+            onValue={value=>setEditor(old=>old?{...old,values:{...old.values,[m.key]:String(loadForStorage(value,old.weight_unit??'kg')??'')}}:old)}/></label>
+          <label>Unidade<select value={editor.weight_unit??'kg'} onChange={e=>setEditor({...editor,weight_unit:e.target.value==='lb'?'lb':'kg'})}>
+            <option value="kg">kg</option><option value="lb">lb (libras)</option>
+          </select></label>
+        </div>:<label key={m.key}>{m.name} ({m.unit})<input inputMode="decimal" placeholder="—" value={editor.values[m.key]??''} onChange={e=>setEditor(old=>old?{...old,values:{...old.values,[m.key]:e.target.value}}:old)}/></label>)}</div>
         {formTab==='measurements'&&<div className="body-custom"><h3>Nova medida personalizada</h3><div className="body-custom-fields"><input value={customName} onChange={e=>setCustomName(e.target.value)} placeholder="Nome da medida" maxLength={90}/>
           <select value={customSide} onChange={e=>setCustomSide(e.target.value as 'none'|'right'|'left')}><option value="none">Sem lado</option><option value="right">Direito</option><option value="left">Esquerdo</option></select>
           <button type="button" className="btn btn-outline-template" disabled={!customName.trim()||busy} onClick={()=>void addMetric()}><Plus size={14}/> Adicionar</button></div></div>}</>}

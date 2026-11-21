@@ -44,7 +44,7 @@ export async function POST(request:Request,context:Ctx){
    if(existing.has(input.exercise_key))return NextResponse.json({error:'Um exercício selecionado já existe na ficha. Atualize e tente novamente.'},{status:409});
    const set=byKey.get(input.exercise_key);
    if(!set)return NextResponse.json({error:'Selecione apenas exercícios concluídos do seu treino.'},{status:400});
-   const eligible=set.load_unit==='kg'||set.load_unit==='assist_kg';
+   const eligible=set.load_unit==='kg'||set.load_unit==='lb'||set.load_unit==='assist_kg';
    const load=input.useRecordedLoad&&eligible&&typeof set.weight_kg==='number'?set.weight_kg:null;
    if(input.useRecordedLoad&&load===null)return NextResponse.json({error:'Carga incompatível; escolha adicionar sem carga.'},{status:400});
    additions.push({key:input.exercise_key,name:set.exercise_name as string,unit:set.load_unit as Exercise['unit'],

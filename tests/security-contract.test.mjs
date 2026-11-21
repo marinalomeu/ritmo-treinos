@@ -498,7 +498,7 @@ test('repeticoes previstas aparecem e viram registro apenas na conclusao da seri
  assert.ok(core.includes('function prescribedReps(target:string)'));
  assert.ok(app.includes('changes.completed===true&&!before.completed'));
  assert.ok(app.includes('prescribedReps(next.target_reps)'));
- assert.ok(app.includes("s.actual_reps??(s.completed?'':prescribedReps(s.target_reps)??'')"));
+ assert.ok(app.includes("s.actual_reps??(s.completed?null:prescribedReps(s.target_reps))"));
 });
 test('inicio contextual da ficha nao reabre seletor de treinos',()=>{
  const app=source('components/WorkoutApp.tsx');

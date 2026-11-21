@@ -1,6 +1,6 @@
 import type { Template, Exercise, Unit } from './templates';
 
-const units:Unit[]=['kg','assist_kg','km/h','none'];
+const units:Unit[]=['kg','lb','assist_kg','km/h','none'];
 const text=(v:unknown,max:number)=>typeof v==='string'?v.trim().slice(0,max):'';
 const validKey=(s:unknown)=>typeof s==='string' && /^[a-zA-Z0-9_-]{1,100}$/.test(s);
 

@@ -1,6 +1,9 @@
 'use client';
 import {useMemo,useState} from 'react';
 import {Check,LoaderCircle,X} from 'lucide-react';
+import { comparableLoadUnit, loadForDisplay, loadForStorage } from '../lib/weightUnits';
+import NumericField from './NumericField';
+import { prescribedReps } from '../lib/templates';
 import type {SessionDetail,Template} from '../lib/templates';
 
 export type TemplateLoadSelection={exercise_key:string;weight_kg:number};
@@ -10,15 +13,15 @@ type Row={key:string;name:string;unit:string;previous:number|null;weight:string;
 export function templateLoadCandidates(detail:SessionDetail,template:Template):Row[]{
   const last=new Map<string,SessionDetail['sets'][number]>();
   for(const set of detail.sets){
-    if(set.completed&&(set.load_unit==='kg'||set.load_unit==='assist_kg')&&
+    if(set.completed&&(set.load_unit==='kg'||set.load_unit==='lb'||set.load_unit==='assist_kg')&&
        typeof set.weight_kg==='number'&&Number.isFinite(set.weight_kg)&&set.weight_kg>=0&&set.weight_kg<=2000)
       last.set(set.exercise_key,set);
   }
   return template.exercises.flatMap(exercise=>{
     const recorded=last.get(exercise.key);
-    if(!recorded||recorded.load_unit!==exercise.unit)return [];
+    if(!recorded||comparableLoadUnit(recorded.load_unit)!==comparableLoadUnit(exercise.unit))return [];
     return [{key:exercise.key,name:exercise.name,unit:exercise.unit,previous:exercise.defaultLoad,
-      weight:String(recorded.weight_kg),checked:false}];
+      weight:String(loadForDisplay(recorded.weight_kg,exercise.unit)),checked:false}];
   });
 }
 export default function TemplateLoadDialog({detail,template,busy,combined,onClose,onConfirm,onAddMissing}:{
@@ -37,7 +40,7 @@ export default function TemplateLoadDialog({detail,template,busy,combined,onClos
       const previous=grouped.get(set.exercise_key);
       if(previous){previous.sets++;continue;}
       grouped.set(set.exercise_key,{exercise_key:set.exercise_key,name:set.exercise_name,unit:set.load_unit,sets:1,target:set.target_reps,checked:false,useRecordedLoad:false,
-        recordedLoad:(set.load_unit==='kg'||set.load_unit==='assist_kg')&&typeof set.weight_kg==='number'?set.weight_kg:null});
+        recordedLoad:(set.load_unit==='kg'||set.load_unit==='lb'||set.load_unit==='assist_kg')?loadForDisplay(set.weight_kg,set.load_unit):null});
     }
     return [...grouped.values()];
   },[detail,template]);
@@ -52,9 +55,8 @@ export default function TemplateLoadDialog({detail,template,busy,combined,onClos
   const submit=()=>{
     const selected:TemplateLoadSelection[]=[];
     for(const row of rows.filter(x=>x.checked)){
-      const kg=Number(row.weight.replace(',','.'));
-      if(!row.weight.trim()||!Number.isFinite(kg)||kg<0||kg>2000||
-        Math.abs(kg*100-Math.round(kg*100))>1e-6){
+      const kg=loadForStorage(Number(row.weight.replace(',','.')),row.unit)??NaN;
+      if(!row.weight.trim()||!Number.isFinite(kg)||kg<0||kg>2000){
         setError('Confira a carga entre 0 e 2.000 kg de cada exercício marcado.');return;
       }
       selected.push({exercise_key:row.key,weight_kg:kg});
@@ -85,18 +87,18 @@ export default function TemplateLoadDialog({detail,template,busy,combined,onClos
         <div className="pr-select-list">{missingRows.map(row=><div className="pr-select-item" key={row.exercise_key}>
           <label className="pr-select-choice"><input type="checkbox" disabled={busy} checked={row.checked} onChange={e=>updateMissing(row.exercise_key,{checked:e.target.checked})}/><strong>{row.name}</strong></label>
           {row.checked&&<div className="pr-select-values">
-            <label>Séries na ficha<input type="number" min="1" max="20" value={row.sets} onChange={e=>updateMissing(row.exercise_key,{sets:Number(e.target.value)})}/></label>
-            <label>Repetições ou meta<input maxLength={100} value={row.target} onChange={e=>updateMissing(row.exercise_key,{target:e.target.value})}/></label>
+            <label>Séries na ficha<NumericField maxLength={2} value={row.sets||null} onValue={value=>updateMissing(row.exercise_key,{sets:value??0})}/></label>
+            <label>Repetições<NumericField maxLength={5} value={prescribedReps(row.target)} onValue={value=>updateMissing(row.exercise_key,{target:value===null?'':String(value)})}/>{row.target&&prescribedReps(row.target)===null&&<small>Meta atual: {row.target}</small>}</label>
             <small>Unidade: {row.unit}</small>
-            {row.recordedLoad!==null&&<label><input type="checkbox" checked={row.useRecordedLoad} onChange={e=>updateMissing(row.exercise_key,{useRecordedLoad:e.target.checked})}/> Usar carga registrada neste treino ({row.recordedLoad} kg)</label>}
+            {row.recordedLoad!==null&&<label><input type="checkbox" checked={row.useRecordedLoad} onChange={e=>updateMissing(row.exercise_key,{useRecordedLoad:e.target.checked})}/> Usar carga registrada neste treino ({row.recordedLoad} {row.unit==='assist_kg'?'kg':row.unit})</label>}
           </div>}
         </div>)}</div>
         <p className="pr-select-intro">A adição preserva o histórico e não altera os exercícios já existentes na ficha.</p>
       </>:rows.length?<>
         <p className="pr-select-intro">Selecione os exercícios cujas cargas quer usar nos próximos treinos. Os valores podem ser ajustados. Seu histórico permanecerá igual.</p>
         <div className="pr-select-list">{rows.map(row=><div key={row.key} className={row.checked?'pr-select-item is-checked':'pr-select-item'}>
-          <label className="pr-select-choice"><input type="checkbox" checked={row.checked} disabled={busy} onChange={e=>update(row.key,{checked:e.target.checked})}/><span><strong>{row.name}</strong><small>Atual: {row.previous===null?'sem carga':row.previous+' kg'} · concluída: {row.weight} kg</small></span></label>
-          {row.checked&&<div className="pr-select-values"><label>Nova carga planejada<input type="text" inputMode="decimal" value={row.weight} onChange={e=>update(row.key,{weight:e.target.value})}/></label></div>}
+          <label className="pr-select-choice"><input type="checkbox" checked={row.checked} disabled={busy} onChange={e=>update(row.key,{checked:e.target.checked})}/><span><strong>{row.name}</strong><small>Atual: {row.previous===null?'sem carga':loadForDisplay(row.previous,row.unit)+' '+(row.unit==='assist_kg'?'kg':row.unit)} · concluída: {row.weight} {row.unit==='assist_kg'?'kg':row.unit}</small></span></label>
+          {row.checked&&<div className="pr-select-values"><label>Nova carga planejada<NumericField decimal maxLength={7} value={row.weight===''?null:Number(row.weight)} onValue={value=>update(row.key,{weight:value===null?'':String(value)})}/></label></div>}
         </div>)}</div>
       </>:<>
         <p className="pr-select-intro">{noShared?'Nenhum dos exercícios realizados neste treino faz parte da ficha '+template.name+'. Por isso, não há cargas existentes para atualizar.':'Não encontramos cargas elegíveis para atualizar esta ficha. Conclua uma série com peso válido em exercício que pertença à ficha.'}</p>

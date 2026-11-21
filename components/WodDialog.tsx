@@ -1,6 +1,9 @@
 'use client';
 import { useState } from 'react';
 import { ArrowDown, ArrowUp, Check, LoaderCircle, Plus, Trash2 } from 'lucide-react';
+import NumericField from './NumericField';
+import { comparableLoadUnit, loadForDisplay, loadForStorage } from '../lib/weightUnits';
+import { prescribedReps } from '../lib/templates';
 import type { Exercise, Template } from '../lib/templates';
 import type { CatalogExercise } from '../lib/exerciseCatalog';
 import { normalizeTemplate } from '../lib/templateEditor';
@@ -102,12 +105,17 @@ export default function WodDialog({mode,catalog,onChanged,onClose,onStarted,init
             }}
           />
           <div className="template-exercise-input-grid">
-            <label>SÉRIES<input type="number" min="1" max="20" step="1" value={e.sets} onChange={ev=>update(index,{sets:Number(ev.target.value)})}/></label>
-            <label>REPETIÇÕES / META<input maxLength={100} value={e.target} onChange={ev=>update(index,{target:ev.target.value})}/></label>
-            <label>CARGA PREVISTA<input type="number" min="0" max="2000" step="0.5" placeholder="—" value={e.defaultLoad??''}
-              onChange={ev=>update(index,{defaultLoad:ev.target.value===''?null:Number(ev.target.value)})}/></label>
-            <label>UNIDADE<select value={e.unit} onChange={ev=>update(index,{unit:ev.target.value as Exercise['unit']})}>
-              <option value="kg">kg</option><option value="assist_kg">kg assistência</option>
+            <label>SÉRIES<NumericField value={e.sets||null} maxLength={2} onValue={value=>update(index,{sets:value??0})}/></label>
+            <label>REPETIÇÕES<NumericField value={prescribedReps(e.target)} maxLength={5} onValue={value=>update(index,{target:value===null?'':String(value)})}/>
+              {e.target&&prescribedReps(e.target)===null&&<small>Meta atual: {e.target}</small>}
+            </label>
+            <label>CARGA PREVISTA<NumericField decimal value={loadForDisplay(e.defaultLoad,e.unit)} maxLength={7} placeholder="—" onValue={value=>update(index,{defaultLoad:loadForStorage(value,e.unit)})}/></label>
+            <label>DESCANSO (SEGUNDOS)<NumericField value={e.restSeconds??null} maxLength={4} placeholder="0" onValue={value=>update(index,{restSeconds:value})}/></label>
+            <label>UNIDADE<select value={e.unit} onChange={ev=>{
+              const unit=ev.target.value as Exercise['unit'];
+              update(index,{unit,defaultLoad:comparableLoadUnit(unit)===comparableLoadUnit(e.unit)?e.defaultLoad:null});
+            }}>
+              <option value="kg">kg</option><option value="lb">lb (libras)</option><option value="assist_kg">kg assistência</option>
               <option value="km/h">km/h</option><option value="none">Peso corporal</option>
             </select></label>
           </div>

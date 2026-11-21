@@ -35,7 +35,8 @@ export async function POST(request:Request){
       if(old?.deleted_at)return fail('Restaure a avaliação antes de editar.',409);
       const values=json(input.values);
       const evaluation:BodyEvaluation={id,measured_on:String(input.measured_on??''),method:String(input.method??'').trim(),
-        notes:String(input.notes??'').trim(),values:values as Record<string,number>,created_at:old?.created_at??now,updated_at:now,deleted_at:null};
+        notes:String(input.notes??'').trim(),
+        weight_unit:input.weight_unit==='lb'?'lb':'kg',values:values as Record<string,number>,created_at:old?.created_at??now,updated_at:now,deleted_at:null};
       if(!validateEvaluation(evaluation,state.metrics))return fail('Data ou medidas inválidas. Informe ao menos uma medida numérica válida.');
       before=old??null;after=evaluation;recordId=id;
       state.evaluations=old?state.evaluations.map(e=>e.id===id?evaluation:e):[...state.evaluations,evaluation];

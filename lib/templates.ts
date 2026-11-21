@@ -2,7 +2,7 @@ import { DEMO_TEMPLATES } from './demoTemplates.ts';
 import type { PersonalRecord, ExerciseModality } from './personalRecords';
 import type { CatalogExercise } from './exerciseCatalog';
 
-export type Unit = 'kg' | 'assist_kg' | 'km/h' | 'none';
+export type Unit = 'kg' | 'lb' | 'assist_kg' | 'km/h' | 'none';
 export type Exercise = {
   key: string;
   name: string;

@@ -21,12 +21,12 @@ export async function GET() {
       ORDER BY ws.performed_on DESC,ws.started_at DESC LIMIT 3000
     `;
     const progress = await sql`
-      SELECT ss.exercise_key,MAX(ss.exercise_name) AS exercise_name,MAX(ss.load_unit) AS load_unit,
+      SELECT ss.exercise_key,MAX(ss.exercise_name) AS exercise_name,MAX(CASE WHEN ss.load_unit='lb' THEN 'kg' ELSE ss.load_unit END) AS load_unit,
         ws.performed_on::text AS performed_on,ws.id::text AS session_id,
         (CASE WHEN MAX(ss.load_unit)='assist_kg' THEN MIN(ss.weight_kg) ELSE MAX(ss.weight_kg) END)::float8 AS weight_kg
       FROM public.workout_sessions ws JOIN public.session_sets ss ON ss.session_id=ws.id
       WHERE ws.user_id=${user.id}::uuid AND ss.completed=true
-        AND ss.weight_kg IS NOT NULL AND ss.load_unit IN ('kg','assist_kg','km/h')
+        AND ss.weight_kg IS NOT NULL AND ss.load_unit IN ('kg','lb','assist_kg','km/h')
       GROUP BY ss.exercise_key,ws.id,ws.performed_on,ws.started_at
       ORDER BY ws.performed_on DESC,ws.started_at DESC LIMIT 10000
     `;
@@ -51,11 +51,11 @@ export async function GET() {
     `;
     const historicalExercises = await sql`
       SELECT DISTINCT ON (ss.exercise_key)
-        ss.exercise_key AS key,ss.exercise_name AS name,ss.load_unit AS unit
+        ss.exercise_key AS key,ss.exercise_name AS name,CASE WHEN ss.load_unit='lb' THEN 'kg' ELSE ss.load_unit END AS unit
       FROM public.session_sets ss
       JOIN public.workout_sessions ws ON ws.id=ss.session_id
       WHERE ws.user_id=${user.id}::uuid AND ss.completed=true
-        AND ss.weight_kg IS NOT NULL AND ss.load_unit IN ('kg','assist_kg','km/h')
+        AND ss.weight_kg IS NOT NULL AND ss.load_unit IN ('kg','lb','assist_kg','km/h')
       ORDER BY ss.exercise_key,ss.completed_at DESC NULLS LAST,ss.id DESC
     `;
     const personalRecords=await sql`
@@ -77,7 +77,7 @@ export async function GET() {
       FROM public.session_sets ss JOIN public.workout_sessions ws ON ws.id=ss.session_id
       WHERE ws.user_id=${user.id}::uuid AND ws.status='finished'
         AND ss.completed=true AND ss.weight_kg>0
-        AND ss.load_unit IN ('kg','none')
+        AND ss.load_unit IN ('kg','lb','none')
       ORDER BY ss.exercise_key,ws.performed_on DESC,ws.started_at DESC,
         ss.completed_at DESC NULLS LAST,ss.id DESC
     `;

@@ -12,7 +12,7 @@ function candidate(detail:SessionDetail):Entry[]{
   for(const s of detail.sets){
     if(seen.has(s.exercise_key))continue;
     const running=s.load_unit==='km/h'||/corrida/i.test(s.exercise_name);
-    if(s.load_unit!=='kg'&&s.load_unit!=='none'&&!running)continue;
+    if(s.load_unit!=='kg'&&s.load_unit!=='lb'&&s.load_unit!=='none'&&!running)continue;
     const records=detail.sets.filter(x=>x.exercise_key===s.exercise_key &&
       typeof x.weight_kg==='number' && x.weight_kg>0 &&
       x.actual_reps!==null && Number.isInteger(x.actual_reps) &&
@@ -21,7 +21,7 @@ function candidate(detail:SessionDetail):Entry[]{
       estimatedOneRM(b.weight_kg!,b.actual_reps!)-estimatedOneRM(a.weight_kg!,a.actual_reps!))[0];
     seen.set(s.exercise_key,{
       key:s.exercise_key,name:s.exercise_name,unit:s.load_unit,
-      weight:toInput(best?.weight_kg??null),reps:toInput(best?.actual_reps??null),
+      weight:toInput(best?.weight_kg==null?null:Math.round(best.weight_kg*100)/100),reps:toInput(best?.actual_reps??null),
       distance:toInput(s.actual_distance_m??prescribedDistanceMeters(s.target_reps)),time:'',
       active:false,hasRecorded:!!best,partial:Boolean(best&&!best.completed)
     });

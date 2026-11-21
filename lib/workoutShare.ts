@@ -46,7 +46,7 @@ export function workoutShareSummary(detail:SessionDetail):ShareSummary{
     // Volume = carga externa (kg) x repetições EFETIVAMENTE realizadas.
     // Contabilizar série parcial anotada, sem exigir o checkbox de conclusão.
     // Excluir velocidade, assistência e cargas apenas planejadas na ficha.
-    if(set.load_unit!=='kg'||typeof set.weight_kg!=='number'||
+    if((set.load_unit!=='kg'&&set.load_unit!=='lb')||typeof set.weight_kg!=='number'||
       !Number.isFinite(set.weight_kg)||set.weight_kg<=0)continue;
     const actual=set.actual_reps;
     if(typeof actual==='number'&&Number.isInteger(actual)&&actual>0){

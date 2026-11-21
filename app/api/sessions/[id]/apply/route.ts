@@ -1,3 +1,4 @@
+import { comparableLoadUnit } from '../../../../../lib/weightUnits';
 import { NextResponse } from 'next/server';
 import { db, sameOrigin, forbiddenOrigin, unauthorized, serverError } from '../../../../../lib/server';
 import { currentProfile, multiuserConfigured } from '../../../../../lib/multiuser';
@@ -41,7 +42,7 @@ export async function POST(request:Request,context:Ctx){
     const selected=payload.pr_selections;
     if(updatePRs&&(!Array.isArray(selected)||selected.length<1||selected.length>40))
       return NextResponse.json({error:'Selecione pelo menos um exercício para atualizar o PR.'},{status:400});
-    const eligible=new Set(sets.filter(s=>s.load_unit==='kg'||s.load_unit==='none').map(s=>s.exercise_key));
+    const eligible=new Set(sets.filter(s=>s.load_unit==='kg'||s.load_unit==='lb'||s.load_unit==='none').map(s=>s.exercise_key));
     const seenKeys=new Set<string>();
     const prs:{exercise_key:string;weight_kg:number;repetitions:number}[]=[];
     if(updatePRs){
@@ -78,7 +79,7 @@ export async function POST(request:Request,context:Ctx){
       const last=new Map<string,CompletedSet>();
       for(const s of completedSets){
         if(s.weight_kg===null||!Number.isFinite(s.weight_kg)||s.weight_kg<0||s.weight_kg>2000 ||
-          (s.load_unit!=='kg'&&s.load_unit!=='assist_kg'))continue;
+          (s.load_unit!=='kg'&&s.load_unit!=='lb'&&s.load_unit!=='assist_kg'))continue;
         last.set(s.exercise_key,s);
       }
       const requestedLoads=new Map<string,number>();
@@ -87,15 +88,14 @@ export async function POST(request:Request,context:Ctx){
         const row=raw as Record<string,unknown>;
         if(typeof row.exercise_key!=='string'||!templateKey.test(row.exercise_key)||
           requestedLoads.has(row.exercise_key)||typeof row.weight_kg!=='number'||
-          !Number.isFinite(row.weight_kg)||row.weight_kg<0||row.weight_kg>2000||
-          Math.abs(row.weight_kg*100-Math.round(row.weight_kg*100))>1e-6)
+          !Number.isFinite(row.weight_kg)||row.weight_kg<0||row.weight_kg>2000)
           return NextResponse.json({error:'Seleção ou carga inválida.'},{status:422});
         requestedLoads.set(row.exercise_key,row.weight_kg);
       }
       templateExercises=(templates[0].exercises as Template['exercises']).map(e=>{
         if(!requestedLoads.has(e.key))return e;
         const series=last.get(e.key);
-        if(!series||series.load_unit!==e.unit)return e;
+        if(!series||comparableLoadUnit(series.load_unit)!==comparableLoadUnit(e.unit))return e;
         matching++;
         const value=requestedLoads.get(e.key)!;
         if(value!==e.defaultLoad)changed++;

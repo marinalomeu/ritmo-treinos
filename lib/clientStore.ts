@@ -69,7 +69,7 @@ export async function listData(mode:Mode):Promise<HistoryData> {
       const old = map.get(s.exercise_key);
       if (!old || (s.load_unit==='assist_kg' ? (s.weight_kg ?? 0) < (old.weight_kg ?? 0) : (s.weight_kg ?? 0) > (old.weight_kg ?? 0))) map.set(s.exercise_key,s);
     });
-    map.forEach(s=>progress.push({exercise_key:s.exercise_key,exercise_name:s.exercise_name,load_unit:s.load_unit,performed_on:d.session.performed_on,weight_kg:s.weight_kg!,session_id:d.session.id}));
+    map.forEach(s=>progress.push({exercise_key:s.exercise_key,exercise_name:s.exercise_name,load_unit:s.load_unit==='lb'?'kg':s.load_unit,performed_on:d.session.performed_on,weight_kg:s.weight_kg!,session_id:d.session.id}));
   });
   const historicalExercises=[...new Map(progress.map(p=>[p.exercise_key,{key:p.exercise_key,name:p.exercise_name,unit:p.load_unit}])).values()];
   return {sessions:details.map(d=>d.session),progress,goal:mode==='showcase'?(showcaseGoal??SHOWCASE_GOAL):undefined,templates:localTemplates(mode),historicalExercises,customExercises:readCustom(mode)};

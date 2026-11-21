@@ -1,5 +1,5 @@
 export type BodyMetric={key:string;name:string;unit:string;group:'composition'|'measurements';side?:'right'|'left'|'none';custom?:boolean};
-export type BodyEvaluation={id:string;measured_on:string;method:string;notes:string;values:Record<string,number>;created_at:string;updated_at:string;deleted_at?:string|null};
+export type BodyEvaluation={id:string;measured_on:string;method:string;notes:string;weight_unit?:'kg'|'lb';values:Record<string,number>;created_at:string;updated_at:string;deleted_at?:string|null};
 export type BodyGoal={id:string;metric_key:string;kind:'target'|'range';target?:number;min?:number;max?:number;start_value:number;started_on:string;deadline?:string;status:'active'|'paused'|'closed';version:number;replaced_by?:string;created_at:string;updated_at:string};
 export type BodyAudit={id:string;record_type:'evaluation'|'goal'|'metric';record_id:string;action:string;occurred_at:string;before?:unknown;after?:unknown};
 export type BodyData={evaluations:BodyEvaluation[];metrics:BodyMetric[];goals:BodyGoal[];audit:BodyAudit[]};

@@ -1,3 +1,4 @@
+import { comparableLoadUnit } from '../../../lib/weightUnits';
 import { NextResponse } from 'next/server';
 import { db, sameOrigin, forbiddenOrigin, unauthorized, serverError } from '../../../lib/server';
 import { currentProfile, multiuserConfigured } from '../../../lib/multiuser';
@@ -39,7 +40,7 @@ export async function POST(request:Request){
       allowed.set(row.exercise_key,{name:row.exercise_name,unit:row.load_unit});
     for(const e of template.exercises){
       const known=allowed.get(e.key);
-      if(!known||known.unit!==e.unit||normalizeExerciseName(known.name)!==normalizeExerciseName(e.name))
+      if(!known||comparableLoadUnit(known.unit)!==comparableLoadUnit(e.unit)||normalizeExerciseName(known.name)!==normalizeExerciseName(e.name))
         return NextResponse.json({error:'Selecione exercícios existentes no catálogo do Ritmo.'},{status:400});
     }
     const created=await sql`
