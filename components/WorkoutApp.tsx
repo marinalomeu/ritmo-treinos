@@ -1,6 +1,6 @@
 'use client';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Activity, ArrowLeft, ArrowRight, BarChart3, CalendarDays, Check, CheckCircle2, ChevronRight, Circle, Clock3, Cloud, Dumbbell, Footprints, History, LoaderCircle, LogOut, Plus, RefreshCw, Sparkles, Trash2, TrendingUp, WifiOff, Settings2, Trophy } from 'lucide-react';
+import { Activity, ArrowLeft, ArrowRight, BarChart3, CalendarDays, Check, CheckCircle2, ChevronRight, Circle, Clock3, Cloud, Dumbbell, Footprints, History, LoaderCircle, LogOut, Plus, RefreshCw, Sparkles, Trash2, TrendingUp, WifiOff, Settings2, Trophy, Menu, X } from 'lucide-react';
 import { TEMPLATES, type HistoryData, type SessionDetail, type StoredSet, type Template, type Unit, prescribedDistanceMeters, prescribedReps } from '../lib/templates';
 import { DEMO_TEMPLATES } from '../lib/demoTemplates';
 import { createSession, deleteSession, finishSession, getSession, listData, saveSet, saveSessionGym, saveGoal, type Mode } from '../lib/clientStore';
@@ -44,6 +44,7 @@ export default function WorkoutApp({mode,isOwner=false}:{mode:Mode;isOwner?:bool
   const [inspectedTemplateId,setInspectedTemplateId]=useState<string|null>(null);
   const [creatingTemplate,setCreatingTemplate]=useState(false);
   const [showWod,setShowWod]=useState(false);
+  const [mobileMenuOpen,setMobileMenuOpen]=useState(false);
   const [applyTarget,setApplyTarget]=useState('');
   const [applyNotice,setApplyNotice]=useState('');
   const [prUpdateMode,setPrUpdateMode]=useState<'prs'|'both'|null>(null);
@@ -215,7 +216,7 @@ export default function WorkoutApp({mode,isOwner=false}:{mode:Mode;isOwner?:bool
     }catch(error){alertError(error);}finally{setBusy(false);}
   };
   const remove=async(id:string)=>{if(!window.confirm('Excluir esta sessão e todas as séries registradas? Esta ação não pode ser desfeita.'))return;setBusy(true);try{await deleteSession(mode,id);if(detail?.session.id===id){setDetail(null);setView('history');}await refresh();}catch(e){alertError(e);}finally{setBusy(false);}};
-  const selectView=(next:View)=>{setView(next);setError('');setShowNew(false);setShowShare(false);setPrUpdateMode(null);setTemplateUpdateMode(null);setPendingTemplateLoads([]);if(next!=='workout')setDetail(null);};
+  const selectView=(next:View)=>{setMobileMenuOpen(false);setView(next);setError('');setShowNew(false);setShowShare(false);setPrUpdateMode(null);setTemplateUpdateMode(null);setPendingTemplateLoads([]);if(next!=='workout')setDetail(null);};
   const progress=mode==='showcase'?{daysLeft:48,checkins:5,planned:40}:goalProgress(goal,data.sessions,currentDate);
 
   const startChallenge=async(challenge:ChallengeDefinition,division:string)=>{
@@ -287,7 +288,7 @@ export default function WorkoutApp({mode,isOwner=false}:{mode:Mode;isOwner?:bool
       <nav className="side-links" aria-label="Navegação principal">{nav.map(n=><button key={n.id} className={`nav-item ${view===n.id?'active':''}`} onClick={()=>selectView(n.id)}><n.Icon size={18}/>{n.label}{view===n.id&&<ChevronRight size={15} className="chev"/>}</button>)}</nav>
       <div className="sidebar-bottom"><div className="side-daily"><Sparkles size={18}/><div><strong>{goal.name}</strong><span>Constância, um treino por vez.</span></div></div><div className="mode-tag">{mode==='cloud'?<Cloud size={14}/>:<WifiOff size={14}/>} {mode==='cloud'?'Salvando no Neon':mode==='showcase'?'Dados fictícios e isolados':'Modo demonstração'}</div>{mode==='cloud'&&isOwner&&<a className="logout-link" href="/admin/convites">Gerenciar convites</a>}{mode==='cloud'&&<button className="logout-link" onClick={async()=>{await fetch('/api/logout',{method:'POST'});window.location.reload();}}><LogOut size={15}/> Sair</button>}</div>
     </aside>
-    <main className="main-area"><header className="topbar"><div className="breadcrumbs"><span>Meu espaço</span><ChevronRight size={13}/><strong>{view==='home'?'Visão geral':view==='history'?'Histórico':view==='progress'?'Evolução':view==='prs'?'Recordes pessoais':view==='body'?'Bioimpedância':view==='challenges'?'Em Outro Ritmo':'Treino em andamento'}</strong></div><div className="header-date"><CalendarDays size={15}/>{humanDate(todayLocal())}</div></header>
+    <main className="main-area"><header className="topbar"><button type="button" className="mobile-menu-toggle" aria-label="Abrir menu" aria-expanded={mobileMenuOpen} onClick={()=>setMobileMenuOpen(true)}><Menu size={22}/></button><div className="breadcrumbs"><span>Meu espaço</span><ChevronRight size={13}/><strong>{view==='home'?'Visão geral':view==='history'?'Histórico':view==='progress'?'Evolução':view==='prs'?'Recordes pessoais':view==='body'?'Bioimpedância':view==='challenges'?'Em Outro Ritmo':'Treino em andamento'}</strong></div><div className="header-date"><CalendarDays size={15}/>{humanDate(todayLocal())}</div></header>
       <div className="page-content">
       {mode==='showcase'&&<div className="demo-banner"><WifiOff size={17}/><span><strong>Perfil de demonstração:</strong> seis meses de dados fictícios de treino e medidas corporais. Seus testes são temporários e desaparecem ao recarregar, sem acesso ao banco real.</span></div>}
       {mode==='demo'&&<div className="demo-banner"><WifiOff size={17}/><span><strong>Modo demonstração:</strong> os registros ficam neste navegador. Para sincronizar com o Neon, configure o banco e as variáveis de ambiente.</span></div>}
@@ -367,7 +368,7 @@ export default function WorkoutApp({mode,isOwner=false}:{mode:Mode;isOwner?:bool
       </>}
       </div>
     </main>
-    <div className="mobile-nav">{nav.map(n=><button key={n.id} className={view===n.id?'active':''} onClick={()=>selectView(n.id)}><n.Icon size={19}/><span>{n.label}</span></button>)}<button className={view==='workout'?'active':''} onClick={()=>{if(detail){setView('workout');}else{ensureStart();}}}><Plus size={19}/><span>Treinar</span></button></div>
+    {mobileMenuOpen&&<div className="mobile-drawer-backdrop" onMouseDown={e=>{if(e.target===e.currentTarget)setMobileMenuOpen(false);}}><aside className="mobile-drawer" role="dialog" aria-modal="true" aria-label="Menu de navegação"><div className="mobile-drawer-head"><div className="brand"><span className="brand-icon"><Dumbbell size={20}/></span><span className="logo-word">ritmo<span>.</span></span></div><button type="button" className="mobile-drawer-close" aria-label="Fechar menu" onClick={()=>setMobileMenuOpen(false)}><X size={23}/></button></div><div className="mobile-drawer-profile"><Sparkles size={19}/><div><strong>{mode==='showcase'?'Perfil de demonstração':'Seu espaço'}</strong><span>{mode==='showcase'?'Dados fictícios e temporários':'Seu diário de treinos'}</span></div></div><nav className="mobile-drawer-links" aria-label="Navegação mobile">{nav.map(n=><button key={n.id} className={view===n.id?'active':''} onClick={()=>selectView(n.id)}><n.Icon size={20}/><span>{n.label}</span></button>)}<button className={view==='workout'?'active':''} onClick={()=>{setMobileMenuOpen(false);if(detail){setView('workout');}else{ensureStart();}}}><Plus size={20}/><span>Treinar</span></button></nav><div className="mobile-drawer-bottom">{mode==='showcase'?'Modo demonstração · dados fictícios e isolados':mode==='cloud'?'Seus dados são salvos com segurança':'Modo demonstração'}</div></aside></div>}
     {showGoalEditor&&(mode==='cloud'||mode==='showcase')&&<div className="modal-backdrop" onMouseDown={e=>{if(e.target===e.currentTarget)setShowGoalEditor(false);}}><div className="modal" role="dialog" aria-modal="true" aria-labelledby="goal-modal-title"><div className="modal-head"><div><p className="overline">SEU OBJETIVO</p><h2 id="goal-modal-title">Definir minha meta</h2></div><button type="button" className="close-btn" onClick={()=>setShowGoalEditor(false)} aria-label="Fechar">×</button></div>
       <div className="goal-form"><label htmlFor="goal-name">NOME DA META<input id="goal-name" maxLength={60} value={goalDraft.name} onChange={e=>setGoalDraft(g=>({...g,name:e.target.value}))} placeholder="Ex.: Projeto 2027"/></label>
       <div className="goal-date-grid"><label htmlFor="goal-start">DATA INICIAL<input id="goal-start" type="date" value={goalDraft.starts_on} onChange={e=>setGoalDraft(g=>({...g,starts_on:e.target.value}))}/></label><label htmlFor="goal-end">DATA FINAL<input id="goal-end" type="date" value={goalDraft.ends_on} onChange={e=>setGoalDraft(g=>({...g,ends_on:e.target.value}))}/></label></div>
