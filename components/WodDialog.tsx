@@ -4,7 +4,7 @@ import { ArrowDown, ArrowUp, Check, LoaderCircle, Plus, Trash2 } from 'lucide-re
 import type { Exercise, Template } from '../lib/templates';
 import type { CatalogExercise } from '../lib/exerciseCatalog';
 import { normalizeTemplate } from '../lib/templateEditor';
-import { createCustomExercise, type Mode } from '../lib/clientStore';
+import { createCustomExercise, createLocalWod, type Mode } from '../lib/clientStore';
 import type { Modality } from '../lib/personalRecords';
 import ExercisePicker from './ExercisePicker';
 import MultiExerciseSelect from './MultiExerciseSelect';
@@ -39,6 +39,7 @@ export default function WodDialog({mode,catalog,onChanged,onClose,onStarted,init
     }
     setBusy(true);setError('');
     try{
+      if(mode==='showcase'){await onStarted(await createLocalWod(mode,template,date,gymName.trim()));return;}
       const response=await fetch('/api/wod',{method:'POST',
         headers:{'Content-Type':'application/json'},body:JSON.stringify({
           name:template.name,performed_on:date,gym_name:gymName.trim(),exercises:template.exercises
