@@ -41,3 +41,33 @@ test('tempo de pausa não é contado duas vezes no Story',()=>{
  const detail={session:{started_at:'2026-11-20T12:00:00Z',finished_at:'2026-11-20T12:30:00Z',paused_ms:300000},sets:[]};
  assert.equal(workoutShareSummary(detail).elapsed,'00:25');
 });
+
+test('seed de bioimpedância fictício exclusivo da demonstração tem seis meses e métricas personalizadas',async()=>{
+ const {demoBodyData,firstAchievement,latestForMetric,validateEvaluation}=await import('../lib/bodyMetrics.ts');
+ const sample=demoBodyData();
+ assert.equal(sample.evaluations.length,6);
+ assert.equal(new Set(sample.evaluations.map(e=>e.measured_on.slice(0,7))).size,6);
+ assert.ok(sample.metrics.some(m=>m.custom));
+ assert.ok(sample.evaluations.every(e=>validateEvaluation(e,sample.metrics)));
+ const goal=sample.goals.find(g=>g.metric_key==='waist_cm');
+ assert.ok(goal);
+ assert.equal(firstAchievement(goal,sample.evaluations)?.measured_on,'2026-11-13');
+ assert.equal(latestForMetric(sample,'waist_cm')?.values.waist_cm,77.5);
+ const retro={...sample.evaluations[5],id:'retro',measured_on:'2026-09-15',values:{waist_cm:77.4}};
+ assert.equal(firstAchievement(goal,[...sample.evaluations,retro])?.measured_on,'2026-09-15');
+ assert.equal(firstAchievement(goal,[...sample.evaluations,{...retro,deleted_at:'2026-11-20'}])?.measured_on,'2026-11-13');
+});
+test('demo efêmera não deve persistir no navegador ou acessar banco real',async()=>{
+ const fs=await import('node:fs');
+ const client=fs.readFileSync(new URL('../lib/clientStore.ts',import.meta.url),'utf8');
+ assert.match(client,/if\(mode==='showcase'\)return JSON.parse\(JSON.stringify\(showcaseSessions/);
+ assert.match(client,/if\(mode==='showcase'\)\{showcaseSessions=/);
+ assert.match(client,/if\(mode==='showcase'\)showcaseExercises=/);
+ const dashboard=fs.readFileSync(new URL('../components/BodyDashboard.tsx',import.meta.url),'utf8');
+ assert.match(dashboard,/if\(mode==='cloud'\)\{/);
+ assert.match(dashboard,/mode==='showcase'\?demoBodyData\(\)/);
+ const api=fs.readFileSync(new URL('../app\/api\/body\/route.ts',import.meta.url),'utf8');
+ assert.match(api,/currentProfile\(\)/);
+ assert.match(api,/sameOrigin\(request\)/);
+ assert.match(api,/WHERE user_id=/);
+});
