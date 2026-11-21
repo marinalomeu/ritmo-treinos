@@ -23,7 +23,7 @@ const localTemplates=(mode:Mode):Template[]=>{
     const fromStorage=raw?JSON.parse(raw):null;
     if(Array.isArray(fromStorage)) return fromStorage as Template[];
   }catch{}
-  return JSON.parse(JSON.stringify(mode==='showcase'?DEMO_TEMPLATES:TEMPLATES)) as Template[];
+  return JSON.parse(JSON.stringify(TEMPLATES)) as Template[];
 };
 const storeTemplates=(mode:Mode,templates:Template[])=>{if(mode==='showcase'){showcaseTemplates=JSON.parse(JSON.stringify(templates));return;}localStorage.setItem(templatesKey(mode),JSON.stringify(templates));};
 const localKey = (mode:Mode) => mode==='showcase'?SHOWCASE_KEY:STORAGE_KEY;
@@ -53,11 +53,6 @@ const read = (mode:Mode): SessionDetail[] => {
   try {
     if(mode==='showcase')return JSON.parse(JSON.stringify(showcaseSessions??(showcaseSessions=sampleSessions()))) as SessionDetail[];
     const raw=localStorage.getItem(localKey(mode));
-    if(!raw && mode==='showcase'){
-      const samples=sampleSessions();
-      localStorage.setItem(localKey(mode),JSON.stringify(samples));
-      return samples;
-    }
     return JSON.parse(raw || '[]');
   } catch { return mode==='showcase'?sampleSessions():[]; }
 };
