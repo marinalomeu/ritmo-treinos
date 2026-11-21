@@ -7,13 +7,17 @@ import type { Modality } from './personalRecords';
 import type { Unit } from './templates';
 export type Mode = 'demo' | 'cloud' | 'showcase';
 const STORAGE_KEY = 'ritmo_treinos_demo_v1';
+let showcaseExercises:CatalogExercise[]=[];
+let showcaseTemplates:Template[]|null=null;
+let showcaseSessions:SessionDetail[]|null=null;
 const customKey=(mode:Mode)=>mode==='showcase'?'ritmo_showcase_custom_exercises_v1':'ritmo_demo_custom_exercises_v1';
-const readCustom=(mode:Mode):CatalogExercise[]=>{try{return JSON.parse(localStorage.getItem(customKey(mode))||'[]') as CatalogExercise[];}catch{return [];}};
+const readCustom=(mode:Mode):CatalogExercise[]=>{if(mode==='showcase')return [...showcaseExercises];try{return JSON.parse(localStorage.getItem(customKey(mode))||'[]') as CatalogExercise[];}catch{return [];}};
 const SHOWCASE_KEY = 'ritmo_showcase_v2';
 const SHOWCASE_TEMPLATES_KEY='ritmo_showcase_templates_v1';
 const DEMO_TEMPLATES_KEY='ritmo_local_templates_v1';
 const templatesKey=(mode:Mode)=>mode==='showcase'?SHOWCASE_TEMPLATES_KEY:DEMO_TEMPLATES_KEY;
 const localTemplates=(mode:Mode):Template[]=>{
+  if(mode==='showcase')return JSON.parse(JSON.stringify(showcaseTemplates??DEMO_TEMPLATES)) as Template[];
   try {
     const raw=localStorage.getItem(templatesKey(mode));
     const fromStorage=raw?JSON.parse(raw):null;
@@ -21,16 +25,12 @@ const localTemplates=(mode:Mode):Template[]=>{
   }catch{}
   return JSON.parse(JSON.stringify(mode==='showcase'?DEMO_TEMPLATES:TEMPLATES)) as Template[];
 };
-const storeTemplates=(mode:Mode,templates:Template[])=>localStorage.setItem(templatesKey(mode),JSON.stringify(templates));
+const storeTemplates=(mode:Mode,templates:Template[])=>{if(mode==='showcase'){showcaseTemplates=JSON.parse(JSON.stringify(templates));return;}localStorage.setItem(templatesKey(mode),JSON.stringify(templates));};
 const localKey = (mode:Mode) => mode==='showcase'?SHOWCASE_KEY:STORAGE_KEY;
 const sampleSessions=():SessionDetail[] => {
-  const definitions:{date:string;template:string;factor:number}[] = [
-    {date:'2026-11-09',template:'A',factor:0},
-    {date:'2026-11-10',template:'B',factor:0},
-    {date:'2026-11-11',template:'C',factor:1},
-    {date:'2026-11-12',template:'D',factor:0},
-    {date:'2026-11-13',template:'E',factor:2}
-  ];
+  // Seis meses de treino inteiramente fictício, gerado a partir das fichas de demonstração.
+  const days=['2026-06-08','2026-06-11','2026-07-07','2026-07-10','2026-08-06','2026-08-09','2026-09-08','2026-09-11','2026-10-07','2026-10-10','2026-11-09','2026-11-12'];
+  const definitions=days.map((date,index)=>({date,template:index%2===0?'A':index%4===1?'B':'C',factor:Math.floor(index/2)*2+(index%3===0?0:1)}));
   return definitions.map((entry,index)=>{
     const template=DEMO_TEMPLATES.find(t=>t.id===entry.template)!;
     const id=`showcase-${index+1}`;
@@ -51,7 +51,7 @@ const parseResponse = async <T>(res: Response): Promise<T> => {
 };
 const read = (mode:Mode): SessionDetail[] => {
   try {
-    if(mode==='showcase') localStorage.removeItem('ritmo_showcase_v1');
+    if(mode==='showcase')return JSON.parse(JSON.stringify(showcaseSessions??(showcaseSessions=sampleSessions()))) as SessionDetail[];
     const raw=localStorage.getItem(localKey(mode));
     if(!raw && mode==='showcase'){
       const samples=sampleSessions();
@@ -61,7 +61,7 @@ const read = (mode:Mode): SessionDetail[] => {
     return JSON.parse(raw || '[]');
   } catch { return mode==='showcase'?sampleSessions():[]; }
 };
-const write = (mode:Mode,sessions: SessionDetail[]) => localStorage.setItem(localKey(mode),JSON.stringify(sessions));
+const write = (mode:Mode,sessions: SessionDetail[]) => {if(mode==='showcase'){showcaseSessions=JSON.parse(JSON.stringify(sessions));return;}localStorage.setItem(localKey(mode),JSON.stringify(sessions));};
 const recalc = (detail: SessionDetail):SessionDetail => ({...detail,session:{...detail.session,completed_sets:detail.sets.filter(s=>s.completed).length,total_sets:detail.sets.length}});
 export async function listData(mode:Mode):Promise<HistoryData> {
   if (mode==='cloud') return parseResponse<HistoryData>(await fetch('/api/data',{cache:'no-store'}));
@@ -83,7 +83,8 @@ export async function createCustomExercise(mode:Mode,name:string,unit:Unit,modal
   const existing=[...BASE_EXERCISES,...readCustom(mode),...localTemplates(mode).flatMap(t=>t.exercises.map(e=>({...e,modality:'Outros' as const,origin:'existing' as const})))];
   if(existing.some(e=>normalizeExerciseName(e.name)===normalizeExerciseName(name)))throw new Error('Exercício já cadastrado. Selecione-o na busca.');
   const created:CatalogExercise={key:`ex-${crypto.randomUUID()}`,name,unit,modality,origin:'personal'};
-  localStorage.setItem(customKey(mode),JSON.stringify([...readCustom(mode),created]));
+  if(mode==='showcase')showcaseExercises=[...showcaseExercises,created];
+  else localStorage.setItem(customKey(mode),JSON.stringify([...readCustom(mode),created]));
   return created;
 }
 export async function createSession(mode:Mode,templateId:string,date:string,gymName?:string):Promise<string> {
