@@ -93,7 +93,7 @@ export default function BodyDashboard({mode}:{mode:Mode}){
     if(!latest||!metricObj){setError('Registre uma avaliação desse indicador antes de definir uma meta.');return;}
     const payload={id:crypto.randomUUID(),metric_key:goalMetric,kind:goalKind,start_value:latest.values[goalMetric],started_on:latest.measured_on,deadline:goalDeadline||undefined,
       ...(goalKind==='target'?{target:asNumber(goalTarget)}:{min:asNumber(goalMin),max:asNumber(goalMax)})};
-    const value=goalKind==='target'?Number.isFinite(payload.target):Number.isFinite(payload.min)&&Number.isFinite(payload.max)&&payload.min!<=payload.max!;
+    const value=goalKind==='target'?Number.isFinite(asNumber(goalTarget))&&goalTarget.trim()!=='' : Number.isFinite(asNumber(goalMin))&&Number.isFinite(asNumber(goalMax))&&goalMin.trim()!==''&&goalMax.trim()!==''&&asNumber(goalMin)<=asNumber(goalMax);
     if(!value){setError('Confira os valores da meta.');return;}
     try{await mutate('goal.save',{goal:payload,revise_id:revising});setShowGoal(false);setRevising(undefined);setGoalTarget('');setGoalMin('');setGoalMax('');}catch{}
   };
