@@ -94,6 +94,14 @@ export async function createSession(mode:Mode,templateId:string,date:string,gymN
   const session:WorkoutSession={id,template_id:templateId,template_name:template.name,performed_on:date,gym_name:gymName??template.gym_name??null,started_at:now,finished_at:null,status:'active',completed_sets:0,total_sets:sets.length};
   write(mode,[{session,sets},...old]); return id;
 }
+export async function createLocalWod(mode:Mode,template:Template,date:string,gymName:string):Promise<string>{
+  if(mode==='cloud')throw new Error('Use a API para treinos reais.');
+  const now=new Date().toISOString();const id=crypto.randomUUID();
+  const sets=makeSets(template).map(s=>({...s,id:`${id}__${s.id}`}));
+  const session:WorkoutSession={id,template_id:'wod',template_name:template.name,performed_on:date,gym_name:gymName.trim()||null,started_at:now,finished_at:null,status:'active',completed_sets:0,total_sets:sets.length};
+  write(mode,[{session,sets},...read(mode)]);
+  return id;
+}
 export async function getSession(mode:Mode,id:string):Promise<SessionDetail> {
   if (mode==='cloud') return parseResponse<SessionDetail>(await fetch(`/api/sessions/${encodeURIComponent(id)}`,{cache:'no-store'}));
   const session=read(mode).find(s=>s.session.id===id); if (!session) throw new Error('Sessão não encontrada.'); return recalc(session);
