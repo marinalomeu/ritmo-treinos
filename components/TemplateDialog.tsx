@@ -127,6 +127,7 @@ export default function TemplateDialog({template,mode,onClose,onChanged,onStart,
             <label>SÉRIES<input type="number" min="1" max="20" step="1" value={e.sets} onChange={v=>updateExercise(i,{sets:Number(v.target.value)})}/></label>
             <label>REPETIÇÕES / META<input maxLength={100} value={e.target} onChange={v=>updateExercise(i,{target:v.target.value})}/></label>
             <label>CARGA INICIAL<input type="number" inputMode="decimal" min="0" max="2000" step="0.5" value={e.defaultLoad??''} placeholder="—" onChange={v=>updateExercise(i,{defaultLoad:v.target.value===''?null:Number(v.target.value)})}/></label>
+            <label>DESCANSO (SEGUNDOS, 0 = SEM CRONÔMETRO)<input type="number" min="0" max="3600" step="1" value={e.restSeconds??0} onChange={v=>updateExercise(i,{restSeconds:Number(v.target.value)})}/></label>
             <label>UNIDADE<select value={e.unit} onChange={v=>updateExercise(i,{unit:v.target.value as Exercise['unit']})}><option value="kg">kg</option><option value="assist_kg">kg de assistência</option><option value="km/h">km/h</option><option value="none">Peso corporal</option></select></label>
           </div>
         </div>)}</div>

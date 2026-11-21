@@ -1,5 +1,5 @@
 'use client';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Check, Plus, Search, Save, Trash2, X } from 'lucide-react';
 import { rankExerciseMatches } from './ExercisePicker';
 import { normalizeExerciseName, type CatalogExercise } from '../lib/exerciseCatalog';
@@ -16,6 +16,11 @@ const fmt=(n:number)=>Number.isFinite(n)?n.toLocaleString('pt-BR',{maximumFracti
 const range=(a:readonly[number,number])=>`${fmt(a[0])}–${fmt(a[1])} kg`;
 
 export default function PersonalRecords({mode,exercises,catalog,pinnedKeys,fixedKeys,references,records,modalities,onChanged}:Props){
+  const [runningRecords,setRunningRecords]=useState<{exercise_key:string;distance_m:number;duration_seconds:number}[]>([]);
+  useEffect(()=>{if(mode!=='cloud')return;let live=true;
+    fetch('/api/running-prs',{cache:'no-store'}).then(r=>r.ok?r.json():{records:[]}).then(x=>{if(live)setRunningRecords(x.records||[]);}).catch(()=>{});
+    return()=>{live=false;};
+  },[mode,records]);
   const [search,setSearch]=useState('');
   const [addOpen,setAddOpen]=useState(false);
   const [addSearch,setAddSearch]=useState('');
@@ -164,6 +169,7 @@ export default function PersonalRecords({mode,exercises,catalog,pinnedKeys,fixed
         <p className="prs-disclaimer">Para exercícios feitos com peso corporal ou assistência, o cálculo considera somente a carga externa cadastrada, não o peso total do corpo nem os quilos de assistência. O valor teórico representa uma estimativa de carga máxima para a quantidade escolhida de repetições, não uma prescrição. A exigência relativa também é uma aproximação: para medir o esforço real, considere técnica, RIR e proximidade da falha. Epley não é adequado para exercícios de assistência, velocidade ou apenas peso corporal.</p>
       </>}
     </div>}
+    {runningRecords.length>0&&<section className="prs-planner"><h3>Recordes de corrida por distância</h3><p>O melhor tempo de cada distância permanece separado. Menos tempo significa uma marca melhor.</p><div className="prs-table-scroll"><table className="prs-table"><thead><tr><th>Exercício</th><th>Distância</th><th>Melhor tempo</th><th>Ritmo</th></tr></thead><tbody>{runningRecords.map(r=><tr key={r.exercise_key+':'+r.distance_m}><td>{catalog.find(e=>e.key===r.exercise_key)?.name||'Corrida'}</td><td>{r.distance_m.toLocaleString('pt-BR')} m</td><td>{Math.floor(r.duration_seconds/60)}:{String(r.duration_seconds%60).padStart(2,'0')}</td><td>{Math.floor(r.duration_seconds/(r.distance_m/1000)/60)}:{String(Math.floor(r.duration_seconds/(r.distance_m/1000))%60).padStart(2,'0')} min/km</td></tr>)}</tbody></table></div></section>}
     <p className="prs-disclaimer">As faixas de 60–70% são intermediárias e ficam fora das três faixas de referência. A classificação indica intensidade relativa à força, não qualidade, segurança ou resultado do treino.</p>
   </div>;
 }

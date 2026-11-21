@@ -1,11 +1,13 @@
 'use client';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { CalendarDays, Check, Clock3, Download, Dumbbell, Layers3, ListChecks, Moon, Share2, Sun, TrendingUp, Type, MapPin, X } from 'lucide-react';
 import type { SessionDetail } from '../lib/templates';
 import { DEFAULT_SHARE_OPTIONS, numericShareTarget, shareMetricValues, shareSelectionCount, visibleShareExercises, SHARE_THEMES,
-  workoutShareSummary, type ShareMetric, type ShareOptions, type ShareSummary, type ShareVisual } from '../lib/workoutShare';
+  workoutShareSummary, SHARE_PALETTES, SHARE_COMPOSITIONS, shareAwardLabels,
+  type ShareComposition, type ShareEligibility, type ShareMetric, type ShareOptions, type ShareSummary, type ShareVisual } from '../lib/workoutShare';
 
 const cap=(value:string)=>value.charAt(0).toLocaleUpperCase('pt-BR')+value.slice(1);
+const formatStoryDate=(day:string)=>new Date(day+'T12:00:00').toLocaleDateString('pt-BR',{day:'numeric',month:'long',year:'numeric'});
 const formatDate=(day:string)=>{
   const [year,month,date]=day.split('-');
   return `${date}.${month}.${year}`;
@@ -27,9 +29,9 @@ function drawWrapped(ctx:CanvasRenderingContext2D,text:string,x:number,y:number,
 }
 
 async function pngPoster(detail:SessionDetail,visual:ShareVisual,options:ShareOptions,
-  summary:ShareSummary){
+  summary:ShareSummary,composition:ShareComposition,eligibility:ShareEligibility|null,showBestBadge=false){
   const c=document.createElement('canvas');
-  c.width=1080;c.height=1920;
+  c.width=1170;c.height=2058;
   if(document.fonts?.ready)await document.fonts.ready;
   const ctx=c.getContext('2d');
   if(!ctx)throw new Error('Não foi possível criar imagem neste navegador.');
@@ -45,25 +47,70 @@ async function pngPoster(detail:SessionDetail,visual:ShareVisual,options:ShareOp
   ctx.fillStyle=colors.logo;ctx.font='800 57px Manrope, sans-serif';ctx.fillText('ritmo.',75,275);
   ctx.fillStyle=colors.subtitle;ctx.font='700 22px DM Sans, sans-serif';
   ctx.fillText('SEU DIÁRIO DE TREINOS',78,315);
-  // Mesma composição da prévia: conteúdo agrupado na faixa inferior, sem vazio abaixo.
-  // Com mais exercícios/métricas, deslocar os blocos superiores para preservar a margem do rodapé.
+  // Coordenadas alinhadas às pranchas oficiais 1170 x 2058 (logo no topo,
+  // título no terço inferior, conquistas entre título e caixa de resultados).
   const extraRows=options.showExercises?Math.min(exercises.entries.length+Number(exercises.extra>0),8):0;
   const rows=metrics.length===4?2:1;
-  const top=Math.max(740,1580-(rows-1)*158-extraRows*65-(options.showGymName?44:0));
-  const hero=top-(options.showWorkoutName?260:175)-(options.showGymName?45:0);
-  ctx.fillStyle=colors.kicker;ctx.font='800 24px DM Sans, sans-serif';
-  ctx.fillText('TREINO REGISTRADO'+(options.showDate?'  ·  '+formatDate(detail.session.performed_on):''),76,hero-185);
-  ctx.fillStyle=colors.headline;ctx.font='800 106px Manrope, sans-serif';
-  ctx.fillText('FEITO NO',72,hero-92);ctx.fillText('MEU RITMO.',72,hero+20);
-  let labelY=hero+98;
-  if(options.showWorkoutName){
-    ctx.fillStyle=colors.secondary;ctx.font='600 32px DM Sans, sans-serif';
-    drawWrapped(ctx,cap(detail.session.template_name),78,labelY,w-150,42,2);
-    labelY+=84;
+  const badges=shareAwardLabels(composition,eligibility);
+  const top=Math.max(1150,1530-(rows-1)*154-extraRows*49-(options.showGymName?22:0));
+  const titleY=Math.max(820,Math.min(1135,top-390));
+  const nameY=titleY-197;
+  ctx.fillStyle=visual==='dark-green'||visual==='mauve'||visual==='dark'?'#bce780':'#9bcc54';
+  roundedRect(ctx,76,nameY-42,12,77,5);ctx.fill();
+  ctx.fillStyle=colors.kicker;ctx.font='800 36px DM Sans, sans-serif';
+  const label=options.showWorkoutName?cap(detail.session.template_name):'TREINO REGISTRADO';
+  drawWrapped(ctx,label,112,nameY-9,w-190,39,1);
+  if(options.showDate){
+    ctx.fillStyle=colors.secondary;ctx.font='600 24px DM Sans, sans-serif';
+    ctx.fillText(formatStoryDate(detail.session.performed_on),112,nameY+33);
   }
   if(options.showGymName&&detail.session.gym_name){
-    ctx.fillStyle=colors.secondary;ctx.font='600 28px DM Sans, sans-serif';
-    drawWrapped(ctx,detail.session.gym_name,78,labelY,w-150,38,1);
+    ctx.fillStyle=colors.secondary;ctx.font='600 22px DM Sans, sans-serif';
+    drawWrapped(ctx,detail.session.gym_name,112,nameY+64,w-200,30,1);
+  }
+  ctx.fillStyle=colors.headline;ctx.font='800 124px Manrope, sans-serif';
+  ctx.fillText('FEITO NO',73,titleY);ctx.fillText('MEU RITMO.',73,titleY+118);
+  const accent=visual==='dark-green'||visual==='light-green'?'#a6e72f':'#da9cc4';
+  const longest=ctx.measureText('MEU RITMO.').width;
+  ctx.fillStyle=accent;ctx.beginPath();ctx.arc(74+longest-3,titleY+104,9,0,Math.PI*2);ctx.fill();
+  if(showBestBadge){
+    ctx.fillStyle=colors.headline;ctx.font='800 31px Manrope, sans-serif';
+    ctx.fillText('DESAFIO CONCLUÍDO · EM UM NOVO RITMO.',77,titleY+188,1010);
+    ctx.font='600 21px DM Sans, sans-serif';
+    ctx.fillText('Novo recorde pessoal neste desafio',77,titleY+224,1010);
+  }
+  if(badges.length){
+    const badgeTop=top-(badges.length===3?155:144);
+    const blocks=badges.length===3?
+      [[badges[0],76,badgeTop,422,103],[badges[1],512,badgeTop,575,47],[badges[2],512,badgeTop+56,575,47]] as const:
+      badges.map(v=>[v,76,badgeTop,1007,76] as const);
+    for(const [value,bx,by,bw,bh] of blocks){
+      const pr=value.startsWith('PR BATIDO');
+      const week=value.startsWith('SEMANA');
+      ctx.fillStyle=pr?'#b6ea78':colors.metricsBackground;
+      roundedRect(ctx,bx,by,bw,bh,20);ctx.fill();
+      if(!pr){ctx.strokeStyle=colors.ring;ctx.lineWidth=2;ctx.stroke();}
+      ctx.fillStyle=pr?'#254c2f':colors.headline;
+      const textValue=week?'SEMANA NO RITMO':value.startsWith('MÊS')?'MÊS NO RITMO':'PR BATIDO';
+      ctx.font=`800 ${bh>=70?28:23}px Manrope, sans-serif`;
+      ctx.fillText(pr?'🏆  '+textValue:'▣  '+textValue,bx+24,by+bh/2+9,bw-56);
+      if(week){
+        ctx.fillStyle='#aff05f';
+        for(let i=0;i<5;i++){
+          const cx=bx+bw-190+i*35,cy=by+bh/2;
+          ctx.beginPath();ctx.arc(cx,cy,11,0,Math.PI*2);ctx.fill();
+        }
+      }
+      if(value.startsWith('MÊS')){
+        const data=value.match(/(\d+)\/(\d+)/);
+        const current=data?Number(data[1]):0,target=data?Number(data[2]):0;
+        const progress=target>0?Math.min(1,current/target):0;
+        ctx.fillStyle=colors.secondary;ctx.font='600 17px DM Sans, sans-serif';
+        ctx.fillText(target?current+'/'+target+' treinos':'Mês cumprido',bx+bw-224,by+bh/2+7);
+        ctx.fillStyle=colors.ring;roundedRect(ctx,bx+bw-108,by+bh/2-4,88,9,5);ctx.fill();
+        ctx.fillStyle='#adf06e';roundedRect(ctx,bx+bw-108,by+bh/2-4,88*progress,9,5);ctx.fill();
+      }
+    }
   }
   let metricBottom=top;
   if(metrics.length){
@@ -102,16 +149,83 @@ async function pngPoster(detail:SessionDetail,visual:ShareVisual,options:ShareOp
       ctx.fillText(`+ ${exercises.extra} outros exercícios`,78,y+exercises.entries.length*lineHeight);
     }
   }
-  const foot=h-125;
+  const foot=h-215;
   ctx.fillStyle=colors.footer;ctx.font='600 26px DM Sans, sans-serif';
   ctx.fillText('Um treino de cada vez. Uma evolução de cada vez.',76,foot);
   const blob=await new Promise<Blob|null>(resolve=>c.toBlob(resolve,'image/png'));
   if(!blob)throw new Error('Não foi possível exportar a arte.');
-  return new File([blob],`ritmo-treino-${detail.session.performed_on}-${visual}.png`,{type:'image/png'});
+  return new File([blob],`ritmo-treino-${detail.session.performed_on}-${visual}-${composition}.png`,{type:'image/png'});
+}
+
+
+/**
+ * Story especial da primeira conclusão: dados somente do servidor e composição fixa.
+ * A arte não aceita edição de tempo, distância ou data.
+ */
+async function specialChallengePoster(detail:SessionDetail,name:string,summary:ShareSummary,showTime:boolean):Promise<File>{
+  const canvas=document.createElement('canvas');canvas.width=1170;canvas.height=2058;
+  if(document.fonts?.ready)await document.fonts.ready;
+  const ctx=canvas.getContext('2d');if(!ctx)throw new Error('Canvas indisponível.');
+  const w=canvas.width,h=canvas.height,ink='#304c38',pale='#eef4e5';
+  const background=ctx.createLinearGradient(0,0,w,h);
+  background.addColorStop(0,'#f1f5e8');background.addColorStop(.55,'#e5eed9');background.addColorStop(1,'#d6e6cb');
+  ctx.fillStyle=background;ctx.fillRect(0,0,w,h);
+  ctx.fillStyle='rgba(142,183,136,.12)';
+  ctx.beginPath();ctx.ellipse(-130,-120,650,440,-.3,0,Math.PI*2);ctx.fill();
+  ctx.beginPath();ctx.ellipse(1270,1960,500,420,-.3,0,Math.PI*2);ctx.fill();
+  ctx.textAlign='center';ctx.fillStyle=ink;ctx.font='800 105px Manrope, sans-serif';ctx.fillText('ritmo.',w/2,205);
+  const ribbon=ctx.createLinearGradient(0,390,0,980);ribbon.addColorStop(0,'#a7bea2');ribbon.addColorStop(1,'#5b8c69');
+  ctx.fillStyle=ribbon;ctx.beginPath();ctx.moveTo(445,390);ctx.lineTo(570,675);ctx.lineTo(470,745);ctx.lineTo(310,450);ctx.closePath();ctx.fill();
+  ctx.beginPath();ctx.moveTo(710,390);ctx.lineTo(600,675);ctx.lineTo(700,745);ctx.lineTo(855,450);ctx.closePath();ctx.fill();
+  const gold=ctx.createRadialGradient(500,900,40,585,915,285);
+  gold.addColorStop(0,'#f9e9ab');gold.addColorStop(.52,'#d8ba6a');gold.addColorStop(.82,'#b28c42');gold.addColorStop(1,'#f4da91');
+  ctx.shadowColor='rgba(35,53,30,.24)';ctx.shadowBlur=35;ctx.shadowOffsetY=15;
+  ctx.fillStyle=gold;ctx.beginPath();ctx.arc(w/2,930,260,0,Math.PI*2);ctx.fill();
+  ctx.shadowBlur=0;ctx.shadowOffsetY=0;ctx.strokeStyle='#fff0c2';ctx.lineWidth=8;ctx.beginPath();ctx.arc(w/2,930,245,0,Math.PI*2);ctx.stroke();
+  ctx.strokeStyle='#977432';ctx.lineWidth=3;ctx.beginPath();ctx.arc(w/2,930,225,0,Math.PI*2);ctx.stroke();
+  const short=name.replace(/^.*?(\d+\s*(?:km|k|milhas)).*$/i,'$1');
+  const medalText=short===name?(detail.session.challenge_id?.includes('triathlon')?'TRI':detail.session.challenge_id?.includes('hyrox')?'HYROX':detail.session.challenge_id?.includes('murph')?'MURPH':'★'):short.toUpperCase();
+  ctx.fillStyle='#735c2a';ctx.font='800 93px Manrope, sans-serif';
+  ctx.fillText(medalText.slice(0,8),w/2,967,450);
+  ctx.fillStyle=ink;ctx.font='800 120px Manrope, sans-serif';ctx.fillText(name.toUpperCase().slice(0,24),w/2,1398,1080);
+  ctx.font='italic 58px DM Sans, sans-serif';ctx.fillText('Conquistei no meu ritmo',w/2,1505);
+  ctx.fillStyle='#f5f8f0';roundedRect(ctx,75,1610,1020,170,37);ctx.fill();
+  ctx.fillStyle=ink;ctx.font='700 40px DM Sans, sans-serif';
+  const dt=detail.session.performed_on.split('-').reverse().join('/');
+  if(showTime){ctx.fillText('TEMPO · '+summary.elapsed,347,1708,510);ctx.fillText('DATA · '+dt,828,1708,510);}
+  else ctx.fillText('DATA · '+dt,w/2,1708,950);
+  ctx.fillStyle='#cedfc0';roundedRect(ctx,260,1867,650,88,44);ctx.fill();
+  ctx.fillStyle=ink;ctx.font='700 39px DM Sans, sans-serif';ctx.fillText('☆  1ª vez nesse desafio',w/2,1926,600);
+  const blob=await new Promise<Blob|null>(resolve=>canvas.toBlob(resolve,'image/png'));
+  if(!blob)throw new Error('Não foi possível gerar a imagem.');
+  return new File([blob],'ritmo-primeira-conquista-'+detail.session.performed_on+'.png',{type:'image/png'});
 }
 
 export default function WorkoutShareCard({detail,onClose}:{detail:SessionDetail;onClose:()=>void}){
-  const [visual,setVisual]=useState<ShareVisual>('dark');
+  const [eligibility,setEligibility]=useState<ShareEligibility|null>(null);
+  const [visual,setVisual]=useState<ShareVisual>('dark-green');
+  const [showChallengeTime,setShowChallengeTime]=useState(true);
+  const [showBestBadge,setShowBestBadge]=useState(false);
+  const isChallenge=Boolean(detail.session.challenge_id);
+  const firstChallenge=Boolean(isChallenge&&eligibility?.challengeFirst);
+  const bestChallenge=Boolean(isChallenge&&eligibility?.challengeBest&&!eligibility?.challengeFirst);
+  const challengeName=detail.session.template_name.replace(/^(Desafio|Prova)\s*[:·-]\s*/i,'').trim();
+  const [composition,setComposition]=useState<ShareComposition>('training');
+
+  const [eligibilityError,setEligibilityError]=useState(false);
+  useEffect(()=>{
+    let alive=true;
+    fetch('/api/share/eligibility?session_id='+encodeURIComponent(detail.session.id),{cache:'no-store'})
+      .then(async r=>{if(!r.ok)throw new Error('Sem resultados de conquistas.');return r.json() as Promise<ShareEligibility>;})
+      .then(result=>{if(alive)setEligibility(result);})
+      .catch(()=>{if(alive)setEligibilityError(true);});
+    return()=>{alive=false;};
+  },[detail.session.id]);
+  const awards=shareAwardLabels(composition,eligibility);
+  const isAllowed=(type:ShareComposition,available=eligibility)=>{
+    const option=SHARE_COMPOSITIONS.find(x=>x.value===type);
+    return type==='training'||Boolean(available&&option?.requires.every(key=>Boolean(available[key])));
+  };
   const [options,setOptions]=useState<ShareOptions>(()=>({
     ...DEFAULT_SHARE_OPTIONS,metrics:{...DEFAULT_SHARE_OPTIONS.metrics}
   }));
@@ -122,6 +236,27 @@ export default function WorkoutShareCard({detail,onClose}:{detail:SessionDetail;
   const selectedCount=shareSelectionCount(options);
   const [selectionHint,setSelectionHint]=useState(false);
   const exercises=visibleShareExercises(summary,metrics.length);
+  const [previewUrl,setPreviewUrl]=useState('');
+  const [previewBusy,setPreviewBusy]=useState(true);
+  // A prévia é gerada pelo MESMO Canvas usado para exportar o PNG.
+  useEffect(()=>{
+    let alive=true;
+    let url='';
+    if(isChallenge&&!eligibility){setPreviewBusy(false);return;}
+    setPreviewBusy(true);
+    const task=window.setTimeout(()=>{
+      (firstChallenge
+        ?specialChallengePoster(detail,challengeName,summary,showChallengeTime)
+        :pngPoster(detail,visual,options,summary,composition,eligibility,showBestBadge&&bestChallenge))
+      .then(file=>{
+        if(!alive)return;
+        url=URL.createObjectURL(file);
+        setPreviewUrl(url);setPreviewBusy(false);
+      }).catch(()=>{if(alive){setPreviewUrl('');setPreviewBusy(false);}});
+    },120);
+    return()=>{alive=false;window.clearTimeout(task);if(url)URL.revokeObjectURL(url);};
+  },[detail,summary,visual,options,composition,eligibility,firstChallenge,bestChallenge,showBestBadge,showChallengeTime,challengeName,isChallenge]);
+
   const metricColumns=metrics.length===4?2:Math.max(1,metrics.length);
   const updateShareOption=(key:'showWorkoutName'|'showGymName'|'showDate'|'showExercises'|ShareMetric)=>{
     const isMetric=key in options.metrics;
@@ -153,7 +288,17 @@ export default function WorkoutShareCard({detail,onClose}:{detail:SessionDetail;
   const exportCard=async(share:boolean)=>{
     setBusy(true);setError('');
     try{
-      const file=await pngPoster(detail,visual,options,summary);
+      let verified=eligibility;
+      if(isChallenge||composition!=='training'){
+        const r=await fetch('/api/share/eligibility?session_id='+encodeURIComponent(detail.session.id),{cache:'no-store'});
+        if(!r.ok)throw new Error('Não foi possível confirmar sua conquista.');
+        verified=await r.json() as ShareEligibility;
+        if(!verified?.challengeFirst&&!isAllowed(composition,verified))throw new Error('Esta conquista ainda não está disponível para seu treino.');
+      }
+      if(isChallenge&&!verified)throw new Error('Não foi possível confirmar a conclusão deste desafio.');
+      const file=isChallenge&&verified?.challengeFirst
+        ?await specialChallengePoster(detail,challengeName,summary,showChallengeTime)
+        :await pngPoster(detail,visual,options,summary,composition,verified,showBestBadge&&Boolean(verified?.challengeBest));
       if(share&&typeof navigator.share==='function'&&navigator.canShare?.({files:[file]})){
         try{await navigator.share({files:[file],title:'Meu treino no Ritmo'});return;}
         catch(e){if((e as Error).name==='AbortError')return;}
@@ -173,7 +318,15 @@ export default function WorkoutShareCard({detail,onClose}:{detail:SessionDetail;
         <button className="close-btn" type="button" onClick={onClose} aria-label="Fechar"><X size={18}/></button>
       </div>
       <div className="share-layout">
-        <div className={`share-poster share-poster-${visual}`} aria-label={`Prévia vertical 9:16 do seu card de treino, visual ${visual==='dark'?'escuro':'claro'}`}>
+        {previewUrl?<img className="share-rendered-preview" src={previewUrl} alt="Prévia idêntica à imagem PNG exportada"/>:
+         isChallenge&&!eligibility&&!eligibilityError?<div className="share-preview-pending" role="status">Confirmando conclusão do desafio...</div>:
+         firstChallenge?<div className="challenge-special-poster" aria-label="Story da primeira conclusão do desafio">
+          <strong className="challenge-special-logo">ritmo.</strong>
+          <div className="challenge-special-medal"><span>{detail.session.challenge_id?.includes('triathlon')?'TRI':detail.session.challenge_id?.includes('hyrox')?'HYROX':detail.session.challenge_id?.includes('murph')?'MURPH':challengeName.match(/\d+\s*(?:km|k|milhas)/i)?.[0]||'★'}</span></div>
+          <div className="challenge-special-main"><strong>{challengeName}</strong><em>Conquistei no meu ritmo</em></div>
+          <div className="challenge-special-results">{showChallengeTime&&<span>Tempo · {summary.elapsed}</span>}<span>Data · {formatDate(detail.session.performed_on)}</span></div>
+          <div className="challenge-special-first">☆ 1ª vez nesse desafio</div>
+        </div>:<div className={`share-poster share-poster-${visual}`} aria-label={`Prévia vertical do Story, paleta ${SHARE_PALETTES.find(p=>p.value===visual)?.label}`}>
           <div className="share-poster-art"><span className="share-poster-logo">ritmo<span>.</span></span>
             <small>SEU DIÁRIO DE TREINOS</small></div>
           <div className="share-poster-main">
@@ -182,6 +335,10 @@ export default function WorkoutShareCard({detail,onClose}:{detail:SessionDetail;
             {options.showWorkoutName&&<p>{cap(detail.session.template_name)}</p>}
             {options.showGymName&&detail.session.gym_name&&<p className="share-poster-gym">{detail.session.gym_name}</p>}
           </div>
+          {showBestBadge&&bestChallenge&&<div className="challenge-best-badge"><strong>DESAFIO CONCLUÍDO · Em um novo ritmo.</strong><small>Novo recorde pessoal neste desafio</small></div>}
+          {awards.length>0&&<div className={'share-poster-awards '+(awards.length===3?'is-combined':'')}>
+            {awards.map((award,i)=><span key={award} className={'share-poster-award award-'+i}>{award}</span>)}
+          </div>}
           {metrics.length>0&&<div className="share-poster-metrics"
             style={{gridTemplateColumns:`repeat(${metricColumns},minmax(0,1fr))`}}>
             {metrics.map(metric=><div key={metric.key}>
@@ -196,16 +353,23 @@ export default function WorkoutShareCard({detail,onClose}:{detail:SessionDetail;
             {exercises.extra>0&&<span className="share-poster-more">+ {exercises.extra} outros exercícios</span>}
           </div>}
           <div className="share-poster-footer">Um treino de cada vez. Uma evolução de cada vez.</div>
-        </div>
+        </div>}
         <div className="share-editor">
-          <div className="share-editor-section"><span className="overline">VISUAL</span>
-            <div className="share-visual-options" role="group" aria-label="Aparência do card">
-              <button type="button" className={visual==='dark'?'selected':''} aria-pressed={visual==='dark'}
-                onClick={()=>setVisual('dark')}><Moon size={17}/> Escuro</button>
-              <button type="button" className={visual==='light'?'selected':''} aria-pressed={visual==='light'}
-                onClick={()=>setVisual('light')}><Sun size={17}/> Claro</button>
+          {firstChallenge?<div className="share-editor-section"><strong>Primeira conquista deste desafio</strong><p>Story especial verde-claro. Distância, tempo e data são calculados a partir do treino registrado.</p><label><input type="checkbox" checked={showChallengeTime} onChange={e=>setShowChallengeTime(e.target.checked)}/> Mostrar tempo realizado</label></div>:<><div className="share-editor-section"><span className="overline">VISUAL</span>
+            <div className="share-visual-options share-five-palettes" role="group" aria-label="Paletas oficiais">
+              {SHARE_PALETTES.map(p=><button type="button" key={p.value} className={visual===p.value?'selected':''}
+                aria-pressed={visual===p.value} onClick={()=>setVisual(p.value)}>{p.label}</button>)}
             </div>
-            <small className="share-visual-caption">Card vertical · 9:16</small>
+            <small className="share-visual-caption">Story vertical · 1170 × 2058</small>
+            <div className="share-composition-options" role="group" aria-label="Versão do Story">
+              {SHARE_COMPOSITIONS.map(c=>{
+                const allowed=isAllowed(c.value);
+                return <button type="button" key={c.value} disabled={!allowed}
+                  aria-pressed={composition===c.value} className={composition===c.value?'selected':''}
+                  title={allowed?'':eligibilityError?'Não foi possível confirmar suas conquistas.':'Disponível quando esta conquista for atingida.'}
+                  onClick={()=>setComposition(c.value)}>{c.label}{!allowed&&<small> Ainda não conquistado</small>}</button>;
+              })}
+            </div>
           </div>
           <div className="share-editor-section">
             <div className="share-select-header">
@@ -236,12 +400,14 @@ export default function WorkoutShareCard({detail,onClose}:{detail:SessionDetail;
               </span>
             </button>}
           </div>
+          {bestChallenge&&<label className="share-best-option"><input type="checkbox" checked={showBestBadge} onChange={e=>setShowBestBadge(e.target.checked)}/> Exibir selo “Em um novo ritmo.” — novo recorde comprovado</label>}
+          </>}
           <p className="share-privacy">A prévia muda conforme suas escolhas. Nenhuma informação pessoal é incluída, e nada será publicado automaticamente.</p>
           {error&&<p className="template-alert" role="alert">{error}</p>}
-          <button className="btn btn-primary" disabled={busy} type="button" onClick={()=>void exportCard(true)}>
+          <button className="btn btn-primary" disabled={busy||previewBusy||(isChallenge&&!eligibility)} type="button" onClick={()=>void exportCard(true)}>
             <Share2 size={17}/> {busy?'Gerando arte…':'Compartilhar meu treino'}
           </button>
-          <button className="btn btn-outline-template" disabled={busy} type="button" onClick={()=>void exportCard(false)}>
+          <button className="btn btn-outline-template" disabled={busy||previewBusy||(isChallenge&&!eligibility)} type="button" onClick={()=>void exportCard(false)}>
             <Download size={16}/> Baixar imagem PNG
           </button>
           <button className="share-continue" type="button" onClick={onClose}>Ver detalhes e atualizar meus PRs</button>

@@ -5,20 +5,21 @@ import { CHALLENGES, type ChallengeDefinition } from '../lib/challengeTemplates'
 
 type Step={name:string;amount:number;unit:string;round?:number;block?:number;station?:number;zone?:number;loadKg?:Record<string,number>;loadKgPerHand?:Record<string,number>;rxLoadKg?:Record<string,number>;targetHeightM?:Record<string,number>;resistance?:Record<string,{xebex:number;torque:number}>;scoreUnit?:string};
 type Challenge={id:string;name:string;modality:string;format:string;steps:Step[];notes?:string;rounds?:number;timeCapSeconds?:number;divisions?:string[];sources?:string[];standard?:string};
-const challenges=CHALLENGES as ChallengeDefinition[];
+const challenges=(CHALLENGES as ChallengeDefinition[]).filter(c=>c.id!=='run-15k');
 const divisions=[['women_open','Feminino Open'],['men_open','Masculino Open'],['women_pro','Feminino Pro'],['men_pro','Masculino Pro'],['women','Feminino RX'],['men','Masculino RX']] as const;
 const fmt=(n:number)=>n.toLocaleString('pt-BR',{maximumFractionDigits:2});
 const formatStep=(s:Step)=>`${fmt(s.amount)} ${s.unit==='reps'?'reps':s.unit}`;
 const fmtFormat=(c:Challenge)=>c.format==='amrap'?'AMRAP':c.format==='for_time'?'For Time':c.format==='total_reps'?'Máximo de repetições':c.format==='distance'?'Distância':'Sequencial';
-export default function ChallengesView({onStart,disabled=false}:{onStart:(challenge:ChallengeDefinition,division:string)=>Promise<void>;disabled?:boolean}){
+export default function ChallengesView({onStart,disabled=false,completedIds=[]}:{onStart:(challenge:ChallengeDefinition,division:string)=>Promise<void>;disabled?:boolean;completedIds?:string[]}){
   const [starting,setStarting]=useState(false);
   const [startError,setStartError]=useState('');
   const [category,setCategory]=useState('Todos');
+  const done=new Set(completedIds);
   const [search,setSearch]=useState('');
   const [activeId,setActiveId]=useState<string|null>(null);
   const [division,setDivision]=useState('women_open');
-  const categories=['Todos',...new Set(challenges.map(c=>c.modality))];
-  const filtered=useMemo(()=>challenges.filter(c=>(category==='Todos'||c.modality===category)&&c.name.toLowerCase().includes(search.toLowerCase())),[category,search]);
+  const categories=['Todos','Concluídos',...new Set(challenges.map(c=>c.modality))];
+  const filtered=useMemo(()=>challenges.filter(c=>(category==='Todos'||(category==='Concluídos'?done.has(c.id):c.modality===category))&&c.name.toLowerCase().includes(search.toLowerCase())),[category,search]);
   const selected=challenges.find(c=>c.id===activeId);
   const hasLoadReference=(challenge:ChallengeDefinition)=>challenge.steps.some(s=>s.rxLoadKg||s.loadKg||s.loadKgPerHand)||Boolean(challenge.commonBarbellLoadKg||challenge.ruckKg||challenge.optionalVestKg);
   const start=async()=>{if(!selected)return;setStartError('');setStarting(true);try{await onStart(selected,division);}catch(e){setStartError(e instanceof Error?e.message:'Não foi possível iniciar o desafio.');}finally{setStarting(false);}};
@@ -47,8 +48,9 @@ export default function ChallengesView({onStart,disabled=false}:{onStart:(challe
       <p className="overline">SAIA DA ROTINA</p><h1 className="challenges-title">Em Outro Ritmo.</h1>
       <p className="challenges-intro">Explore provas e benchmarks famosos, conheça a ficha de cada desafio e encontre sua próxima meta.</p>
       <div className="challenge-filters"><label><Search size={16}/><input aria-label="Buscar desafios" placeholder="Buscar desafio..." value={search} onChange={e=>setSearch(e.target.value)}/></label><div>{categories.map(c=><button type="button" key={c} className={category===c?'selected':''} onClick={()=>setCategory(c)}>{c}</button>)}</div></div>
-      <div className="challenge-grid">{filtered.map(c=><button type="button" key={c.id} className="challenge-card" onClick={()=>{setActiveId(c.id);setDivision(c.divisions?.[0]||'women');}}><span className="challenge-card-icon">{c.modality==='Corrida'?<Timer size={20}/>:c.modality==='CrossFit'?<Trophy size={20}/>:<Flag size={20}/>}</span><small>{c.modality}</small><strong>{c.name}</strong><span>{fmtFormat(c)} <ChevronRight size={15}/></span></button>)}</div>
+      <div className="challenge-grid">{filtered.map(c=><button type="button" key={c.id} className="challenge-card" onClick={()=>{setActiveId(c.id);setDivision(c.divisions?.[0]||'women');}}>{done.has(c.id)&&<span className="challenge-completed" aria-label="Desafio concluído">✓</span>}<span className="challenge-card-icon">{c.modality==='Corrida'?<Timer size={20}/>:c.modality==='CrossFit'?<Trophy size={20}/>:<Flag size={20}/>}</span><small>{c.modality}</small><strong>{c.name}</strong><span>{fmtFormat(c)} <ChevronRight size={15}/></span></button>)}</div>
       {!filtered.length&&<p className="challenge-footnote">Nenhum desafio encontrado.</p>}
     </>}
   </section>;
 }
+

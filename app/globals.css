@@ -56,7 +56,10 @@
 @media(max-width:370px){.template-input-grid{grid-template-columns:1fr}}
 
 /* Recordes individuais, intensidade de cargas e modalidades */
-.progress-filters{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,2fr);gap:14px;align-items:end}
+.progress-filters{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,2fr);gap:14px;align-items:start}
+.progress-filters>.input-label,.progress-filters>.multi-exercise{align-self:start;margin:0}
+.progress-filters .multi-exercise{display:grid;gap:7px}
+.progress-filters .multi-exercise .multi-exercise-chips{grid-column:1/-1}
 .progress-filters .input-label{display:grid;gap:7px}
 .progress-filters .select-input{max-width:unset}
 .prs-page{display:grid;gap:18px}
@@ -374,3 +377,234 @@
 @media(max-width:900px){.challenge-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:760px){.mobile-nav{grid-template-columns:repeat(6,1fr)}.mobile-nav button{font-size:9px}.challenge-grid{gap:9px}.challenge-card{padding:13px;min-height:165px}.challenge-card>strong{font-size:14px}.challenge-step{padding:11px 10px;gap:8px}.challenge-step-prescription{max-width:42%}}
 @media(max-width:390px){.challenge-grid{grid-template-columns:1fr}}
+
+.rest-timer{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:12px 16px;margin:10px 0;border-radius:14px;border:1px solid #b6c9b8;background:#f3f8f2;color:#436c51}.rest-timer strong{font-size:15px;font-variant-numeric:tabular-nums;margin-right:auto}.rest-timer button{border:1px solid #a7bcae;border-radius:9px;padding:8px 12px;color:#45644c;background:white;cursor:pointer}
+
+/* Stories oficiais — a prévia acompanha os mesmos tons do exportador Canvas. */
+.share-five-palettes{grid-template-columns:repeat(3,minmax(0,1fr))}
+.share-five-palettes button{font-size:11px;min-height:47px;padding:8px 7px}
+.share-composition-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin-top:14px}
+.share-composition-options button{background:#fffdfa;border:1px solid #e4d8df;border-radius:10px;color:#665365;min-height:46px;font-size:11px;font-weight:800;cursor:pointer;padding:10px}
+.share-composition-options button.selected{border-color:#94738a;background:#f3e9f0}
+.share-composition-options button:disabled{opacity:.48;cursor:not-allowed}
+.share-composition-options small{display:block;margin-top:3px;font-size:9px;font-weight:500}
+.share-poster{aspect-ratio:1170/2058}
+.share-poster-awards{display:grid;gap:6px;margin-top:auto;margin-bottom:15px}
+.share-poster-award{display:flex;align-items:center;min-height:39px;padding:11px 13px;border:1px solid rgba(255,255,255,.22);border-radius:12px;font-size:10px;font-weight:900;letter-spacing:.6px;background:rgba(255,255,255,.12)}
+.share-poster-awards.is-combined{grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-rows:repeat(2,minmax(0,1fr))}
+.share-poster-awards.is-combined .award-0{grid-row:span 2}
+.share-poster-dark-green{color:#fffdf7;background:linear-gradient(145deg,#21443b,#326455 55%,#538778)}
+.share-poster-dark-green .share-poster-logo,.share-poster-dark-green .share-poster-main>strong,.share-poster-dark-green .share-poster-metrics strong{color:#fffdf7}
+.share-poster-dark-green .share-poster-art small,.share-poster-dark-green .share-poster-kicker,.share-poster-dark-green .share-poster-main p,.share-poster-dark-green .share-poster-footer{color:#daecdf}
+.share-poster-light-green{color:#2d5442;background:linear-gradient(145deg,#f6f9ed,#ebf2dd 55%,#d5e8cd)}
+.share-poster-light-green:before,.share-poster-light-green:after{border-color:rgba(68,105,85,.15)}
+.share-poster-light-green .share-poster-logo,.share-poster-light-green .share-poster-main>strong,.share-poster-light-green .share-poster-metrics strong{color:#315244}
+.share-poster-light-green .share-poster-art small,.share-poster-light-green .share-poster-kicker,.share-poster-light-green .share-poster-main p,.share-poster-light-green .share-poster-footer,.share-poster-light-green .share-poster-exercises{color:#476958}
+.share-poster-light-green .share-poster-metrics,.share-poster-light-green .share-poster-award{background:rgba(85,130,96,.10);border-color:rgba(68,105,85,.14)}
+.share-poster-light-green .share-poster-metrics small{color:#57785b}
+.share-poster-mauve{color:#51384c;background:linear-gradient(145deg,#f0e7ee,#e4d4e0 55%,#c9b0c4)}
+.share-poster-mauve:before,.share-poster-mauve:after{border-color:rgba(81,47,80,.11)}
+.share-poster-mauve .share-poster-logo,.share-poster-mauve .share-poster-main>strong,.share-poster-mauve .share-poster-metrics strong{color:#51384c}
+.share-poster-mauve .share-poster-art small,.share-poster-mauve .share-poster-kicker,.share-poster-mauve .share-poster-main p,.share-poster-mauve .share-poster-footer,.share-poster-mauve .share-poster-exercises{color:#6a5264}
+.share-poster-mauve .share-poster-metrics,.share-poster-mauve .share-poster-award{background:rgba(98,63,99,.12);border-color:rgba(81,47,80,.10)}
+.share-poster-mauve .share-poster-metrics small{color:#775c73}
+.share-poster-dark{color:#fffafc;background:linear-gradient(145deg,#302d35,#48404d 55%,#655664)}
+.share-poster-dark .share-poster-logo,.share-poster-dark .share-poster-main>strong{color:#fffafc}
+@media(max-width:760px){.share-five-palettes{grid-template-columns:repeat(2,minmax(0,1fr))}.share-composition-options{grid-template-columns:1fr}}
+
+/* Story de primeira conclusão de um desafio: única paleta verde-clara. */
+.challenge-special-poster{position:relative;aspect-ratio:1170/2058;overflow:hidden;display:flex;flex-direction:column;align-items:center;text-align:center;padding:11% 6% 7%;border-radius:19px;color:#304c38;background:radial-gradient(ellipse at 5% 1%,#dbe9cf 0%,transparent 36%),linear-gradient(145deg,#f1f5e8,#e5eed9 55%,#d6e6cb)}
+.challenge-special-poster:after{content:"";position:absolute;z-index:0;width:90%;height:30%;border-radius:50%;background:#acc59d26;bottom:-20%;right:-28%;pointer-events:none}
+.challenge-special-poster>*{position:relative;z-index:1}
+.challenge-special-logo{font:800 clamp(27px,3vw,51px)/1 'Manrope',sans-serif;letter-spacing:-2px}
+.challenge-special-medal{width:61%;aspect-ratio:1;margin:auto auto 0;position:relative;display:grid;place-items:center;border-radius:50%;border:7px double #f9e4aa;background:radial-gradient(circle at 38% 29%,#f9e9ab,#d8ba6a 54%,#b28c42 81%,#f4da91);box-shadow:0 15px 30px #39563c40,inset 0 0 0 10px #d5bc7c}
+.challenge-special-medal:before,.challenge-special-medal:after{content:"";position:absolute;z-index:-1;width:39%;height:81%;background:linear-gradient(90deg,#a7bea2,#5b8c69);top:-70%;transform:rotate(-22deg);border-radius:15px}
+.challenge-special-medal:after{transform:rotate(22deg);left:53%}
+.challenge-special-medal span{font:900 clamp(25px,3.2vw,48px)/1 'Manrope',sans-serif;color:#80642e;text-shadow:0 1px #fff1bd}
+.challenge-special-main{display:grid;gap:8px;margin:7% 0 5%;width:100%}
+.challenge-special-main strong{font:800 clamp(31px,4vw,58px)/1.07 'Manrope',sans-serif;overflow-wrap:anywhere}
+.challenge-special-main em{font:italic clamp(13px,1.9vw,27px)/1.3 'DM Sans',sans-serif}
+.challenge-special-results{display:flex;justify-content:space-evenly;gap:8px;width:100%;border-radius:19px;padding:15px 7px;background:#f5f8f0;font-size:clamp(10px,1.3vw,17px);font-weight:700}
+.challenge-special-first{margin-top:8%;padding:10px 16px;border-radius:40px;background:#cedfc0;font-size:clamp(11px,1.4vw,19px);font-weight:800}
+.challenge-best-badge{display:grid;gap:4px;background:#d3eacb;color:#365b42;padding:12px;border-radius:13px;margin:8px 0}
+.challenge-best-badge strong{font-size:11px}
+.challenge-best-badge small{font-size:9px}
+.share-best-option{display:flex;align-items:center;gap:10px;color:#436e51;font-size:12px;font-weight:700}
+@media(max-width:760px){.challenge-special-medal span{font-size:31px}.challenge-special-main strong{font-size:32px}.challenge-special-main em{font-size:15px}.challenge-special-results{font-size:10px}}
+
+.share-rendered-preview{display:block;width:100%;height:auto;aspect-ratio:1170/2058;object-fit:contain;border-radius:20px;max-width:100%;align-self:flex-start;box-shadow:0 10px 35px rgba(40,24,39,.1)}
+.share-preview-pending{min-height:360px;display:grid;place-items:center;padding:25px;text-align:center;color:#6d546d;font-weight:700;border:1px solid #e7dbe4;border-radius:18px}
+
+/* Bioimpedância: cards, painel, formulário adaptativo e gráficos */
+.body-page{display:grid;gap:22px}.body-head{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.body-head h1{font-size:30px;letter-spacing:-1px;margin:7px 0}.body-head>div>p:last-child{font-size:13px;color:var(--muted)}
+.body-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.body-summary-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px;display:grid;gap:8px;min-width:0}
+.body-summary-card span{font-size:11px;color:var(--muted)}.body-summary-card strong{font:800 23px 'Manrope',sans-serif;color:var(--ink)}
+.body-summary-card small{font-size:10px;color:var(--muted)}
+.body-panel{background:var(--surface);border:1px solid var(--border);border-radius:17px;padding:24px;min-width:0}
+.body-panel-head{display:flex;align-items:center;justify-content:space-between;gap:15px;flex-wrap:wrap;margin-bottom:18px}
+.body-panel-head h2{font-size:19px;margin-top:7px}.body-panel-head h2 small{font-size:11px;color:var(--muted);font-weight:500}
+.body-muted{font-size:12px;color:var(--muted);line-height:1.65}.body-goal-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}
+.body-goal-card{background:#faf6f9;border:1px solid #ebdee7;border-radius:13px;padding:16px;display:grid;gap:9px}
+.body-goal-title{display:flex;align-items:center;justify-content:space-between;gap:12px}.body-goal-title strong{font-size:13px}
+.body-goal-title span{font-size:10px;color:#795d73;border:1px solid #dcc8d5;border-radius:99px;padding:4px 9px}
+.body-goal-card p{font-size:12px}.body-goal-card small{font-size:11px;color:#81717c}
+.body-progress-track{height:7px;background:#e9dfe6;border-radius:90px;overflow:hidden}
+.body-progress-track>div{height:100%;background:#76596f;border-radius:90px}
+.body-achievement{display:flex;align-items:center;gap:6px;color:#577962;font-size:12px;font-weight:700}
+.body-actions{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.body-actions button{display:inline-flex;align-items:center;justify-content:center;gap:5px;border:1px solid #e4d6df;border-radius:8px;padding:7px 10px;background:#fff;color:#684b61;font-size:11px;font-weight:700}
+.body-actions button:hover{background:#f6edf2}.body-actions button:disabled{opacity:.5}
+.body-archive{font-size:12px;color:var(--muted);margin-top:17px}.body-archive summary{cursor:pointer;color:var(--plum);font-weight:700}.body-archive p{padding:7px 2px}
+.body-chart-controls{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(170px,1fr) minmax(140px,.7fr);align-items:end;gap:12px;margin-bottom:16px}
+.body-chart-controls label{font-size:10px;font-weight:800;color:#807080;letter-spacing:.7px;display:grid;gap:7px;min-width:0}
+.body-chart-controls select,.body-form-grid input,.body-form-grid select,.body-form-grid textarea,.body-custom-fields input,.body-custom-fields select{
+ width:100%;min-height:43px;border:1px solid #dfd3dc;border-radius:10px;background:white;color:var(--ink);padding:10px 12px;font-size:12px}
+.body-segments{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));background:#f4edf2;border-radius:11px;padding:4px}
+.body-segments button{border:0;background:transparent;color:#806e7c;padding:10px 7px;border-radius:8px;font-size:11px;font-weight:800}
+.body-segments button.active{background:white;color:#63445b;box-shadow:0 2px 7px #4b29421a}
+.body-chart-scroll{overflow-x:auto}.body-chart-svg{width:100%;min-width:420px;max-height:340px}
+.body-chart-empty{text-align:center;padding:60px 10px;color:var(--muted);font-size:12px}
+.body-table-wrap{overflow:auto}.body-table{width:100%;border-collapse:collapse;font-size:12px;min-width:510px;text-align:left}
+.body-table th{font-size:10px;color:#80717b;letter-spacing:.7px;text-transform:uppercase;border-bottom:1px solid var(--border);padding:11px}
+.body-table td{border-bottom:1px solid #f1eaf0;padding:14px 11px;color:var(--ink)}
+.body-table tr.deleted{opacity:.6}.body-check{display:flex;align-items:center;gap:7px;color:var(--muted);font-size:12px}
+.body-modal-backdrop{position:fixed;inset:0;z-index:95;background:#2115239c;display:grid;place-items:center;padding:20px}
+.body-modal{width:min(760px,100%);max-height:min(92vh,940px);overflow-y:auto;background:#fffdfa;border-radius:19px;padding:26px;box-shadow:0 20px 90px #20142140;display:grid;gap:20px}
+.body-modal-small{width:min(490px,100%)}.body-modal header{display:flex;justify-content:space-between;align-items:start;gap:12px}
+.body-modal header h2{font-size:22px}.body-modal header button{border:0;border-radius:50%;background:#f3ebf1;color:#6e4a64;padding:7px;display:grid;place-items:center}
+.body-form-tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;background:#f6eef3;border-radius:10px;padding:4px}
+.body-form-tabs button{background:transparent;border:0;border-radius:8px;padding:11px;font-size:12px;color:#8a7885;font-weight:700}
+.body-form-tabs button.active{background:white;color:#63475e;box-shadow:0 2px 8px #33212f11}
+.body-form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}.body-form-grid label{font-size:11px;font-weight:800;color:#786878;display:grid;gap:7px}
+.body-form-grid label.wide{grid-column:1/-1}.body-form-grid textarea{resize:vertical}
+.body-modal footer{display:flex;justify-content:flex-end;gap:10px;border-top:1px solid #eee5eb;padding-top:16px}
+.body-custom{padding:17px;border-radius:12px;background:#f7f2f5}.body-custom h3{font-size:13px;margin-bottom:10px}
+.body-custom-fields{display:grid;grid-template-columns:minmax(0,1fr) 130px auto;gap:8px}.body-loading{padding:60px;text-align:center;color:var(--muted)}
+/* Equal label baselines and identical control geometry for the Progress comparison filters. */
+.progress-filters{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:start!important;gap:17px}
+.progress-filters>.input-label,.progress-filters>.multi-exercise{min-width:0;margin:0!important;align-self:start}
+.progress-filters>.input-label{display:flex!important;flex-direction:column;gap:8px;line-height:16px}
+.progress-filters>.input-label .select-input{max-width:none;width:100%;box-sizing:border-box;height:44px;min-height:44px;margin:0;padding:0 13px}
+.progress-filters .multi-exercise>.input-label{height:16px;line-height:16px;margin:0 0 8px!important}
+.progress-filters .multi-exercise-trigger{width:100%;min-height:44px;height:44px;box-sizing:border-box;margin:0!important;align-items:center}
+@media(max-width:1000px){.body-summary{grid-template-columns:repeat(2,minmax(0,1fr))}.body-chart-controls{grid-template-columns:1fr 1fr}.body-segments{grid-column:1/-1}}
+@media(max-width:760px){.body-page{gap:15px}.body-head h1{font-size:25px}.body-head>.btn{width:100%}.body-panel{padding:18px}.body-goal-grid{grid-template-columns:1fr}
+ .body-modal-backdrop{padding:0;place-items:stretch}.body-modal{width:100%;max-height:100dvh;min-height:100dvh;border-radius:0;padding:20px 16px 28px}
+ .mobile-nav{grid-template-columns:repeat(7,minmax(0,1fr))!important}.mobile-nav button{font-size:8px!important;min-width:0;padding-inline:0}
+ .progress-filters{grid-template-columns:minmax(0,1fr)!important}}
+@media(max-width:460px){.body-form-grid{grid-template-columns:1fr}.body-chart-controls{grid-template-columns:1fr}.body-segments{grid-column:auto}
+ .body-custom-fields{grid-template-columns:1fr}.body-summary-card{padding:12px}.body-summary-card strong{font-size:19px}}
+
+/* Shared filter geometry: native select and multiselect align on the same baseline. */
+.progress-filters{grid-template-columns:repeat(2,minmax(0,1fr))!important;align-items:start!important;gap:17px}
+.progress-filters>.input-label,.progress-filters>.multi-exercise{display:flex;flex-direction:column;gap:8px;margin:0!important;min-width:0;align-self:start}
+.progress-filters>.input-label{font-size:10px}
+.progress-filters>.input-label .select-input,.progress-filters .multi-exercise-trigger{box-sizing:border-box;width:100%;max-width:none;min-height:46px;height:46px;margin:0;padding:0 15px;border:1px solid #d6c6d1;border-radius:12px;background:#fffdfa;font:700 13px 'Manrope',sans-serif;line-height:normal}
+.progress-filters .multi-exercise .input-label{margin:0!important;line-height:normal}
+@media(max-width:760px){.progress-filters{grid-template-columns:minmax(0,1fr)!important}}
+
+/* Mobile drawer: inherits the application's existing font family. */
+.mobile-menu-toggle,.mobile-drawer-backdrop{display:none}
+@media(max-width:760px){
+  .mobile-nav{display:none!important}
+  .mobile-menu-toggle{display:grid;place-items:center;flex:0 0 40px;width:40px;height:40px;border:1px solid var(--border);border-radius:11px;background:var(--surface);color:var(--plum)}
+  .topbar{gap:10px}
+  .topbar .breadcrumbs{min-width:0;flex:1}
+  .mobile-drawer-backdrop{display:block;position:fixed;inset:0;z-index:100;background:rgba(31,22,32,.48)}
+  .mobile-drawer{height:100%;width:min(82vw,340px);background:var(--surface);display:flex;flex-direction:column;padding:26px 19px max(24px,env(safe-area-inset-bottom));box-shadow:12px 0 45px #25172538;overflow-y:auto;font-family:inherit}
+  .mobile-drawer-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:30px}
+  .mobile-drawer-close{display:grid;place-items:center;border:0;background:transparent;color:var(--plum);width:38px;height:38px}
+  .mobile-drawer-profile{display:flex;align-items:center;gap:13px;padding:17px;border-radius:15px;background:#f4edf3;color:var(--plum);margin-bottom:20px}
+  .mobile-drawer-profile strong,.mobile-drawer-profile span{display:block}
+  .mobile-drawer-profile strong{font-size:13px}
+  .mobile-drawer-profile span{font-size:11px;margin-top:4px;color:var(--muted)}
+  .mobile-drawer-links{display:grid;gap:5px}
+  .mobile-drawer-links button{width:100%;display:flex;align-items:center;gap:16px;min-height:51px;padding:12px 15px;text-align:left;border:0;border-radius:12px;background:transparent;color:var(--ink);font-size:13px;font-weight:700;font-family:inherit}
+  .mobile-drawer-links button.active{background:var(--plum);color:white}
+  .mobile-drawer-links button svg{flex-shrink:0;color:inherit}
+  .mobile-drawer-bottom{margin-top:auto;padding:24px 8px 0;border-top:1px solid var(--border);font-size:11px;color:var(--muted);line-height:1.6}
+}
+
+@media(max-width:760px){.mobile-drawer-invites{display:flex;align-items:center;gap:16px;padding:14px 15px;margin-top:16px;border-top:1px solid var(--border);color:var(--plum);font-size:13px;font-weight:700;text-decoration:none;min-height:52px}.mobile-drawer-invites svg{flex-shrink:0}}
+
+
+/* Ritmo — Malva & Soft Green v1.0 · design aprovado em 21/11/2026.
+   Visual-only: affects both demo and authenticated views; no business logic changes. */
+:root{
+  --ritmo-green-button:#e4f8e3;
+  --ritmo-green-card:#f0f8ee;
+  --ritmo-green-progress:#648c70;
+  --ritmo-green-ink:#315245;
+  --ritmo-green-track:#e5f0e5;
+  --ritmo-green-border:#d3e6d5;
+  --ritmo-mauve-selected:#f3eaf1;
+}
+/* Buttons: soft green, dark text, subtle feedback. Destructive actions keep red. */
+.btn-primary,
+.hero-actions .btn-light{
+  color:var(--ritmo-green-ink);
+  background:var(--ritmo-green-button);
+  border-color:#cde5d0;
+}
+.btn-primary:hover:not(:disabled),
+.hero-actions .btn-light:hover:not(:disabled){background:#d7efd8;border-color:#bcdabe}
+.btn-primary:active:not(:disabled),
+.hero-actions .btn-light:active:not(:disabled){background:#cce8ce}
+.btn-primary svg,.hero-actions .btn-light svg{color:inherit}
+/* Hero B: the mauve banner remains the brand anchor. */
+.hero{background:linear-gradient(112deg,#553d52 0%,#775b71 100%)}
+.hero .dot{background:#d9e9dc}
+/* The left navigation and mobile menu remain mauve by design. */
+.nav-item.active{background:var(--ritmo-mauve-selected);color:var(--plum)}
+/* Neutral cards alternate with creamy green. Green is decoration, not a health judgment. */
+.stats-grid .metric-card:nth-child(4n+2),
+.stats-grid .metric-card:nth-child(4n+3),
+.body-summary-card:nth-child(4n+2),
+.body-summary-card:nth-child(4n+3),
+.chart-stats>div:nth-child(4n+2),
+.chart-stats>div:nth-child(4n+3),
+.carnival-counter:nth-child(even),
+.body-goal-card:nth-child(even){
+  background:var(--ritmo-green-card);
+  border-color:var(--ritmo-green-border);
+}
+.stats-grid .metric-card:nth-child(4n+2) .metric-icon,
+.stats-grid .metric-card:nth-child(4n+3) .metric-icon{
+  background:#deeddf;
+  color:var(--ritmo-green-ink);
+}
+.stats-grid .metric-card:nth-child(4n+2) strong,
+.stats-grid .metric-card:nth-child(4n+3) strong,
+.body-summary-card:nth-child(4n+2) strong,
+.body-summary-card:nth-child(4n+3) strong,
+.chart-stats>div:nth-child(4n+2) strong,
+.chart-stats>div:nth-child(4n+3) strong,
+.carnival-counter:nth-child(even) strong{color:var(--ritmo-green-ink)}
+/* Exercise cards and headers stay white. Only completed set rows are colored. */
+.exercise-card,.exercise-head{background:var(--surface)}
+.set-line{
+  border-radius:9px;
+  transition:background-color 200ms ease,border-color 200ms ease,color 200ms ease;
+}
+.set-line.checked{background:var(--ritmo-green-card);color:var(--ritmo-green-ink);border-bottom-color:var(--ritmo-green-border)}
+.check-square{transition:background-color 200ms ease,border-color 200ms ease}
+.check-square.checked{background:var(--ritmo-green-progress);border-color:var(--ritmo-green-progress)}
+.set-line.checked .set-number{color:var(--ritmo-green-ink)}
+.set-line.checked .load-field,
+.set-line.checked .reps-field{background:#fffdfa;border-color:#d5e3d5}
+/* Uniform green progress bars: never imply a body metric is inherently good/bad. */
+.progress-track,.body-progress-track{background:var(--ritmo-green-track)}
+.progress-track>div,.body-progress-track>div{background:var(--ritmo-green-progress)}
+.completion-card .completion-pct{color:var(--ritmo-green-ink)}
+.progress-track>div{transition:width 200ms ease}
+/* Comparisons and dropdowns retain mauve for active selection. */
+.multi-exercise-chip{background:var(--ritmo-mauve-selected);border-color:#e7d5e1;color:var(--plum)}
+.multi-exercise-option.is-selected{background:var(--ritmo-mauve-selected)}
+.progress-filters .select-input:focus,
+.progress-filters .multi-exercise-trigger[aria-expanded="true"]{border-color:var(--plum)}
+/* Mobile/desktop: respect accessibility preferences and prevent motion-only feedback. */
+@media(prefers-reduced-motion:reduce){
+  .set-line,.check-square,.progress-track>div{transition:none!important}
+}
