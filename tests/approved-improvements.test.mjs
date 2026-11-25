@@ -71,3 +71,84 @@ test('demo efêmera não deve persistir no navegador ou acessar banco real',asyn
  assert.match(api,/sameOrigin\(request\)/);
  assert.match(api,/WHERE user_id=/);
 });
+
+const movement=(key,target,sets=1)=>({key:key.normalize('NFD').replace(/\p{Diacritic}/gu,''),name:key,target,sets,unit:'none',defaultLoad:null});
+const wodBlock=(format, exercises, rounds=null,durationSeconds=null,restSeconds=0)=>({format,exercises,rounds,durationSeconds,restSeconds});
+
+test('voltas fixas avançam na ordem, preservam descanso e permitem repetir o mesmo exercício em blocos distintos',async()=>{
+  const {normalizeWodPlan,initialWod,applyWodAction,wodScore}=await import('../lib/wodBlocks.ts');
+  const plan=normalizeWodPlan([
+    wodBlock('rounds',[movement('Flexão','8'),movement('Corrida','200 m')],2,null,15),
+    wodBlock('linear',[movement('Flexão','5')])
+  ]);
+  assert.ok(plan);
+  let state=initialWod(plan);
+  const action=(block,kind,now,slot,value)=>{
+    const result=applyWodAction(state,{block,kind,slot,value,revision:state.revision},now,'wod-id');
+    state=result.state;
+    return result.set;
+  };
+  action(0,'start',1000);
+  assert.equal(action(0,'record',2000,0,8).exercise_name,'Flexão');
+  assert.equal(action(0,'record',3000,1,200).actual_distance_m,200);
+  assert.throws(()=>action(0,'record',5000,2,8),/etapa mudou/);
+  assert.equal(action(0,'record',18000,2,8).set_number,2);
+  action(0,'record',20000,3,200);
+  assert.match(wodScore(plan[0],state.progress[0]),/^2 de 2 voltas$/);
+  action(1,'start',20001);
+  const later=action(1,'record',22000,0,5);
+  assert.equal(later.block_number,2);
+  assert.equal(later.set_number,3);
+  assert.equal(later.actual_reps,5);
+});
+
+test('AMRAP termina no prazo e mantém o trabalho parcial separado da meta',async()=>{
+  const {normalizeWodPlan,initialWod,applyWodAction,wodScore}=await import('../lib/wodBlocks.ts');
+  const plan=normalizeWodPlan([wodBlock('amrap',[movement('Flexão','8'),movement('Prancha','30 s')],null,60)]);
+  let state=initialWod(plan);
+  const action=(kind,now,slot,value)=>{
+    const result=applyWodAction(state,{block:0,kind,slot,value,revision:state.revision},now,'wod-id');
+    state=result.state;
+    return result.set;
+  };
+  action('start',1000);
+  action('record',5000,0,8);
+  const timed=action('record',35000,1,30);
+  assert.equal(timed.actual_reps,null);
+  state=JSON.parse(JSON.stringify(state));
+  assert.throws(()=>action('record',61000,2,8),/tempo acabou/);
+  const partial=action('end',63000,2,5);
+  assert.equal(partial.actual_reps,5);
+  assert.equal(partial.completed,false);
+  assert.equal(state.progress[0].endedAt,61000);
+  assert.match(wodScore(plan[0],state.progress[0]),/^1 volta \+ 5 reps/);
+});
+
+test('For Time diferencia conclusão do cap e EMOM ignora minutos sem registro',async()=>{
+  const {normalizeWodPlan,initialWod,applyWodAction,wodScore}=await import('../lib/wodBlocks.ts');
+  const plan=normalizeWodPlan([
+    wodBlock('for_time',[movement('Remo','300 m')],1,60),
+    wodBlock('emom',[movement('Flexão','8'),movement('Agachamento','12')],null,180)
+  ]);
+  let state=initialWod(plan);
+  const action=(block,kind,now,slot,value)=>{
+    const result=applyWodAction(state,{block,kind,slot,value,revision:state.revision},now,'wod-id');
+    state=result.state;
+    return result.set;
+  };
+  action(0,'start',1000);
+  action(0,'record',26000,0,300);
+  assert.equal(wodScore(plan[0],state.progress[0]),'Concluído em 0:25');
+  action(1,'start',27000);
+  assert.equal(action(1,'record',90000,1,12).exercise_key,'Agachamento');
+  assert.throws(()=>action(1,'record',95000,1,12),/etapa mudou/);
+  assert.equal(action(1,'record',150000,2,3).completed,false);
+  assert.throws(()=>applyWodAction(state,{block:1,kind:'end',revision:0},207000,'wod-id'),/outra tela/);
+  action(1,'end',207000);
+  assert.equal(wodScore(plan[1],state.progress[1]),'1 de 3 minutos concluídos');
+  const capped=normalizeWodPlan([wodBlock('for_time',[movement('Remo','300 m')],1,60)]);
+  const started=applyWodAction(initialWod(capped),{block:0,kind:'start',revision:0},1000,'wod-id').state;
+  const ended=applyWodAction(started,{block:0,kind:'end',revision:1,slot:0,value:100},62000,'wod-id').state;
+  assert.doesNotMatch(wodScore(capped[0],ended.progress[0]),/Concluído em/);
+  assert.equal(ended.progress[0].endedAt,61000);
+});

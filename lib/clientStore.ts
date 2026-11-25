@@ -5,6 +5,7 @@ import { DEMO_TEMPLATES } from './demoTemplates';
 import { BASE_EXERCISES, normalizeExerciseName, type CatalogExercise } from './exerciseCatalog';
 import type { Modality } from './personalRecords';
 import type { Unit } from './templates';
+import { applyWodAction, initialWod, type WodBlock, type WodAction } from './wodBlocks';
 export type Mode = 'demo' | 'cloud' | 'showcase';
 const STORAGE_KEY = 'ritmo_treinos_demo_v1';
 let showcaseExercises:CatalogExercise[]=[];
@@ -95,13 +96,28 @@ export async function createSession(mode:Mode,templateId:string,date:string,gymN
   write(mode,[{session,sets},...old]); return id;
 }
 
-export async function createLocalWod(mode:Mode,template:Template,date:string,gymName:string):Promise<string>{
+export async function createLocalWod(mode:Mode,template:Template,date:string,gymName:string,blocks?:WodBlock[]):Promise<string>{
   if(mode==='cloud')throw new Error('Use a API para treinos reais.');
   const now=new Date().toISOString();const id=crypto.randomUUID();
-  const sets=makeSets(template).map(s=>({...s,id:`${id}__${s.id}`}));
+  const sets=blocks?[]:makeSets(template).map(s=>({...s,id:`${id}__${s.id}`}));
   const session:WorkoutSession={id,template_id:'wod',template_name:template.name,performed_on:date,gym_name:gymName||null,started_at:now,finished_at:null,status:'active',completed_sets:0,total_sets:sets.length};
-  write(mode,[{session,sets},...read(mode)]);
+  write(mode,[{session,sets,wod:blocks?initialWod(blocks):null},...read(mode)]);
   return id;
+}
+export async function saveWodAction(mode:Mode,id:string,action:WodAction):Promise<void>{
+  if(mode==='cloud'){
+    await parseResponse(await fetch(`/api/sessions/${encodeURIComponent(id)}/blocks`,{
+      method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(action)
+    }));
+    return;
+  }
+  const sessions=read(mode);
+  const detail=sessions.find(item=>item.session.id===id);
+  if(!detail?.wod||detail.session.status!=='active')throw new Error('Treino indisponível.');
+  const change=applyWodAction(detail.wod,action,Date.now(),id);
+  detail.wod=change.state;
+  if(change.set)detail.sets=[...detail.sets,change.set];
+  write(mode,sessions);
 }
 export async function getSession(mode:Mode,id:string):Promise<SessionDetail> {
   if (mode==='cloud') return parseResponse<SessionDetail>(await fetch(`/api/sessions/${encodeURIComponent(id)}`,{cache:'no-store'}));

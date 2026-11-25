@@ -6,6 +6,7 @@ CREATE TABLE IF NOT EXISTS workout_sessions (
   performed_on DATE NOT NULL,
   started_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   finished_at TIMESTAMPTZ,
+  wod_blocks JSONB,
   status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'finished'))
 );
 

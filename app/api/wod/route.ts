@@ -1,3 +1,4 @@
+import { initialWod, normalizeWodPlan } from '../../../lib/wodBlocks';
 import { comparableLoadUnit } from '../../../lib/weightUnits';
 import { NextResponse } from 'next/server';
 import { db, sameOrigin, forbiddenOrigin, unauthorized, serverError } from '../../../lib/server';
@@ -22,7 +23,8 @@ export async function POST(request:Request){
     const source={id:'wod',name:typeof body.name==='string'?body.name:'Treino do dia / WOD',
       description:'',days:'',category:'CrossFit',exercises:body.exercises};
     const template=normalizeTemplate(source,'wod');
-    if(!validDate||!template||template.exercises.reduce((sum,e)=>sum+e.sets,0)>160)
+    const plan=body.blocks===undefined?null:normalizeWodPlan(body.blocks);
+    if(!validDate||(body.blocks!==undefined?!plan:!template||template.exercises.reduce((sum,e)=>sum+e.sets,0)>160))
       return NextResponse.json({error:'Informe data válida e até 40 exercícios / 160 séries.'},{status:400});
     const sql=db();
     const allowed=new Map<string,KnownExercise>(BASE_EXERCISES.map(e=>[e.key,{name:e.name,unit:e.unit}]));
@@ -38,18 +40,28 @@ export async function POST(request:Request){
       allowed.set(e.key,{name:e.name,unit:e.unit});
     for(const row of history)if(!allowed.has(row.exercise_key))
       allowed.set(row.exercise_key,{name:row.exercise_name,unit:row.load_unit});
-    for(const e of template.exercises){
+    for(const e of plan?.flatMap(block=>block.exercises) ?? template!.exercises){
       const known=allowed.get(e.key);
       if(!known||comparableLoadUnit(known.unit)!==comparableLoadUnit(e.unit)||normalizeExerciseName(known.name)!==normalizeExerciseName(e.name))
         return NextResponse.json({error:'Selecione exercícios existentes no catálogo do Ritmo.'},{status:400});
     }
+    if(plan){
+      const name=String(source.name).trim().slice(0,70);
+      if(!name)return NextResponse.json({error:'Informe o nome do treino.'},{status:400});
+      const [created]=await sql`
+        INSERT INTO public.workout_sessions(user_id,template_id,template_name,performed_on,gym_name,wod_blocks)
+        VALUES (${user.id}::uuid,'wod',${name},${performed_on}::date,${gym_name||null},${JSON.stringify(initialWod(plan))}::jsonb)
+        RETURNING id::text AS id
+      `;
+      return NextResponse.json({id:created.id},{status:201});
+    }
     const created=await sql`
       INSERT INTO public.workout_sessions(user_id,template_id,template_name,performed_on,gym_name)
-      VALUES (${user.id}::uuid,'wod',${template.name},${performed_on}::date,${gym_name||null})
+      VALUES (${user.id}::uuid,'wod',${template!.name},${performed_on}::date,${gym_name||null})
       RETURNING id::text AS id
     `;
     const id=created[0].id as string;
-    const entries=makeSets(template).map(s=>({
+    const entries=makeSets(template!).map(s=>({
       exercise_key:s.exercise_key,exercise_name:s.exercise_name,sort_order:s.sort_order,
       block_number:s.block_number,set_number:s.set_number,target_reps:s.target_reps,
       load_unit:s.load_unit,weight_kg:s.weight_kg,rest_seconds:s.rest_seconds

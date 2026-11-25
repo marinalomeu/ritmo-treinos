@@ -16,6 +16,7 @@ export async function GET(_request:Request,context:Ctx){
     const rows=await sql`
       SELECT ws.id::text AS id,ws.template_id,ws.template_name,ws.gym_name,ws.performed_on::text AS performed_on,
         ws.started_at::text AS started_at,ws.finished_at::text AS finished_at,ws.paused_at::text AS paused_at,ws.paused_ms,ws.status,ws.challenge_id,ws.challenge_division,
+        to_jsonb(ws)->'wod_blocks' AS wod_blocks,
         COUNT(ss.id)::int AS total_sets,COUNT(ss.id) FILTER(WHERE ss.completed)::int AS completed_sets
       FROM public.workout_sessions ws LEFT JOIN public.session_sets ss ON ws.id=ss.session_id
       WHERE ws.id=${id}::uuid AND ws.user_id=${user.id}::uuid GROUP BY ws.id
@@ -29,7 +30,8 @@ export async function GET(_request:Request,context:Ctx){
       WHERE ss.session_id=${id}::uuid AND ws.user_id=${user.id}::uuid
       ORDER BY ss.sort_order,ss.set_number
     `;
-    return NextResponse.json({session:rows[0],sets},{headers:{'Cache-Control':'no-store'}});
+    const {wod_blocks:wod,...session}=rows[0];
+    return NextResponse.json({session,sets,wod},{headers:{'Cache-Control':'no-store'}});
   }catch(error){return serverError(error);}
 }
 

@@ -7,6 +7,7 @@ import { createSession, deleteSession, finishSession, getSession, listData, save
 import { DEFAULT_GOAL, SHOWCASE_GOAL, defaultMemberGoal, goalProgress, isValidGoal, type TrainingGoal } from '../lib/goal';
 import TemplateDialog from './TemplateDialog';
 import WodDialog from './WodDialog';
+import WodBlocksWorkout from './WodBlocksWorkout';
 import ChallengesView from './ChallengesView';
 import type { ChallengeDefinition } from '../lib/challengeTemplates';
 import MultiExerciseSelect from './MultiExerciseSelect';
@@ -164,7 +165,9 @@ export default function WorkoutApp({mode,isOwner=false}:{mode:Mode;isOwner?:bool
   const finish=async()=>{
     if(!detail)return;
     const incomplete=detail.sets.filter(s=>!s.completed).length;
-    if(incomplete&&!window.confirm(`Ainda faltam ${incomplete} séries. Deseja finalizar mesmo assim?`))return;
+    if(detail.wod?.progress.some(part=>part.endedAt===null)&&
+      !window.confirm('Ainda há blocos em aberto. Deseja finalizar com o progresso registrado?'))return;
+    if(incomplete&&!detail.wod&&!window.confirm(`Ainda faltam ${incomplete} séries. Deseja finalizar mesmo assim?`))return;
     setBusy(true);try{
       await saveSessionGym(mode,detail.session.id,sessionGymDraft);
       await finishSession(mode,detail.session.id);
@@ -322,7 +325,7 @@ export default function WorkoutApp({mode,isOwner=false}:{mode:Mode;isOwner?:bool
               <strong>{sessionDuration(detail.session.started_at,detail.session.finished_at,clockNow,detail.session.paused_ms??0,detail.session.paused_at??null)}</strong>
             </span>
           </div>
-          {detail.session.status==='active'&&<button type="button" className="btn btn-outline-template" disabled={busy} onClick={()=>void togglePause()}>{detail.session.paused_at?'Retomar':'Pausar'} cronômetro</button>}
+          {detail.session.status==='active'&&!detail.wod&&<button type="button" className="btn btn-outline-template" disabled={busy} onClick={()=>void togglePause()}>{detail.session.paused_at?'Retomar':'Pausar'} cronômetro</button>}
            <label className="date-label">DATA<input type="date" value={detail.session.performed_on} disabled /></label>
         </div></div>
         <div className="workout-gym-field"><label htmlFor="workout-gym">ACADEMIA / LOCAL DO TREINO (OPCIONAL)</label>
@@ -331,10 +334,12 @@ export default function WorkoutApp({mode,isOwner=false}:{mode:Mode;isOwner?:bool
               onClick={()=>void saveGym()}>{gymSaving?'Salvando…':'Salvar local'}</button></div>
           <small>Local registrado somente nesta sessão. Você escolhe se aparece no card.</small>
         </div>
-        <div className="completion-card"><div><strong>{detail.sets.filter(s=>s.completed).length} de {detail.sets.length} séries</strong><span>concluídas nesta sessão</span></div><span className="completion-pct">{Math.round(100*detail.sets.filter(s=>s.completed).length/Math.max(detail.sets.length,1))}%</span><div className="progress-track"><div style={{width:`${100*detail.sets.filter(s=>s.completed).length/Math.max(detail.sets.length,1)}%`}}/></div></div>
+        {!detail.wod&&<div className="completion-card"><div><strong>{detail.sets.filter(s=>s.completed).length} de {detail.sets.length} séries</strong><span>concluídas nesta sessão</span></div><span className="completion-pct">{Math.round(100*detail.sets.filter(s=>s.completed).length/Math.max(detail.sets.length,1))}%</span><div className="progress-track"><div style={{width:`${100*detail.sets.filter(s=>s.completed).length/Math.max(detail.sets.length,1)}%`}}/></div></div>}
         {mode!=='showcase'&&detail.session.template_name==='HYROX adaptado'&&detail.sets.some(s=>s.load_unit==='km/h')&&<div className="hyrox-info"><Footprints size={18}/><div><strong>6 blocos de 500 m</strong><span>Velocidade-alvo de 10 km/h, com pausas conforme necessário. Faça cada estação após sua corrida.</span></div></div>}
         {detail.session.status==='active'&&restState&&!restState.skipped&&restState.until>clockNow&&detail.sets.some(s=>s.id===restState.setId&&s.completed)&&<div className="rest-timer"><Clock3 size={18}/><strong>Descanso: {Math.ceil((restState.until-clockNow)/1000)}s</strong><button type="button" onClick={()=>{const n={...restState,skipped:true};setRestState(n);try{sessionStorage.setItem(`ritmo-rest:${detail.session.id}`,JSON.stringify(n));}catch{}}}>Pular</button><button type="button" onClick={()=>{const n={...restState,until:restState.until+30000};setRestState(n);try{sessionStorage.setItem(`ritmo-rest:${detail.session.id}`,JSON.stringify(n));}catch{}}}>+30s</button></div>}
-        <WorkoutSets detail={detail} template={findVisibleTemplate(detail.session.template_id)} saving={saving} patchSet={patchSet} updateLocalWeight={updateLocalWeight} saveEditedWeight={saveEditedWeight} updateLocalReps={updateLocalReps} saveEditedReps={saveEditedReps} updateLocalDistance={updateLocalDistance} saveEditedDistance={saveEditedDistance}/>
+        {detail.wod?<WodBlocksWorkout key={detail.session.id} detail={{...detail,wod:detail.wod}} mode={mode}
+          now={clockNow} busy={busy} onBusy={setBusy} onChanged={fresh=>setDetail(current=>current?.session.id===fresh.session.id?fresh:current)}/>
+        :<WorkoutSets detail={detail} template={findVisibleTemplate(detail.session.template_id)} saving={saving} patchSet={patchSet} updateLocalWeight={updateLocalWeight} saveEditedWeight={saveEditedWeight} updateLocalReps={updateLocalReps} saveEditedReps={saveEditedReps} updateLocalDistance={updateLocalDistance} saveEditedDistance={saveEditedDistance}/>}
 
         {detail.session.status==='finished'&&<div className="post-workout-share-invite">
           <div><p className="overline">COMPARTILHE SUA CONQUISTA</p>

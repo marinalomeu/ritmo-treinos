@@ -32,6 +32,7 @@ export async function PATCH(request:Request,context:Ctx){
         completed_at=CASE WHEN ${body.completed} THEN COALESCE(ss.completed_at,NOW()) ELSE NULL END
       FROM public.workout_sessions ws
       WHERE ss.id=${id}::bigint AND ss.session_id=ws.id AND ws.user_id=${user.id}::uuid
+        AND to_jsonb(ws)->>'wod_blocks' IS NULL
       RETURNING ss.id::text AS id,ss.weight_kg::float8 AS weight_kg,ss.actual_reps,ss.actual_distance_m::float8 AS actual_distance_m,
         ss.completed,ss.completed_at::text AS completed_at
     `;

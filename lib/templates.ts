@@ -1,3 +1,4 @@
+import type { WodState } from './wodBlocks';
 import { DEMO_TEMPLATES } from './demoTemplates.ts';
 import type { PersonalRecord, ExerciseModality } from './personalRecords';
 import type { CatalogExercise } from './exerciseCatalog';
@@ -58,7 +59,7 @@ export type WorkoutSession = {
   completed_sets: number;
   total_sets: number;
 };
-export type SessionDetail = {session: WorkoutSession; sets: StoredSet[]};
+export type SessionDetail = {session: WorkoutSession; sets: StoredSet[]; wod?: WodState | null};
 export type HistoryData = {sessions: WorkoutSession[]; progress: {exercise_key:string;exercise_name:string;load_unit:Unit;performed_on:string;weight_kg:number;session_id:string}[];goal?:import('./goal').TrainingGoal;templates?:Template[];historicalExercises?:{key:string;name:string;unit:Unit}[];personalRecords?:PersonalRecord[];prPinned?:string[];prReferences?:{exercise_key:string;weight_kg:number;actual_reps:number|null;target_reps:string;performed_on:string}[];exerciseModalities?:ExerciseModality[];customExercises?:CatalogExercise[]};
 /** Extrai somente metas inequívocas de repetições; nunca interpreta tempo, distância, AMRAP ou ranges como reps. */
 export function prescribedReps(target:string):number|null {

@@ -613,3 +613,18 @@
 @media(prefers-reduced-motion:reduce){
   .set-line,.check-square,.progress-track>div{transition:none!important}
 }
+
+.wod-plan-editor,.wod-block-workout,.wod-block-controls,.wod-partial{display:grid;gap:12px}
+.wod-plan-editor{padding:14px;border:1px solid var(--border);border-radius:12px}
+.wod-block-selector,.wod-block-options,.wod-block-card header,.wod-clock{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.wod-block-selector [aria-pressed=true]{background:var(--plum);color:white}
+.wod-block-card{padding:16px}
+.wod-block-card header>div{margin-right:auto}
+.wod-block-card header span,.wod-score,.wod-stations,.wod-block-results{font-size:.9rem}
+.wod-stations,.wod-block-results ol{padding-left:1.3rem}
+.wod-stations,.wod-block-results li{margin-block:6px}
+.wod-block-controls{justify-items:start;border-top:1px solid var(--border);padding-top:12px}
+.wod-block-controls label{display:grid;gap:5px}
+.wod-block-controls input{width:9rem;max-width:100%;padding:8px;border:1px solid var(--border);border-radius:8px}
+.wod-clock{color:var(--plum);font-variant-numeric:tabular-nums}
+.wod-block-results{margin-top:12px}
